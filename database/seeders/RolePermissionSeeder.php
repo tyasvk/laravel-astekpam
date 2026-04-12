@@ -10,36 +10,49 @@ use Illuminate\Support\Facades\Hash;
 
 class RolePermissionSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        // 1. Buat beberapa Permission (Hak Akses)
-        // Sesuaikan dengan kebutuhan Astekpam nanti
-        Permission::create(['name' => 'view reports']);
-        Permission::create(['name' => 'create reports']);
-        Permission::create(['name' => 'edit reports']);
-        Permission::create(['name' => 'delete reports']);
+        // 1. Reset cache Spatie (penting agar perubahan terbaca)
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // 2. Buat Permission (Hak Akses)
         Permission::create(['name' => 'manage users']);
+        Permission::create(['name' => 'create reports']);
+        Permission::create(['name' => 'view reports']);
+        Permission::create(['name' => 'verify reports']);
 
-        // 2. Buat Role dan hubungkan dengan Permission
+        // 3. Buat Role dan Berikan Permission
         $adminRole = Role::create(['name' => 'admin']);
-        $userRole = Role::create(['name' => 'user']);
-
-        // Admin dapat semua akses
+        // Admin mendapatkan semua hak akses
         $adminRole->givePermissionTo(Permission::all());
-        
-        // User biasa mungkin hanya bisa lihat dan buat laporan
-        $userRole->givePermissionTo(['view reports', 'create reports']);
 
-        // 3. Buat User Admin Pertama (untuk Login)
-        $admin = User::create([
-            'name' => 'Admin Astekpam',
-            'email' => 'admin@astekpam.com',
-            'password' => Hash::make('password123'), // Jangan lupa ganti nanti
-        ]);
+        $userRole = Role::create(['name' => 'user']);
+        // User (Petugas) hanya bisa membuat dan melihat laporan
+        $userRole->givePermissionTo(['create reports', 'view reports']);
 
-        // Berikan role admin ke user ini
+        // 4. Buat Akun Admin Contoh
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@astekpam.com'],
+            [
+                'name' => 'Admin Utama',
+                'password' => Hash::make('password123'),
+            ]
+        );
         $admin->assignRole($adminRole);
 
-        $this->command->info('Role dan Permission berhasil dibuat!');
+        // 5. Buat Akun Petugas Contoh
+        $petugas = User::updateOrCreate(
+            ['email' => 'petugas@astekpam.com'],
+            [
+                'name' => 'Petugas Jaga',
+                'password' => Hash::make('password123'),
+            ]
+        );
+        $petugas->assignRole($userRole);
+
+        $this->command->info('Role dan Permission berhasil disuntikkan ke database!');
     }
 }

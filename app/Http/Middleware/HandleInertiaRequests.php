@@ -27,26 +27,20 @@ class HandleInertiaRequests extends Middleware
      *
      * @return array<string, mixed>
      */
-    public function share(Request $request): array
-    {
-        return [
-            ...parent::share($request),
-            'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    // Mengambil daftar nama Role (misal: ['admin', 'petugas'])
-                    'roles' => $request->user()->getRoleNames(),
-                    // Mengambil daftar Permission (misal: ['create reports', 'verify reports'])
-                    'permissions' => $request->user()->getAllPermissions()->pluck('name'),
-                ] : null,
-            ],
-            // Tambahkan flash message untuk notifikasi Shadcn Toast nanti
-            'flash' => [
-                'message' => fn () => $request->session()->get('message'),
-                'error' => fn () => $request->session()->get('error'),
-            ],
-        ];
-    }
+public function share(Request $request): array
+{
+    return [
+        ...parent::share($request),
+        'auth' => [
+            'user' => $request->user() ? [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
+                // Pastikan dua baris di bawah ini ada
+                'roles' => $request->user()->getRoleNames(),
+                'permissions' => $request->user()->getAllPermissions()->pluck('name'),
+            ] : null,
+        ],
+    ];
+}
 }

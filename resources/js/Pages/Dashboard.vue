@@ -1,25 +1,25 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { 
-    Card, CardContent, CardHeader, CardTitle, CardDescription 
-} from '@/Components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { 
     FilePlus, 
     History, 
-    Users, 
     ShieldCheck, 
-    ClipboardList,
-    ArrowRight
+    ArrowRight,
+    Users,
+    ClipboardCheck,
+    AlertCircle
 } from 'lucide-vue-next';
+import { usePermission } from '@/Composables/usePermission';
 
-const page = usePage();
-const user = page.props.auth.user;
+// Mengambil data autentikasi dari server
+const { auth } = usePage().props;
+const { hasRole, hasPermission } = usePermission();
 
-// Helper untuk cek role & permission
-const hasRole = (role) => user.roles.includes(role);
-const hasPermission = (perm) => user.permissions.includes(perm);
+// Logika tampilan: Munculkan tombol jika Admin atau Petugas yang punya izin
+const canCreate = hasRole('admin') || hasPermission('create reports');
 </script>
 
 <template>
@@ -27,100 +27,121 @@ const hasPermission = (perm) => user.permissions.includes(perm);
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="font-bold text-2xl text-gray-800 leading-tight">
-                        Dashboard
-                    </h2>
-                    <p class="text-sm text-gray-500">Sistem Digitalisasi Laporan Astekpam - Lapas Kelas I Palembang</p>
-                </div>
-                <div class="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-100">
-                    <ShieldCheck class="w-4 h-4 text-blue-600" />
-                    <span class="text-xs font-semibold text-blue-700 uppercase tracking-wider">
-                        Mode: {{ user.roles[0] }}
-                    </span>
-                </div>
+            <div class="flex flex-col gap-1">
+                <h2 class="font-bold text-2xl text-zinc-900 tracking-tight leading-none">
+                    Dashboard Astekpam
+                </h2>
+                <p class="text-sm text-zinc-500 font-medium italic">
+                    Lapas Kelas I Palembang
+                </p>
             </div>
         </template>
 
-        <div class="py-10">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card class="border-none shadow-sm bg-white">
+                    <CardHeader class="flex flex-row items-center justify-between pb-2">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Status Keamanan</span>
+                        <ShieldCheck class="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-black text-zinc-800">KONDUSIF</div>
+                    </CardContent>
+                </Card>
+
+                <Card class="border-none shadow-sm bg-white">
+                    <CardHeader class="flex flex-row items-center justify-between pb-2">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Total Penghuni</span>
+                        <Users class="h-4 w-4 text-zinc-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-black text-zinc-800">1.650 <span class="text-xs font-normal text-zinc-400">Org</span></div>
+                    </CardContent>
+                </Card>
+
+                <Card class="border-none shadow-sm bg-white">
+                    <CardHeader class="flex flex-row items-center justify-between pb-2">
+                        <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Laporan Masuk</span>
+                        <ClipboardCheck class="h-4 w-4 text-zinc-400" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-black text-zinc-800">04 <span class="text-xs font-normal text-zinc-400">Shift Ini</span></div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-xs font-black text-zinc-400 uppercase tracking-widest px-1">Layanan Utama</h3>
                 
-                <section class="relative overflow-hidden bg-white border rounded-2xl p-8 shadow-sm">
-                    <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div class="text-center md:text-left">
-                            <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900">
-                                Selamat Bertugas, {{ user.name }}!
-                            </h1>
-                            <p class="mt-2 text-gray-600 max-w-xl">
-                                Pastikan setiap detail laporan serah terima regu pengamanan dicatat dengan teliti demi keamanan dan ketertiban Lapas.
-                            </p>
-                        </div>
-                        <div v-if="hasPermission('create reports')">
-                            <Link :href="route('astekpam.create')">
-                                <Button class="h-12 px-6 shadow-lg shadow-blue-200 gap-2">
-                                    <FilePlus class="w-5 h-5" />
-                                    Buat Laporan Baru
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                    <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-blue-50 rounded-full opacity-50"></div>
-                </section>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    
-                    <Card v-if="hasPermission('create reports')" class="group hover:border-blue-500 transition-all duration-300 shadow-none hover:shadow-md border-2 border-dashed border-gray-200">
-                        <CardHeader>
-                            <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mb-2 group-hover:bg-blue-600 transition-colors">
-                                <ClipboardList class="w-6 h-6 text-blue-600 group-hover:text-white" />
+                <div class="grid grid-cols-1 gap-4">
+                    <Link v-if="canCreate" :href="route('astekpam.create')" class="group outline-none">
+                        <Card class="border-none shadow-md hover:shadow-xl transition-all bg-indigo-600 overflow-hidden relative active:scale-[0.98]">
+                            <div class="absolute -right-10 -top-10 text-white/10 group-hover:rotate-12 transition-transform duration-500">
+                                <FilePlus :size="180" />
                             </div>
-                            <CardTitle>Input Laporan</CardTitle>
-                            <CardDescription>Catat mutasi penghuni dan pembagian tugas RUPAM.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Link :href="route('astekpam.create')" class="flex items-center text-sm font-semibold text-blue-600 hover:gap-2 transition-all">
-                                Mulai Input <ArrowRight class="ml-1 w-4 h-4" />
-                            </Link>
-                        </CardContent>
-                    </Card>
+                            
+                            <CardContent class="p-8 flex items-center justify-between relative z-10">
+                                <div class="flex items-center gap-6">
+                                    <div class="p-4 bg-white/20 rounded-2xl text-white shadow-inner backdrop-blur-sm">
+                                        <FilePlus :size="36" />
+                                    </div>
+                                    <div class="text-white">
+                                        <h4 class="text-2xl font-black tracking-tighter">Buat Astekpam Baru</h4>
+                                        <p class="text-indigo-100/70 text-sm font-medium">Input serah terima regu jaga</p>
+                                    </div>
+                                </div>
+                                <div class="bg-white/20 p-3 rounded-full text-white group-hover:translate-x-2 transition-transform">
+                                    <ArrowRight :size="24" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </Link>
 
-                    <Card class="hover:border-gray-400 transition-all duration-300 shadow-none border">
-                        <CardHeader>
-                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mb-2">
-                                <History class="w-6 h-6 text-gray-600" />
-                            </div>
-                            <CardTitle>Riwayat Laporan</CardTitle>
-                            <CardDescription>Cek data serah terima dari shift-shift sebelumnya.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Link :href="route('astekpam.index')" class="flex items-center text-sm font-semibold text-gray-700 hover:gap-2 transition-all">
-                                Lihat Riwayat <ArrowRight class="ml-1 w-4 h-4" />
-                            </Link>
-                        </CardContent>
-                    </Card>
+                    <Link :href="route('astekpam.index')" class="outline-none">
+                        <Card class="border-none shadow-sm hover:bg-zinc-50 transition-colors bg-white group active:scale-[0.98]">
+                            <CardContent class="p-6 flex items-center justify-between">
+                                <div class="flex items-center gap-5">
+                                    <div class="p-3 bg-zinc-100 rounded-2xl text-zinc-600 group-hover:bg-zinc-200 transition-colors">
+                                        <History :size="28" />
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-zinc-800 text-lg leading-tight">Riwayat Laporan</h4>
+                                        <p class="text-xs text-zinc-500 font-medium">Lihat data arsip laporan sebelumnya</p>
+                                    </div>
+                                </div>
+                                <ArrowRight :size="20" class="text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+                            </CardContent>
+                        </Card>
+                    </Link>
 
-                    <Card v-if="hasRole('admin')" class="hover:border-indigo-500 transition-all duration-300 shadow-none border">
-                        <CardHeader>
-                            <div class="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center mb-2">
-                                <Users class="w-6 h-6 text-indigo-600" />
-                            </div>
-                            <CardTitle>Manajemen User</CardTitle>
-                            <CardDescription>Kelola akun petugas dan konfigurasi hak akses.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Link :href="route('admin.users.index')" class="flex items-center text-sm font-semibold text-indigo-600 hover:gap-2 transition-all">
-                                Kelola Petugas <ArrowRight class="ml-1 w-4 h-4" />
-                            </Link>
-                        </CardContent>
-                    </Card>
+                    <Link v-if="hasRole('admin')" :href="route('admin.users.index')" class="outline-none">
+                        <Card class="border-none shadow-sm hover:bg-zinc-50 transition-colors bg-white group active:scale-[0.98]">
+                            <CardContent class="p-6 flex items-center justify-between">
+                                <div class="flex items-center gap-5">
+                                    <div class="p-3 bg-zinc-100 rounded-2xl text-zinc-600 group-hover:bg-zinc-200 transition-colors">
+                                        <Users :size="28" />
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-zinc-800 text-lg leading-tight">Manajemen Petugas</h4>
+                                        <p class="text-xs text-zinc-500 font-medium">Kelola akun dan hak akses personil</p>
+                                    </div>
+                                </div>
+                                <ArrowRight :size="20" class="text-zinc-300 group-hover:text-zinc-500 transition-colors" />
+                            </CardContent>
+                        </Card>
+                    </Link>
                 </div>
+            </div>
 
-                <div class="flex items-center justify-center pt-6 border-t border-gray-100">
-                    <div class="flex items-center gap-2">
-                        <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
-                        <span class="text-xs text-gray-500 font-medium">Sistem Terhubung ke Database Lapas Palembang</span>
-                    </div>
+            <div class="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex gap-4 items-start shadow-sm">
+                <div class="p-2 bg-white rounded-xl border border-amber-200 shadow-xs shrink-0">
+                    <AlertCircle class="w-5 h-5 text-amber-500" />
+                </div>
+                <div class="space-y-1">
+                    <h5 class="text-xs font-bold text-amber-900 uppercase tracking-wider">Instruksi Jaga</h5>
+                    <p class="text-[11px] text-amber-800 leading-relaxed font-medium">
+                        Wajib melakukan apel dan menghitung fisik narapidana di setiap blok sebelum menekan tombol <strong>Kirim Laporan</strong>.
+                    </p>
                 </div>
             </div>
         </div>
