@@ -6,6 +6,7 @@ use App\Http\Controllers\AstekpamController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\DashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,10 +24,10 @@ Route::get('/', function () {
     ]);
 });
 
-// Dashboard Utama
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Hapus route dashboard yang lama, ganti dengan ini:
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 // Grouping Route yang membutuhkan Autentikasi
 Route::middleware('auth')->group(function () {

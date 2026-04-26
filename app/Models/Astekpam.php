@@ -38,14 +38,21 @@ class Astekpam extends Model
         'p2u_jumlah',
         'p2u_hadir',
         'p2u_keterangan',
-        'tugas'
+        'tugas',
+        'rawat_inap_items', 
+        'berobat_items', 
+        'bon_luar_items'
     ];
 
     /**
      * Konversi tipe data otomatis.
      */
     protected $casts = [
-        'tugas'   => 'array',
-        'tanggal' => 'date',
+        'tanggal'          => 'date',
+        'tugas'            => 'array',
+        // Tambahkan ini agar array dari Vue tersimpan dengan benar:
+        'rawat_inap_items' => 'array',
+        'berobat_items'    => 'array',
+        'bon_luar_items'   => 'array',
     ];
 }
