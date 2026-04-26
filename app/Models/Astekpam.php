@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Astekpam extends Model
 {
@@ -10,6 +11,7 @@ class Astekpam extends Model
      * Kolom yang dapat diisi secara massal.
      */
     protected $fillable = [
+        'user_id', // Tambahkan ini agar bisa relasi dengan pembuat laporan
         'tanggal',
         'pukul',
         'dari_rupam',
@@ -50,9 +52,16 @@ class Astekpam extends Model
     protected $casts = [
         'tanggal'          => 'date',
         'tugas'            => 'array',
-        // Tambahkan ini agar array dari Vue tersimpan dengan benar:
         'rawat_inap_items' => 'array',
         'berobat_items'    => 'array',
         'bon_luar_items'   => 'array',
     ];
+
+    /**
+     * Relasi ke User (Pembuat Laporan)
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

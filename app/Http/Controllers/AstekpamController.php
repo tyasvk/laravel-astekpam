@@ -12,20 +12,15 @@ class AstekpamController extends Controller
     /**
      * Menampilkan daftar riwayat laporan Astekpam.
      */
-    public function index()
-    {
-        return Inertia::render('Astekpam/Index', [
-            'astekpams' => Astekpam::latest()->get(),
-            'status' => session('success'),
-        ]);
-
-        // Mengambil data terbaru dengan paginasi
-    $reports = Astekpam::latest()->paginate(10);
+public function index()
+{
+    // Mengambil semua data astekpam, biasanya diurutkan dari yang terbaru
+    $astekpams = Astekpam::with('user')->latest()->get();
 
     return Inertia::render('Astekpam/Index', [
-        'reports' => $reports
+        'astekpams' => $astekpams,
     ]);
-    }
+}
 
     /**
      * Menampilkan form buat laporan.

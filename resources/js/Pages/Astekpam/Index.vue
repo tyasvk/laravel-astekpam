@@ -3,40 +3,39 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { 
     Plus, 
-    Search, 
-    MoreHorizontal, 
     Eye, 
-    ShieldCheck, 
     Calendar,
     Clock,
+    FileText,
+    Users,
+    Shield,
+    Activity,
     ChevronRight,
-    Printer,
-    FileText
+    Search,
+    Filter
 } from 'lucide-vue-next';
-import { Button } from '@/Components/ui/button';
-import { Input } from '@/Components/ui/input';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/Components/ui/dropdown-menu';
 
-// Menerima data dari Controller dengan default value untuk mencegah error undefined
 const props = defineProps({
-    reports: {
-        type: Object,
-        default: () => ({ data: [], links: [] })
+    astekpams: {
+        type: Array,
+        default: () => [],
     },
 });
 
-// Helper format tanggal Indonesia
+// Helper untuk warna shift
+const getShiftColor = (shift) => {
+    const colors = {
+        'Pagi': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+        'Siang': 'bg-orange-100 text-orange-700 border-orange-200',
+        'Malam': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    };
+    return colors[shift] || 'bg-gray-100 text-gray-700 border-gray-200';
+};
+
 const formatDate = (dateString) => {
     if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('id-ID', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
+        day: 'numeric', month: 'short', year: 'numeric'
     });
 };
 </script>
@@ -45,128 +44,151 @@ const formatDate = (dateString) => {
     <Head title="Riwayat Astekpam" />
 
     <AuthenticatedLayout>
-        <div class="max-w-6xl mx-auto px-4 pb-24 font-sans">
-            
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10 mt-6">
-                <div class="space-y-1">
-                    <h1 class="text-3xl font-medium tracking-tighter text-zinc-900 italic font-sans">Riwayat Astekpam</h1>
-                    <div class="flex items-center gap-2 text-zinc-400">
-                        <div class="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
-                        <p class="text-[10px] uppercase tracking-[0.2em] font-medium">Lapas Kelas I Palembang</p>
-                    </div>
+        <template #header>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-black text-2xl text-gray-800 leading-tight tracking-tight">
+                        Riwayat Laporan <span class="text-blue-600">Astekpam</span>
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">Pantau dokumentasi keamanan dan ketertiban harian.</p>
                 </div>
-                
-                <Link :href="route('astekpam.create')">
-                    <Button class="h-12 rounded-2xl bg-zinc-900 text-white shadow-xl shadow-zinc-200 hover:bg-zinc-800 transition-all px-6 font-medium text-[11px] uppercase tracking-widest active:scale-95">
-                        <Plus class="w-4 h-4 mr-2" /> Buat Laporan
-                    </Button>
+                <Link
+                    :href="route('astekpam.create')"
+                    class="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95"
+                >
+                    <Plus class="w-5 h-5 mr-2" />
+                    Buat Laporan
                 </Link>
             </div>
+        </template>
 
-            <div class="space-y-4">
+        <div class="py-6 pb-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <div class="hidden md:grid grid-cols-[1.2fr_1.5fr_1fr_1fr_80px] px-8 py-3 text-[10px] uppercase tracking-[0.2em] text-zinc-400 font-bold">
-                    <div>Waktu & Jam</div>
-                    <div>Serah Terima</div>
-                    <div>Pimpinan</div>
-                    <div>Status Keamanan</div>
-                    <div class="text-right">Aksi</div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-2xl text-white shadow-sm">
+                        <Activity class="w-6 h-6 mb-2 opacity-80" />
+                        <div class="text-2xl font-black">{{ astekpams.length }}</div>
+                        <div class="text-xs opacity-80 uppercase font-bold tracking-wider">Total Laporan</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                        <Shield class="w-6 h-6 mb-2 text-emerald-500" />
+                        <div class="text-2xl font-black text-gray-800">Aktif</div>
+                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">Status Keamanan</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                        <Users class="w-6 h-6 mb-2 text-orange-500" />
+                        <div class="text-2xl font-black text-gray-800">{{ astekpams[0]?.total_wbp || 0 }}</div>
+                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">WBP Terakhir</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                        <Calendar class="w-6 h-6 mb-2 text-purple-500" />
+                        <div class="text-sm font-black text-gray-800">Hari Ini</div>
+                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">{{ new Date().toLocaleDateString('id-ID', {weekday: 'long'}) }}</div>
+                    </div>
                 </div>
 
-                <template v-if="reports?.data?.length > 0">
-                    <div v-for="report in reports.data" :key="report.id" 
-                        class="bg-white rounded-[2rem] md:rounded-[1.5rem] border border-zinc-100 shadow-sm hover:shadow-md transition-all group overflow-hidden">
-                        
-                        <div class="p-6 md:px-8 md:py-5 grid grid-cols-1 md:grid-cols-[1.2fr_1.5fr_1fr_1fr_80px] items-center gap-5 md:gap-0">
-                            
-                            <div class="flex items-center gap-4">
-                                <div class="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 md:hidden">
-                                    <Calendar class="w-4 h-4" />
-                                </div>
-                                <div class="space-y-0.5">
-                                    <p class="text-sm font-medium text-zinc-900">{{ formatDate(report.tanggal) }}</p>
-                                    <div class="flex items-center gap-2 text-zinc-400">
-                                        <Clock class="w-3 h-3" />
-                                        <p class="text-[11px] font-medium">{{ report.pukul }}</p>
+                <div class="bg-white shadow-xl shadow-gray-100 rounded-3xl overflow-hidden border border-gray-100">
+                    
+                    <div class="p-4 border-b border-gray-50 flex flex-col md:flex-row gap-4 justify-between bg-gray-50/50">
+                        <div class="relative w-full md:w-64">
+                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <input type="text" placeholder="Cari laporan..." class="w-full pl-10 pr-4 py-2 border-none rounded-xl bg-white focus:ring-2 focus:ring-blue-500 text-sm shadow-sm" />
+                        </div>
+                        <button class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 shadow-sm">
+                            <Filter class="w-4 h-4 mr-2" /> Filter
+                        </button>
+                    </div>
+
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-400 uppercase bg-white">
+                                <tr>
+                                    <th class="px-6 py-4 font-bold tracking-widest">Detail Waktu</th>
+                                    <th class="px-6 py-4 font-bold tracking-widest">Shift / Rupam</th>
+                                    <th class="px-6 py-4 font-bold tracking-widest">Pimpinan</th>
+                                    <th class="px-6 py-4 font-bold tracking-widest text-center">WBP</th>
+                                    <th class="px-6 py-4 font-bold tracking-widest text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                <tr v-for="item in astekpams" :key="item.id" class="hover:bg-blue-50/30 transition-colors group">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="font-bold text-gray-800">{{ formatDate(item.tanggal) }}</div>
+                                        <div class="text-xs text-gray-400 flex items-center">
+                                            <Clock class="w-3 h-3 mr-1" /> {{ item.pukul }} WIB
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <span :class="getShiftColor(item.dari_shift)" class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase border">
+                                                {{ item.dari_shift }}
+                                            </span>
+                                            <span class="text-gray-600 font-medium capitalize">{{ item.dari_rupam }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-gray-700 font-medium">{{ item.pimpinan }}</div>
+                                        <div class="text-[10px] text-gray-400 uppercase tracking-tighter">Penanggung Jawab</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <div class="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 rounded-lg font-black tracking-tighter">
+                                            {{ item.total_wbp }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <Link :href="route('astekpam.show', item.id)" class="inline-flex items-center justify-center w-10 h-10 bg-gray-100 text-gray-400 rounded-full hover:bg-blue-600 hover:text-white transition-all shadow-sm">
+                                            <Eye class="w-5 h-5" />
+                                        </Link>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="md:hidden divide-y divide-gray-50">
+                        <div v-for="item in astekpams" :key="item.id" class="p-4 active:bg-gray-50">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <div class="font-black text-gray-800 text-lg">{{ formatDate(item.tanggal) }}</div>
+                                    <div class="text-xs text-gray-400 flex items-center">
+                                        <Clock class="w-3 h-3 mr-1" /> {{ item.pukul }} WIB
                                     </div>
                                 </div>
+                                <span :class="getShiftColor(item.dari_shift)" class="px-3 py-1 rounded-full text-[10px] font-black uppercase border">
+                                    {{ item.dari_shift }}
+                                </span>
                             </div>
-
-                            <div class="flex flex-col gap-1.5 md:flex-row md:items-center">
-                                <span class="text-[9px] font-bold text-zinc-300 uppercase md:hidden tracking-widest">Serah Terima:</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="px-2.5 py-1 bg-zinc-100 text-zinc-500 rounded-lg text-[10px] font-bold uppercase">
-                                        {{ report.dari_rupam }}
-                                    </span>
-                                    <ChevronRight class="w-3 h-3 text-zinc-300" />
-                                    <span class="px-2.5 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-bold uppercase">
-                                        {{ report.ke_rupam }}
-                                    </span>
+                            
+                            <div class="grid grid-cols-2 gap-4 mb-4 bg-gray-50 p-3 rounded-2xl">
+                                <div>
+                                    <div class="text-[10px] text-gray-400 uppercase font-bold">Rupam</div>
+                                    <div class="text-sm font-bold text-gray-700 capitalize">{{ item.dari_rupam }}</div>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] text-gray-400 uppercase font-bold">Total WBP</div>
+                                    <div class="text-sm font-bold text-blue-600">{{ item.total_wbp }} Orang</div>
+                                </div>
+                                <div class="col-span-2">
+                                    <div class="text-[10px] text-gray-400 uppercase font-bold">Pimpinan</div>
+                                    <div class="text-sm font-bold text-gray-700">{{ item.pimpinan }}</div>
                                 </div>
                             </div>
 
-                            <div class="space-y-0.5">
-                                <span class="text-[9px] font-bold text-zinc-300 uppercase md:hidden tracking-widest">Pimpinan:</span>
-                                <p class="text-xs font-medium text-zinc-700">{{ report.pimpinan }}</p>
-                                <p class="text-[10px] text-zinc-400 font-medium">Shift {{ report.ke_shift }}</p>
-                            </div>
-
-                            <div>
-                                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100/50">
-                                    <ShieldCheck class="w-3.5 h-3.5" />
-                                    <span class="text-[10px] font-medium uppercase tracking-tight">Aman & Tertib</span>
-                                </div>
-                            </div>
-
-                            <div class="flex justify-end">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon" class="h-9 w-9 rounded-xl hover:bg-zinc-100 transition-colors">
-                                            <MoreHorizontal class="w-4 h-4 text-zinc-400" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" class="w-48 rounded-2xl shadow-2xl border-zinc-100 p-2 font-sans">
-                                        <Link :href="route('astekpam.show', report.id)">
-                                            <DropdownMenuItem class="rounded-xl gap-3 py-2.5 cursor-pointer">
-                                                <Eye class="w-4 h-4 text-zinc-400" />
-                                                <span class="text-xs font-medium">Lihat Detail</span>
-                                            </DropdownMenuItem>
-                                        </Link>
-                                        <DropdownMenuItem class="rounded-xl gap-3 py-2.5 cursor-pointer text-blue-600">
-                                            <Printer class="w-4 h-4" />
-                                            <span class="text-xs font-medium">Cetak Laporan</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
+                            <Link :href="route('astekpam.show', item.id)" class="w-full flex items-center justify-center py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-600 shadow-sm">
+                                Lihat Detail Laporan <ChevronRight class="w-4 h-4 ml-1" />
+                            </Link>
                         </div>
                     </div>
-                </template>
 
-                <div v-else class="py-24 text-center bg-white rounded-[2.5rem] border border-dashed border-zinc-200">
-                    <div class="h-16 w-16 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <FileText class="w-6 h-6 text-zinc-200" />
+                    <div v-if="astekpams.length === 0" class="p-12 text-center">
+                        <div class="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <FileText class="w-10 h-10 text-gray-300" />
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800">Belum ada laporan</h3>
+                        <p class="text-sm text-gray-500 mb-6">Mulai buat laporan Astekpam pertama Anda hari ini.</p>
+                        <Link :href="route('astekpam.create')" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold shadow-md">Buat Sekarang</Link>
                     </div>
-                    <p class="text-sm text-zinc-400 font-medium tracking-wide">Belum ada riwayat laporan yang tercatat.</p>
-                </div>
-            </div>
-
-            <div class="mt-12 flex items-center justify-between px-4" v-if="reports?.links?.length > 3">
-                <p class="text-[10px] font-medium text-zinc-400 uppercase tracking-widest">
-                    Data ke {{ reports.from }} - {{ reports.to }}
-                </p>
-                <div class="flex gap-2">
-                    <Link 
-                        v-for="(link, k) in reports.links" 
-                        :key="k"
-                        :href="link.url || '#'"
-                        v-html="link.label"
-                        :class="[
-                            'px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all',
-                            link.active ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-200' : 'bg-white text-zinc-400 hover:bg-zinc-50 border border-zinc-100',
-                            !link.url ? 'opacity-30 cursor-not-allowed' : ''
-                        ]"
-                    />
                 </div>
             </div>
         </div>
@@ -174,8 +196,8 @@ const formatDate = (dateString) => {
 </template>
 
 <style scoped>
-/* Transisi halus khas Modern SaaS */
-* {
-    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+/* Menghaluskan scrolling di mobile */
+.overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
 }
 </style>
