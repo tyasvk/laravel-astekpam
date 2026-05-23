@@ -25,15 +25,21 @@ public function index()
     /**
      * Menampilkan form buat laporan.
      */
-    public function create()
-{
-    // Mengambil laporan terbaru berdasarkan waktu pembuatan
-    $lastReport = Astekpam::latest()->first();
+public function create()
+    {
+        // Mengambil ID terakhir dari setiap rupam yang pernah dibuat
+        $lastRupamData = Astekpam::whereIn('id', function ($query) {
+            $query->selectRaw('MAX(id)')
+                  ->from('astekpams')
+                  ->groupBy('dari_rupam');
+        })
+        ->get()
+        ->keyBy('dari_rupam'); // Mengubah array menjadi object dengan key nama rupam
 
-    return Inertia::render('Astekpam/Create', [
-        'lastReport' => $lastReport
-    ]);
-}
+        return Inertia::render('Astekpam/Create', [
+            'lastRupamData' => $lastRupamData
+        ]);
+    }
 
     /**
      * Menyimpan laporan baru ke database.
