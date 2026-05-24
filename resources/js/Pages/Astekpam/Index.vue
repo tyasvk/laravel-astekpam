@@ -1,203 +1,173 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { 
-    Plus, 
-    Eye, 
-    Calendar,
-    Clock,
-    FileText,
-    Users,
-    Shield,
-    Activity,
-    ChevronRight,
-    Search,
-    Filter
-} from 'lucide-vue-next';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
+    // Asumsi data yang dikirim dari controller berbentuk pagination atau array
     astekpams: {
-        type: Array,
-        default: () => [],
-    },
+        type: [Object, Array],
+        default: () => ({ data: [] })
+    }
 });
 
-// Helper untuk warna shift
-const getShiftColor = (shift) => {
-    const colors = {
-        'Pagi': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-        'Siang': 'bg-orange-100 text-orange-700 border-orange-200',
-        'Malam': 'bg-indigo-100 text-indigo-700 border-indigo-200',
-    };
-    return colors[shift] || 'bg-gray-100 text-gray-700 border-gray-200';
-};
+// Normalisasi data agar tidak error jika controller mengirim array biasa (bukan paginate)
+const astekpamData = computed(() => {
+    return Array.isArray(props.astekpams) ? props.astekpams : (props.astekpams.data || []);
+});
 
-const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('id-ID', {
-        day: 'numeric', month: 'short', year: 'numeric'
-    });
-};
+const searchQuery = ref('');
 </script>
 
 <template>
-    <Head title="Riwayat Astekpam" />
-
     <AuthenticatedLayout>
-        <template #header>
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 class="font-black text-2xl text-gray-800 leading-tight tracking-tight">
-                        Riwayat Laporan <span class="text-blue-600">Astekpam</span>
-                    </h2>
-                    <p class="text-sm text-gray-500 mt-1">Pantau dokumentasi keamanan dan ketertiban harian.</p>
-                </div>
-                <Link
-                    :href="route('astekpam.create')"
-                    class="inline-flex items-center justify-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95"
-                >
-                    <Plus class="w-5 h-5 mr-2" />
-                    Buat Laporan
-                </Link>
-            </div>
-        </template>
+        <Head title="Riwayat Laporan Astekpam" />
 
-        <div class="py-6 pb-20">
+        <div class="py-6 md:py-10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-2xl text-white shadow-sm">
-                        <Activity class="w-6 h-6 mb-2 opacity-80" />
-                        <div class="text-2xl font-black">{{ astekpams.length }}</div>
-                        <div class="text-xs opacity-80 uppercase font-bold tracking-wider">Total Laporan</div>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Laporan Astekpam</h2>
+                        <p class="text-sm text-slate-500 mt-1 font-medium">Kelola dan pantau riwayat apel serah terima regu pengamanan.</p>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                        <Shield class="w-6 h-6 mb-2 text-emerald-500" />
-                        <div class="text-2xl font-black text-gray-800">Aktif</div>
-                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">Status Keamanan</div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                        <Users class="w-6 h-6 mb-2 text-orange-500" />
-                        <div class="text-2xl font-black text-gray-800">{{ astekpams[0]?.total_wbp || 0 }}</div>
-                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">WBP Terakhir</div>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-                        <Calendar class="w-6 h-6 mb-2 text-purple-500" />
-                        <div class="text-sm font-black text-gray-800">Hari Ini</div>
-                        <div class="text-xs text-gray-400 uppercase font-bold tracking-wider">{{ new Date().toLocaleDateString('id-ID', {weekday: 'long'}) }}</div>
-                    </div>
+                    
+                    <Link
+                        :href="route('astekpam.create')"
+                        class="inline-flex items-center justify-center px-4 py-2.5 bg-[#0f172a] hover:bg-[#1e293b] text-[#f59e0b] font-bold text-sm rounded-xl shadow-lg shadow-[#0f172a]/10 transition-all duration-200 transform active:scale-95 gap-2 w-full sm:w-auto"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Buat Laporan Baru
+                    </Link>
                 </div>
 
-                <div class="bg-white shadow-xl shadow-gray-100 rounded-3xl overflow-hidden border border-gray-100">
-                    
-                    <div class="p-4 border-b border-gray-50 flex flex-col md:flex-row gap-4 justify-between bg-gray-50/50">
-                        <div class="relative w-full md:w-64">
-                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input type="text" placeholder="Cari laporan..." class="w-full pl-10 pr-4 py-2 border-none rounded-xl bg-white focus:ring-2 focus:ring-blue-500 text-sm shadow-sm" />
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-grow">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         </div>
-                        <button class="inline-flex items-center px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 shadow-sm">
-                            <Filter class="w-4 h-4 mr-2" /> Filter
-                        </button>
+                        <input
+                            type="text"
+                            v-model="searchQuery"
+                            placeholder="Cari berdasarkan pelapor atau regu..."
+                            class="block w-full pl-10 pr-3 py-2.5 border-transparent bg-slate-50 rounded-xl text-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/50 focus:bg-white focus:border-transparent transition-all"
+                        >
                     </div>
+                    <button class="inline-flex items-center justify-center px-4 py-2.5 border border-slate-200 bg-white text-slate-600 font-semibold text-sm rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-colors gap-2 w-full sm:w-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                        Filter Data
+                    </button>
+                </div>
 
-                    <div class="hidden md:block overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="text-xs text-gray-400 uppercase bg-white">
-                                <tr>
-                                    <th class="px-6 py-4 font-bold tracking-widest">Detail Waktu</th>
-                                    <th class="px-6 py-4 font-bold tracking-widest">Shift / Rupam</th>
-                                    <th class="px-6 py-4 font-bold tracking-widest">Pimpinan</th>
-                                    <th class="px-6 py-4 font-bold tracking-widest text-center">WBP</th>
-                                    <th class="px-6 py-4 font-bold tracking-widest text-right">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                                <tr v-for="item in astekpams" :key="item.id" class="hover:bg-blue-50/30 transition-colors group">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="font-bold text-gray-800">{{ formatDate(item.tanggal) }}</div>
-                                        <div class="text-xs text-gray-400 flex items-center">
-                                            <Clock class="w-3 h-3 mr-1" /> {{ item.pukul }} WIB
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="flex items-center gap-2">
-                                            <span :class="getShiftColor(item.dari_shift)" class="px-2 py-0.5 rounded-md text-[10px] font-black uppercase border">
-                                                {{ item.dari_shift }}
-                                            </span>
-                                            <span class="text-gray-600 font-medium capitalize">{{ item.dari_rupam }}</span>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <div class="text-gray-700 font-medium">{{ item.pimpinan }}</div>
-                                        <div class="text-[10px] text-gray-400 uppercase tracking-tighter">Penanggung Jawab</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-center">
-                                        <div class="inline-flex items-center px-2 py-1 bg-blue-50 text-blue-700 rounded-lg font-black tracking-tighter">
-                                            {{ item.total_wbp }}
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 text-right">
-                                        <Link :href="route('astekpam.show', item.id)" class="inline-flex items-center justify-center w-10 h-10 bg-gray-100 text-gray-400 rounded-full hover:bg-blue-600 hover:text-white transition-all shadow-sm">
-                                            <Eye class="w-5 h-5" />
-                                        </Link>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div v-if="astekpamData.length === 0" class="bg-white rounded-3xl shadow-sm border border-slate-100 p-12 text-center flex flex-col items-center justify-center">
+                    <div class="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-[#f59e0b]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     </div>
+                    <h3 class="text-lg font-bold text-slate-800">Belum Ada Laporan</h3>
+                    <p class="text-slate-500 text-sm mt-1 max-w-sm mx-auto">Riwayat laporan Astekpam masih kosong. Silakan klik tombol "Buat Laporan Baru" untuk memulai pencatatan apel.</p>
+                </div>
 
-                    <div class="md:hidden divide-y divide-gray-50">
-                        <div v-for="item in astekpams" :key="item.id" class="p-4 active:bg-gray-50">
-                            <div class="flex justify-between items-start mb-3">
+                <div v-else>
+                    <div class="block md:hidden space-y-4">
+                        <div v-for="item in astekpamData" :key="item.id" class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden group">
+                            
+                            <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#f59e0b] to-[#d97706]"></div>
+                            
+                            <div class="flex justify-between items-start mb-4 pl-2">
                                 <div>
-                                    <div class="font-black text-gray-800 text-lg">{{ formatDate(item.tanggal) }}</div>
-                                    <div class="text-xs text-gray-400 flex items-center">
-                                        <Clock class="w-3 h-3 mr-1" /> {{ item.pukul }} WIB
-                                    </div>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 mb-2 border border-slate-200">
+                                        {{ item.regu_pengamanan || 'Regu Pengamanan' }}
+                                    </span>
+                                    <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                        {{ item.tanggal || item.created_at?.split('T')[0] || 'Tanpa Tanggal' }}
+                                    </h3>
                                 </div>
-                                <span :class="getShiftColor(item.dari_shift)" class="px-3 py-1 rounded-full text-[10px] font-black uppercase border">
-                                    {{ item.dari_shift }}
+                                <span class="px-2 py-1 rounded-md text-[10px] font-bold tracking-wide shadow-sm border" 
+                                      :class="(item.status === 'Selesai' || item.status === 'Terverifikasi') ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+                                    {{ item.status || 'Terkirim' }}
                                 </span>
                             </div>
                             
-                            <div class="grid grid-cols-2 gap-4 mb-4 bg-gray-50 p-3 rounded-2xl">
-                                <div>
-                                    <div class="text-[10px] text-gray-400 uppercase font-bold">Rupam</div>
-                                    <div class="text-sm font-bold text-gray-700 capitalize">{{ item.dari_rupam }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-[10px] text-gray-400 uppercase font-bold">Total WBP</div>
-                                    <div class="text-sm font-bold text-blue-600">{{ item.total_wbp }} Orang</div>
-                                </div>
-                                <div class="col-span-2">
-                                    <div class="text-[10px] text-gray-400 uppercase font-bold">Pimpinan</div>
-                                    <div class="text-sm font-bold text-gray-700">{{ item.pimpinan }}</div>
-                                </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-500 mb-5 pl-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span>Pelapor: <strong class="text-slate-800">{{ item.user?.name || item.pelapor || '-' }}</strong></span>
                             </div>
 
-                            <Link :href="route('astekpam.show', item.id)" class="w-full flex items-center justify-center py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-600 shadow-sm">
-                                Lihat Detail Laporan <ChevronRight class="w-4 h-4 ml-1" />
+                            <Link :href="route('astekpam.show', item.id)" class="block w-full text-center px-4 py-2.5 bg-slate-50 hover:bg-[#0f172a] hover:text-[#f59e0b] text-slate-700 font-bold text-xs rounded-xl transition-all duration-200 border border-slate-200 hover:border-transparent">
+                                Buka Detail Laporan
                             </Link>
                         </div>
                     </div>
 
-                    <div v-if="astekpams.length === 0" class="p-12 text-center">
-                        <div class="bg-gray-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <FileText class="w-10 h-10 text-gray-300" />
+                    <div class="hidden md:block bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-slate-50 border-b border-slate-100 text-[11px] uppercase tracking-widest text-slate-500 font-bold">
+                                        <th class="px-6 py-4">Informasi Laporan</th>
+                                        <th class="px-6 py-4">Regu</th>
+                                        <th class="px-6 py-4">Petugas Pelapor</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr v-for="item in astekpamData" :key="item.id" class="hover:bg-slate-50/50 transition-colors group">
+                                        
+                                        <td class="px-6 py-4">
+                                            <div class="flex items-center gap-2.5 text-sm font-semibold text-slate-900">
+                                                <div class="p-2 bg-slate-100 rounded-lg text-slate-500 group-hover:bg-[#f59e0b]/10 group-hover:text-[#f59e0b] transition-colors">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                                </div>
+                                                {{ item.tanggal || item.created_at?.split('T')[0] || '-' }}
+                                            </div>
+                                        </td>
+
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex items-center px-2.5 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                                                {{ item.regu_pengamanan || '-' }}
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 text-sm font-medium text-slate-700">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#1e293b] to-[#0f172a] text-[#f59e0b] flex items-center justify-center font-bold text-xs shadow-sm">
+                                                    {{ (item.user?.name || item.pelapor || 'U').charAt(0) }}
+                                                </div>
+                                                {{ item.user?.name || item.pelapor || '-' }}
+                                            </div>
+                                        </td>
+
+                                        <td class="px-6 py-4">
+                                            <span class="px-3 py-1.5 rounded-lg text-xs font-bold border shadow-sm" 
+                                                  :class="(item.status === 'Selesai' || item.status === 'Terverifikasi') ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'">
+                                                {{ item.status || 'Terkirim' }}
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 text-right">
+                                            <Link :href="route('astekpam.show', item.id)" class="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-[#0f172a] hover:text-[#f59e0b] hover:border-transparent font-bold text-xs rounded-xl shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/50">
+                                                Detail
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <h3 class="text-lg font-bold text-gray-800">Belum ada laporan</h3>
-                        <p class="text-sm text-gray-500 mb-6">Mulai buat laporan Astekpam pertama Anda hari ini.</p>
-                        <Link :href="route('astekpam.create')" class="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold shadow-md">Buat Sekarang</Link>
+                        
+                        <div v-if="props.astekpams.links" class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex items-center justify-between">
+                            <div class="text-xs text-slate-500 font-medium">
+                                Menampilkan <span class="font-bold text-slate-800">{{ props.astekpams.from || 0 }}</span> sampai <span class="font-bold text-slate-800">{{ props.astekpams.to || 0 }}</span> dari total <span class="font-bold text-slate-800">{{ props.astekpams.total || 0 }}</span> laporan
+                            </div>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </AuthenticatedLayout>
 </template>
-
-<style scoped>
-/* Menghaluskan scrolling di mobile */
-.overflow-x-auto {
-    -webkit-overflow-scrolling: touch;
-}
-</style>

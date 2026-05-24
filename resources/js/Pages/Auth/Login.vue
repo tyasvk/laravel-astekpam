@@ -12,7 +12,7 @@ defineProps({
 });
 
 const form = useForm({
-    email: '',
+    nip: '', // Diubah dari email menjadi nip
     password: '',
     remember: false,
 });
@@ -89,21 +89,20 @@ const submit = () => {
 
                 <form @submit.prevent="submit" class="space-y-5">
                     <div>
-                        <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-[#475569] mb-2">
-                            Alamat Email Pengguna
+                        <label for="nip" class="block text-xs font-semibold uppercase tracking-wider text-[#475569] mb-2">
+                            Nomor Induk Pegawai (NIP)
                         </label>
                         <input
-                            id="email"
-                            type="email"
-                            v-model="form.email"
+                            id="nip"
+                            type="text"
+                            v-model="form.nip"
                             required
                             autofocus
-                            autocomplete="username"
                             class="w-full px-4 py-3 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
-                            placeholder="contoh@kemenimipas.go.id"
+                            placeholder="Masukkan NIP Anda"
                         />
-                        <span v-if="form.errors.email" class="text-xs text-red-500 mt-1.5 block font-medium">
-                            {{ form.errors.email }}
+                        <span v-if="form.errors.nip" class="text-xs text-red-500 mt-1.5 block font-medium">
+                            {{ form.errors.nip }}
                         </span>
                     </div>
 
