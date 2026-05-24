@@ -3,18 +3,12 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AstekpamController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\DashboardController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
-
-// Halaman Welcome / Landing Page
+// Halaman Welcome
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -24,32 +18,32 @@ Route::get('/', function () {
     ]);
 });
 
-// Hapus route dashboard yang lama, ganti dengan ini:
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
-
-// Grouping Route yang membutuhkan Autentikasi
-Route::middleware('auth')->group(function () {
-
-    // --- FITUR ASTEKPAM (Laporan Serah Terima) ---
-    // Semua yang login bisa melihat riwayat laporan
-    Route::get('/astekpam', [AstekpamController::class, 'index'])->name('astekpam.index');
+// Route yang membutuhkan Auth
+Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Hanya user dengan permission 'create reports' yang bisa buat dan simpan laporan
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // --- FITUR ASTEKPAM ---
+    Route::get('/astekpam', [AstekpamController::class, 'index'])->name('astekpam.index');
+    Route::get('/astekpam/{astekpam}', [AstekpamController::class, 'show'])->name('astekpam.show');
+    
     Route::middleware('permission:create reports')->group(function () {
         Route::get('/astekpam/create', [AstekpamController::class, 'create'])->name('astekpam.create');
         Route::post('/astekpam', [AstekpamController::class, 'store'])->name('astekpam.store');
     });
 
-    // Detail laporan (Bisa diakses siapa saja yang login)
-    Route::get('/astekpam/{astekpam}', [AstekpamController::class, 'show'])->name('astekpam.show');
-
-    // --- FITUR ADMIN (Manajemen User & Hak Akses) ---
+    // --- FITUR ADMIN (Manajemen User) ---
+    // Menggunakan prefix 'admin' dan name 'admin.'
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        
+        // Perhatikan rute edit dan update di bawah ini:
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 

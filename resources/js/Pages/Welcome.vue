@@ -1,182 +1,168 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/Components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 
 defineProps({
-    canLogin: { type: Boolean },
-    canRegister: { type: Boolean },
+    canLogin: {
+        type: Boolean,
+    },
+    canRegister: {
+        type: Boolean,
+    },
 });
 </script>
 
 <template>
-    <Head title="ASTEKPAM - Lapas Kelas I Palembang" />
+    <Head title="Selamat Datang" />
 
-    <div class="min-h-screen bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white font-sans">
-        <nav class="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-md">
-            <div class="container mx-auto flex h-20 items-center justify-between px-6 lg:px-8">
-                <div class="flex items-center gap-3">
-                    <ApplicationLogo class="h-10 w-10 fill-blue-800" />
-                    <div class="flex flex-col border-l border-slate-200 pl-3">
-                        <span class="text-xl font-black leading-none tracking-tighter text-slate-900 uppercase">Astekpam</span>
-                        <span class="text-[10px] font-bold text-blue-700 uppercase tracking-widest mt-1">Lapas Kelas I Palembang</span>
+    <div class="min-h-screen bg-[#f8fafc] flex flex-col justify-between text-[#0f172a] font-sans selection:bg-[#d97706] selection:text-white">
+        <header class="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-[#e2e8f0] shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-[#0f172a] rounded-lg flex items-center justify-center shadow-md border border-[#d97706]/30">
+                        <span class="text-[#f59e0b] font-bold text-xl tracking-wider">A</span>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold tracking-tight text-[#0f172a] leading-tight uppercase">
+                            Astekpam
+                        </h1>
+                        <p class="text-xs text-[#64748b] font-medium tracking-wide">
+                            Lapas Kelas I Palembang
+                        </p>
                     </div>
                 </div>
 
-                <div v-if="canLogin" class="flex items-center gap-4">
-                    <Link v-if="$page.props.auth.user" :href="route('dashboard')">
-                        <Button class="rounded-full px-6 bg-blue-800 hover:bg-blue-900 text-white font-bold">Dashboard</Button>
+                <nav v-if="canLogin" class="flex items-center space-x-3">
+                    <Link
+                        v-if="$page.props.auth.user"
+                        :href="route('dashboard')"
+                    >
+                        <Button variant="default" class="bg-[#0f172a] hover:bg-[#1e293b] text-[#f59e0b] font-semibold shadow">
+                            Dashboard
+                        </Button>
                     </Link>
+
                     <template v-else>
                         <Link :href="route('login')">
-                            <Button variant="ghost" class="text-sm font-semibold">Masuk</Button>
+                            <Button variant="ghost" class="text-[#475569] hover:text-[#0f172a] hover:bg-[#f1f5f9] font-medium">
+                                Masuk
+                            </Button>
                         </Link>
-                        <Link v-if="canRegister" :href="route('register')">
-                            <Button class="rounded-full px-6 bg-blue-800 hover:bg-blue-900 shadow-lg shadow-blue-800/20 text-white font-bold">Daftar Akun</Button>
+
+                        <Link
+                            v-if="canRegister"
+                            :href="route('register')"
+                        >
+                            <Button class="bg-[#0f172a] hover:bg-[#1e293b] text-[#f59e0b] font-semibold shadow-sm">
+                                Daftar Akun
+                            </Button>
                         </Link>
                     </template>
-                </div>
+                </nav>
             </div>
-        </nav>
+        </header>
 
-        <main>
-            <header class="relative overflow-hidden bg-white pt-20 pb-24 lg:pt-32 lg:pb-40">
-                <div class="container relative z-10 mx-auto px-6 lg:px-8">
-                    <div class="text-center max-w-4xl mx-auto">
-                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-[11px] font-bold uppercase tracking-wider mb-8">
-                            Kemenimipas Republik Indonesia
-                        </div>
-                        <h1 class="text-5xl font-black tracking-tight text-slate-900 sm:text-7xl leading-[1.1] mb-6">
-                            Apel Serah Terima <br/>
-                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-800 to-blue-600 font-black">Kepala Regu Pengamanan.</span>
-                        </h1>
-                        <p class="mx-auto mt-8 max-w-2xl text-lg text-slate-500 leading-relaxed">
-                            Digitalisasi sistem <span class="font-bold text-slate-800 tracking-tight text-xl italic underline decoration-blue-500 underline-offset-4">ASTEKPAM</span> untuk meningkatkan kedisiplinan, koordinasi harian, dan akuntabilitas serah terima tugas antar regu di Lapas Kelas I Palembang.
-                        </p>
-                        <div class="mt-12 flex flex-col sm:flex-row justify-center gap-4">
-                            <Link :href="route('login')">
-                                <Button size="lg" class="h-14 px-10 text-md font-bold rounded-2xl bg-blue-800 hover:bg-blue-900 shadow-xl shadow-blue-800/20 transition-all hover:-translate-y-1 text-white">
-                                    Akses Portal Petugas
-                                </Button>
-                            </Link>
-                            <Button variant="outline" size="lg" class="h-14 px-10 text-md font-semibold rounded-2xl border-slate-200 hover:bg-slate-50 transition-all">
-                                Pelajari Prosedur
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-                <div class="absolute inset-0 -z-10 bg-[radial-gradient(45rem_50rem_at_top,theme(colors.blue.100),white)] opacity-30"></div>
-            </header>
-
-            <section class="py-24 bg-white border-t border-slate-100">
-                <div class="container mx-auto px-6 lg:px-8">
-                    <div class="text-center mb-16">
-                        <h2 class="text-3xl font-black tracking-tight text-slate-900 uppercase">Tata Nilai PASTI</h2>
-                        <p class="mt-3 text-slate-500 max-w-xl mx-auto italic font-medium">"Menjadi landasan utama dalam setiap pelaksanaan serah terima tugas pengamanan."</p>
+        <main class="flex-grow">
+            <div class="relative overflow-hidden bg-gradient-to-b from-[#0f172a] via-[#0f172a] to-[#1e293b] py-24 sm:py-32 text-white border-b border-[#d97706]/10">
+                <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:20px_20px]"></div>
+                
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] text-xs font-semibold uppercase tracking-wider mb-6">
+                        <span class="flex h-2 w-2 rounded-full bg-[#f59e0b] animate-pulse"></span>
+                        Smart Governance
                     </div>
                     
-                    <div class="container mx-auto grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-5">
-                        <Card class="border-none shadow-sm bg-slate-50 hover:bg-blue-50 transition-colors group">
-                            <CardHeader>
-                                <CardTitle class="text-blue-800 font-bold tracking-widest uppercase text-xs">Professional</CardTitle>
-                            </CardHeader>
-                            <CardContent class="text-sm text-slate-500">Petugas melaksanakan tugas sesuai standar operasional pengamanan.</CardContent>
-                        </Card>
-                        <Card class="border-none shadow-sm bg-slate-50 hover:bg-blue-50 transition-colors group">
-                            <CardHeader>
-                                <CardTitle class="text-blue-800 font-bold tracking-widest uppercase text-xs">Akuntabel</CardTitle>
-                            </CardHeader>
-                            <CardContent class="text-sm text-slate-500">Setiap data serah terima terdokumentasi dan dapat dipertanggungjawabkan.</CardContent>
-                        </Card>
-                        <Card class="border-none shadow-sm bg-slate-50 hover:bg-blue-50 transition-colors group">
-                            <CardHeader>
-                                <CardTitle class="text-blue-800 font-bold tracking-widest uppercase text-xs">Sinergi</CardTitle>
-                            </CardHeader>
-                            <CardContent class="text-sm text-slate-500">Koordinasi harmonis antar regu pengamanan lama dan baru.</CardContent>
-                        </Card>
-                        <Card class="border-none shadow-sm bg-slate-50 hover:bg-blue-50 transition-colors group">
-                            <CardHeader>
-                                <CardTitle class="text-blue-800 font-bold tracking-widest uppercase text-xs">Transparan</CardTitle>
-                            </CardHeader>
-                            <CardContent class="text-sm text-slate-500">Keterbukaan informasi kondisi keamanan lapas secara real-time.</CardContent>
-                        </Card>
-                        <Card class="border-none shadow-sm bg-slate-50 hover:bg-blue-50 transition-colors group">
-                            <CardHeader>
-                                <CardTitle class="text-blue-800 font-bold tracking-widest uppercase text-xs">Inovatif</CardTitle>
-                            </CardHeader>
-                            <CardContent class="text-sm text-slate-500">Digitalisasi laporan untuk efisiensi birokrasi pengamanan.</CardContent>
-                        </Card>
+                    <h2 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 max-w-5xl mx-auto leading-[1.15]">
+                        SPARTA <br class="hidden sm:inline" />
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#f59e0b] via-[#fbbf24] to-[#d97706] text-3xl sm:text-4xl lg:text-5xl block mt-2 font-bold tracking-normal">
+                            (Sistem Pelaporan Astekpam Responsif, Terpadu, dan Akuntabel)
+                        </span>
+                    </h2>
+                    
+                    <p class="text-[#94a3b8] text-base sm:text-lg max-w-3xl mx-auto mb-10 leading-relaxed">
+                        Sistem terpusat untuk memasukkan data serta melakukan validasi laporan Apel Serah Terima Kepala Regu Pengamanan secara akurat dan terintegrasi di lingkungan Lapas Kelas I Palembang.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                        <Link :href="route('login')">
+                            <Button size="lg" class="w-full sm:w-auto px-8 bg-[#f59e0b] hover:bg-[#d97706] text-[#0f172a] font-bold text-base shadow-lg shadow-[#f59e0b]/20 transition-all duration-200 transform hover:-translate-y-0.5">
+                                Masuk ke Aplikasi
+                            </Button>
+                        </Link>
+                        <a href="#fitur">
+                            <Button size="lg" variant="outline" class="w-full sm:w-auto px-8 border-[#334155] text-[#cbd5e1] hover:bg-[#1e293b] hover:text-white text-base">
+                                Pelajari Fitur
+                            </Button>
+                        </a>
                     </div>
+                </div>
+            </div>
+
+            <section id="fitur" class="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-3xl mx-auto mb-16">
+                    <h3 class="text-3xl font-bold tracking-tight text-[#0f172a] mb-4">
+                        Pilar Utama Layanan SPARTA
+                    </h3>
+                    <p class="text-[#64748b] text-base">
+                        Mendukung akuntabilitas kinerja pengamanan melalui pengelolaan administrasi pelaporan yang sistematis dan tervalidasi.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <Card class="border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow bg-white">
+                        <CardHeader>
+                            <div class="p-3 bg-[#f1f5f9] rounded-lg w-fit text-[#0f172a] mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+                            </div>
+                            <CardTitle class="text-xl font-bold text-[#0f172a]">Pelaporan Digital Terpusat</CardTitle>
+                            <CardDescription class="text-[#64748b] pt-2 leading-relaxed">
+                                Penyusunan data laporan Apel Serah Terima Kepala Regu Pengamanan secara digital untuk memastikan validitas informasi jurnalan tugas.
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
+
+                    <Card class="border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow bg-white">
+                        <CardHeader>
+                            <div class="p-3 bg-[#f59e0b]/10 rounded-lg w-fit text-[#d97706] mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><path d="M20 13c0 5-3.5 7.5-7.66 9.7a1 1 0 0 1-.68 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 .76-.97l8-2a1 1 0 0 1 .48 0l8 2A1 1 0 0 1 20 6z"/></svg>
+                            </div>
+                            <CardTitle class="text-xl font-bold text-[#0f172a]">Validasi Serah Terima</CardTitle>
+                            <CardDescription class="text-[#64748b] pt-2 leading-relaxed">
+                                Proses serah terima Kepala Regu Pengamanan (Karupam) terverifikasi secara sistematis demi menjaga akuntabilitas pelaksanaan tugas.
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
+
+                    <Card class="border border-[#e2e8f0] shadow-sm hover:shadow-md transition-shadow bg-white">
+                        <CardHeader>
+                            <div class="p-3 bg-[#f1f5f9] rounded-lg w-fit text-[#0f172a] mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6"><line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/></svg>
+                            </div>
+                            <CardTitle class="text-xl font-bold text-[#0f172a]">Arsip Responsif</CardTitle>
+                            <CardDescription class="text-[#64748b] pt-2 leading-relaxed">
+                                Mempermudah peninjauan dan rekapitulasi berkas laporan oleh pihak manajerial kapan saja secara transparan dan teratur.
+                            </CardDescription>
+                        </CardHeader>
+                    </Card>
                 </div>
             </section>
         </main>
 
-        <footer class="bg-[#0f172a] pt-20 pb-10 text-slate-400">
-            <div class="container mx-auto px-6 lg:px-8">
-                <div class="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-8">
-                    <div class="lg:col-span-1">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="p-2 bg-white/10 rounded-lg">
-                                <ApplicationLogo class="h-8 w-8 fill-white" />
-                            </div>
-                            <span class="text-xl font-black text-white tracking-tighter uppercase">ASTEKPAM</span>
-                        </div>
-                        <p class="text-sm leading-relaxed mb-6 italic opacity-80 text-justify text-slate-400">
-                            Sistem Informasi Apel Serah Terima Kepala Regu Pengamanan. Inovasi untuk efisiensi dan transparansi operasional di Lapas Kelas I Palembang.
-                        </p>
-                    </div>
-
-                    <div>
-                        <h3 class="mb-6 text-sm font-bold uppercase tracking-[0.2em] text-white">Navigasi</h3>
-                        <ul class="space-y-4 text-sm font-medium">
-                            <li><Link href="/" class="hover:text-blue-500 transition-colors">Beranda</Link></li>
-                            <li><Link :href="route('login')" class="hover:text-blue-500 transition-colors">Akses Petugas</Link></li>
-                            <li><a href="#" class="hover:text-blue-500 transition-colors">Panduan Sistem</a></li>
-                            <li><a href="#" class="hover:text-blue-500 transition-colors">Pusat Bantuan</a></li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="mb-6 text-sm font-bold uppercase tracking-[0.2em] text-white">Hubungi Kami</h3>
-                        <ul class="space-y-4 text-sm font-medium">
-                            <li class="flex gap-3">
-                                <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                <span>Jl. Raya Merdeka, No. 1, <br/>Palembang, Sumsel</span>
-                            </li>
-                            <li class="flex items-center gap-3 font-mono">
-                                <svg class="w-5 h-5 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                                <span>lapas.palembang@kemenkumham.go.id</span>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="mb-6 text-sm font-bold uppercase tracking-[0.2em] text-white">Tautan Instansi</h3>
-                        <div class="space-y-3">
-                            <a href="https://kemenimipas.go.id" target="_blank" class="block p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500 transition-all group">
-                                <p class="text-[10px] font-bold text-white mb-0.5 group-hover:text-blue-400">KEMENIMIPAS RI</p>
-                                <p class="text-[9px] opacity-50 uppercase tracking-tighter leading-none text-slate-300">Imigrasi dan Pemasyarakatan</p>
-                            </a>
-                            <a href="#" target="_blank" class="block p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500 transition-all group">
-                                <p class="text-[10px] font-bold text-white mb-0.5 group-hover:text-blue-400">DITJEN PAS</p>
-                                <p class="text-[9px] opacity-50 uppercase tracking-tighter leading-none text-slate-300">Direktorat Jenderal Pemasyarakatan</p>
-                            </a>
-                        </div>
-                    </div>
+        <footer class="bg-[#0f172a] text-[#94a3b8] border-t border-[#1e293b] py-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="text-center md:text-left">
+                    <p class="text-sm font-semibold text-[#f1f5f9] uppercase tracking-wider">
+                        SPARTA Platform
+                    </p>
+                    <p class="text-xs text-[#475569] mt-1">
+                        Hak Cipta © 2026 Lapas Kelas I Palembang. Seluruh hak cipta dilindungi undang-undang.
+                    </p>
                 </div>
-
-                <div class="mt-20 border-t border-white/5 pt-10 flex flex-col md:flex-row justify-between items-center gap-6">
-                    <div class="text-center md:text-left">
-                        <p class="text-[11px] font-black uppercase tracking-[0.3em] text-white mb-2">Waspada Jangan-Jangan!</p>
-                        <p class="text-[10px] opacity-40 uppercase tracking-widest">&copy; {{ new Date().getFullYear() }} Lapas Kelas I Palembang. All rights reserved.</p>
-                    </div>
-                    
-                    <div class="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest opacity-40">
-                        <a href="#" class="hover:text-white transition-colors">Privasi</a>
-                        <a href="#" class="hover:text-white transition-colors">Keamanan</a>
-                        <a href="#" class="hover:text-white transition-colors">Audit</a>
-                    </div>
+                <div class="flex flex-col md:flex-row items-center md:items-end gap-2 text-center md:text-right text-xs font-medium">
+                    <span class="text-slate-400">Kementerian Imigrasi dan Pemasyarakatan Republik Indonesia</span>
+                    <span class="hidden md:inline text-[#334155]">|</span>
+                    <span class="text-[#f59e0b] uppercase tracking-wider text-[10px]">Smart Governance</span>
                 </div>
             </div>
         </footer>
