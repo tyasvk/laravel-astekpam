@@ -27,7 +27,9 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nip' => ['required', 'string'], // Validasi NIP sebagai string wajib diisi
+            // Ubah dari email/nip menjadi nama input yang Anda gunakan di Login.vue
+            // Jika di vue menggunakan form.nip, ubah 'login' di bawah ini menjadi 'nip'
+            'nip' => ['required', 'string'], 
             'password' => ['required', 'string'],
         ];
     }
@@ -41,12 +43,18 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        // Menggunakan kolom 'nip' untuk mencocokkan akun di database
-        if (! Auth::attempt($this->only('nip', 'password'), $this->boolean('remember'))) {
+        // 1. Ambil inputan dari user (bisa nip atau email)
+        $input = $this->input('nip');
+
+        // 2. Deteksi otomatis: Apakah inputan mengandung format @ email?
+        $fieldType = filter_var($input, FILTER_VALIDATE_EMAIL) ? 'email' : 'nip';
+
+        // 3. Lakukan proses login berdasarkan tipe kolom yang terdeteksi
+        if (! Auth::attempt([$fieldType => $input, 'password' => $this->input('password')], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'nip' => __('auth.failed'),
+                'nip' => trans('auth.failed'), // Tampilkan error di bawah form nip
             ]);
         }
 
@@ -69,7 +77,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'nip' => __('auth.throttle', [
+            'nip' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -81,6 +89,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('nip')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->input('nip')).'|'.$this->ip());
     }
 }

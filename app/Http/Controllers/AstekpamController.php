@@ -27,6 +27,13 @@ class AstekpamController extends Controller
      */
     public function create()
     {
+
+        // Ambil semua petugas untuk dipetakan otomatis
+        $petugas = \App\Models\User::all();
+    
+        return Inertia::render('Astekpam/Create', [
+        'petugasData' => $petugas
+        ]);
         // Mengambil ID terakhir dari setiap rupam yang pernah dibuat (Logika Asli Anda)
         $lastRupamData = Astekpam::whereIn('id', function ($query) {
             $query->selectRaw('MAX(id)')
@@ -41,7 +48,7 @@ class AstekpamController extends Controller
 
         return Inertia::render('Astekpam/Create', [
             'lastRupamData' => $lastRupamData,
-            'latestReport' => $latestReport // Kirim ke Vue
+            'lastReport' => $latestReport // <--- UBAH 'latestReport' JADI 'lastReport'
         ]);
     }
 

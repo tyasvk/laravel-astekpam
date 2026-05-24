@@ -10,17 +10,11 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Ambil 1 laporan terbaru
-        $latestReport = Astekpam::with('user')->latest()->first();
-        
-        $stats = [
-            'total' => Astekpam::count(),
-            'today' => Astekpam::whereDate('created_at', Carbon::today())->count(),
-        ];
+       // Ambil 1 data laporan Astekpam paling terakhir/terbaru
+        $latestAstekpam = Astekpam::latest()->first();
 
         return Inertia::render('Dashboard', [
-            'latestReport' => $latestReport,
-            'stats' => $stats
+            'latestAstekpam' => $latestAstekpam
         ]);
     }
 }

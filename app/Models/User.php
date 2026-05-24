@@ -24,6 +24,8 @@ class User extends Authenticatable
         'password',
         'nip', // Tambahkan field NIP di sini
         'regu_pengamanan', // Kolom tambahan untuk Regu Pengamanan (Rupam I - IV)
+        'regu',     // <--- TAMBAHKAN INI
+        'jabatan',  // <--- TAMBAHKAN INI
     ];
 
     /**

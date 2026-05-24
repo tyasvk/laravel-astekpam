@@ -10,11 +10,12 @@ import { LayoutDashboard, Users, FilePlus, History, LogOut, Menu, ShieldCheck } 
 const { hasRole, hasPermission } = usePermission();
 const user = usePage().props.auth.user;
 
+// PERBAIKAN: Menambahkan 'activeRule' untuk mencocokkan nama rute secara tepat
 const navigation = [
-    { name: 'Dashboard', href: route('dashboard'), icon: LayoutDashboard, show: true },
-    { name: 'Manajemen User', href: route('admin.users.index'), icon: Users, show: hasRole('admin') },
-    { name: 'Input Astekpam', href: route('astekpam.create'), icon: FilePlus, show: hasPermission('create reports') },
-    { name: 'Riwayat Laporan', href: route('astekpam.index'), icon: History, show: true },
+    { name: 'Dashboard', href: route('dashboard'), icon: LayoutDashboard, show: true, activeRule: 'dashboard' },
+    { name: 'Manajemen User', href: route('admin.users.index'), icon: Users, show: hasRole('admin'), activeRule: 'admin.users.*' },
+    { name: 'Input Astekpam', href: route('astekpam.create'), icon: FilePlus, show: hasPermission('create reports'), activeRule: 'astekpam.create' },
+    { name: 'Riwayat Laporan', href: route('astekpam.index'), icon: History, show: true, activeRule: 'astekpam.index' },
 ];
 </script>
 
@@ -35,7 +36,7 @@ const navigation = [
                 <nav class="space-y-1">
                     <template v-for="item in navigation" :key="item.name">
                         <Link v-if="item.show" :href="item.href"
-                            :class="[route().current(item.href.split('/').pop() + '*') ? 'bg-zinc-100 text-blue-700 font-semibold' : 'text-zinc-600 hover:bg-zinc-50', 'group flex items-center px-3 py-2 text-sm rounded-md transition-all']">
+                            :class="[route().current(item.activeRule) ? 'bg-zinc-100 text-blue-700 font-semibold' : 'text-zinc-600 hover:bg-zinc-50', 'group flex items-center px-3 py-2 text-sm rounded-md transition-all']">
                             <component :is="item.icon" class="mr-3 h-4 w-4 shrink-0" />
                             {{ item.name }}
                         </Link>
@@ -50,7 +51,7 @@ const navigation = [
                     </div>
                     <div class="flex flex-col overflow-hidden">
                         <span class="text-xs font-bold truncate">{{ user.name }}</span>
-                        <span class="text-[10px] text-zinc-500 uppercase font-medium">{{ user.roles[0] || 'Petugas' }}</span>
+                        <span class="text-[10px] text-zinc-500 uppercase font-medium">{{ user.roles && user.roles.length > 0 ? user.roles[0].name : (user.jabatan || 'Petugas') }}</span>
                     </div>
                 </div>
                 <Link :href="route('logout')" method="post" as="button" class="w-full">
@@ -78,7 +79,7 @@ const navigation = [
                         <nav class="p-4 space-y-2">
                             <template v-for="item in navigation" :key="item.name">
                                 <Link v-if="item.show" :href="item.href" 
-                                    :class="[route().current(item.href.split('/').pop() + '*') ? 'bg-blue-50 text-blue-700 font-bold' : 'text-zinc-600 hover:bg-zinc-50', 'flex items-center p-3 text-sm rounded-xl transition-all']">
+                                    :class="[route().current(item.activeRule) ? 'bg-blue-50 text-blue-700 font-bold' : 'text-zinc-600 hover:bg-zinc-50', 'flex items-center p-3 text-sm rounded-xl transition-all']">
                                     <component :is="item.icon" class="mr-3 h-5 w-5" /> {{ item.name }}
                                 </Link>
                             </template>

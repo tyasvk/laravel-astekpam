@@ -5,20 +5,16 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
-use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     /**
-     * Display a listing of the users.
+     * Menampilkan daftar pengguna.
      */
     public function index()
     {
-        // Mengambil semua data pengguna
-        // Jika Anda menggunakan Spatie Permission, Anda dapat memuat relasi roles di sini
-        // $users = User::with('roles')->latest()->get();
         $users = User::latest()->get();
 
         return Inertia::render('Admin/UserIndex', [
@@ -27,92 +23,65 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for creating a new user.
-     */
-    public function create()
-    {
-        return Inertia::render('Admin/UserCreate');
-    }
-
-    /**
-     * Store a newly created user in storage.
+     * Menyimpan pengguna baru.
      */
     public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Password::defaults()],
-            // 'role' => 'required|string|exists:roles,name', // Aktifkan ini jika menggunakan role
+            'email' => 'required|string|email|max:255|unique:users',
+            'nip' => 'required|string|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'regu' => ['required', Rule::in(['I', 'II', 'III', 'IV'])],
+            'jabatan' => ['required', Rule::in([
+    'Karupam I', 'Karupam II', 'Karupam III', 'Karupam IV',
+    'Wakarupam I', 'Wakarupam II', 'Wakarupam III', 'Wakarupam IV',
+    'Anggota I', 'Anggota II', 'Anggota III', 'Anggota IV' // <--- INI YANG DIUBAH
+])],
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
-        ]);
+        $validated['password'] = bcrypt($validated['password']);
 
-        // Jika menggunakan Spatie Permission, Anda dapat memberikan peran (role) di sini:
-        // $user->assignRole($request->role);
+        User::create($validated);
 
-        return redirect()->route('admin.users.index')->with('success', 'Pengguna berhasil ditambahkan.');
+        return redirect()->back()->with('success', 'Pengguna berhasil ditambahkan');
     }
 
     /**
-     * Show the form for editing the specified user.
-     */
-    public function edit(User $user)
-    {
-        // Muat data pengguna yang akan diedit
-        // $user->load('roles'); // Jika menggunakan relasi roles
-        
-        return Inertia::render('Admin/UserEdit', [
-            'user' => $user,
-        ]);
-    }
-
-    /**
-     * Update the specified user in storage.
+     * Memperbarui data pengguna.
      */
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class.',email,'.$user->id,
-            // Password bersifat opsional saat update. Jika diisi, maka divalidasi.
-            'password' => ['nullable', 'confirmed', Password::defaults()],
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'nip' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'password' => 'nullable|string|min:8',
+            'regu' => ['required', Rule::in(['I', 'II', 'III', 'IV'])],
+            'jabatan' => ['required', Rule::in([
+    'Karupam I', 'Karupam II', 'Karupam III', 'Karupam IV',
+    'Wakarupam I', 'Wakarupam II', 'Wakarupam III', 'Wakarupam IV',
+    'Anggota I', 'Anggota II', 'Anggota III', 'Anggota IV' // <--- INI YANG DIUBAH
+])],
         ]);
 
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-
-        // Hanya update password jika pengguna mengisinya
         if (!empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
+            $validated['password'] = bcrypt($validated['password']);
+        } else {
+            unset($validated['password']);
         }
 
-        $user->save();
+        $user->update($validated);
 
-        // Jika Anda ingin mengupdate role (menggunakan Spatie)
-        // if ($request->has('role')) {
-        //     $user->syncRoles($request->role);
-        // }
-
-        return redirect()->route('admin.users.index')->with('success', 'Data pengguna berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Pengguna berhasil diperbarui');
     }
 
     /**
-     * Remove the specified user from storage.
+     * Menghapus pengguna.
      */
     public function destroy(User $user)
     {
-        // Cegah penghapusan akun sendiri (opsional tapi disarankan)
-        if (auth()->id() === $user->id) {
-            return redirect()->route('admin.users.index')->with('error', 'Anda tidak dapat menghapus akun Anda sendiri.');
-        }
-
         $user->delete();
-
-        return redirect()->route('admin.users.index')->with('success', 'Pengguna berhasil dihapus.');
+        return redirect()->back()->with('success', 'Pengguna berhasil dihapus');
     }
 }
