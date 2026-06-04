@@ -5,7 +5,7 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 const form = useForm({
     name: '',
     email: '',
-    nip: '', // State untuk menampung input NIP baru
+    nip: '',
     regu_pengamanan: '',
     password: '',
     password_confirmation: '',
@@ -34,6 +34,7 @@ const submit = () => {
     <Head title="Pendaftaran Akun" />
 
     <div class="min-h-screen flex flex-col md:flex-row bg-[#f8fafc] font-sans selection:bg-[#d97706] selection:text-white">
+        
         <div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#0f172a] to-[#1e293b] p-12 flex-col justify-between relative overflow-hidden text-white border-r border-[#d97706]/10">
             <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:24px_24px]"></div>
             <div class="absolute -top-40 -left-40 w-96 h-96 bg-[#f59e0b]/5 rounded-full blur-3xl"></div>
@@ -82,9 +83,9 @@ const submit = () => {
                     <p class="text-xs text-[#64748b] mt-0.5">Lengkapi data Anda dengan benar untuk masuk ke sistem.</p>
                 </div>
 
-                <form @submit.prevent="submit" class="space-y-3.5">
+                <form @submit.prevent="submit" class="space-y-4">
                     
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="name" class="block text-[11px] font-semibold uppercase tracking-wider text-[#475569] mb-1.5">
                                 Nama Lengkap
@@ -96,7 +97,7 @@ const submit = () => {
                                 required
                                 autofocus
                                 autocomplete="name"
-                                class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
+                                class="w-full px-3.5 h-11 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
                                 placeholder="Heri Darmawan"
                             />
                             <span v-if="form.errors.name" class="text-xs text-red-500 mt-1 block font-medium">
@@ -114,7 +115,7 @@ const submit = () => {
                                 v-model="form.email"
                                 required
                                 autocomplete="username"
-                                class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
+                                class="w-full px-3.5 h-11 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
                                 placeholder="nama@domain.com"
                             />
                             <span v-if="form.errors.email" class="text-xs text-red-500 mt-1 block font-medium">
@@ -123,7 +124,7 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="nip" class="block text-[11px] font-semibold uppercase tracking-wider text-[#475569] mb-1.5">
                                 NIP Pegawai
@@ -133,7 +134,7 @@ const submit = () => {
                                 type="text"
                                 v-model="form.nip"
                                 required
-                                class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
+                                class="w-full px-3.5 h-11 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
                                 placeholder="199508xxxxxxxxxxxx"
                             />
                             <span v-if="form.errors.nip" class="text-xs text-red-500 mt-1 block font-medium">
@@ -150,7 +151,7 @@ const submit = () => {
                                     id="regu_pengamanan"
                                     v-model="form.regu_pengamanan"
                                     required
-                                    class="w-full px-3.5 py-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a] appearance-none cursor-pointer"
+                                    class="w-full px-3.5 pr-10 h-11 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a] appearance-none cursor-pointer"
                                 >
                                     <option value="" disabled selected>Pilih Regu Pengamanan</option>
                                     <option value="Rupam I">Rupam I</option>
@@ -170,7 +171,7 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label for="password" class="block text-[11px] font-semibold uppercase tracking-wider text-[#475569] mb-1.5">
                                 Kata Sandi
@@ -182,13 +183,13 @@ const submit = () => {
                                     v-model="form.password"
                                     required
                                     autocomplete="new-password"
-                                    class="w-full pl-3.5 pr-10 py-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
+                                    class="w-full pl-3.5 pr-10 h-11 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
                                     placeholder="••••••••"
                                 />
                                 <button
                                     type="button"
                                     @click="togglePasswordVisibility"
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#64748b] hover:text-[#0f172a] focus:outline-none select-none"
+                                    class="absolute inset-y-0 right-0 px-3 flex items-center text-[#64748b] hover:text-[#0f172a] focus:outline-none select-none"
                                 >
                                     <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
                                         <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/>
@@ -218,13 +219,13 @@ const submit = () => {
                                     v-model="form.password_confirmation"
                                     required
                                     autocomplete="new-password"
-                                    class="w-full pl-3.5 pr-10 py-2.5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
+                                    class="w-full pl-3.5 pr-10 h-11 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#f59e0b]/40 focus:border-[#f59e0b] focus:bg-white transition-all duration-200 text-[#0f172a]"
                                     placeholder="••••••••"
                                 />
                                 <button
                                     type="button"
                                     @click="toggleConfirmPasswordVisibility"
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#64748b] hover:text-[#0f172a] focus:outline-none select-none"
+                                    class="absolute inset-y-0 right-0 px-3 flex items-center text-[#64748b] hover:text-[#0f172a] focus:outline-none select-none"
                                 >
                                     <svg v-if="showConfirmPassword" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4">
                                         <path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"/>
@@ -244,15 +245,15 @@ const submit = () => {
                         </div>
                     </div>
 
-                    <div class="pt-1.5">
+                    <div class="pt-2">
                         <button
                             type="submit"
                             :disabled="form.processing"
-                            class="w-full py-2.5 px-4 bg-[#0f172a] hover:bg-[#1e293b] text-[#f59e0b] disabled:opacity-50 disabled:pointer-events-none font-bold text-sm rounded-xl shadow-md shadow-[#0f172a]/10 transition-all duration-200 transform active:scale-[0.99] flex justify-center items-center gap-2"
+                            class="w-full h-11 bg-[#0f172a] hover:bg-[#1e293b] text-[#f59e0b] disabled:opacity-50 disabled:pointer-events-none font-bold text-sm rounded-xl shadow-md shadow-[#0f172a]/10 transition-all duration-200 transform active:scale-[0.99] flex justify-center items-center gap-2"
                         >
                             <svg v-if="form.processing" class="animate-spin h-4 w-4 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                             Daftarkan Akun
                         </button>
@@ -260,10 +261,10 @@ const submit = () => {
                 </form>
 
                 <div class="mt-6 text-center flex flex-col gap-2 border-t border-slate-100 pt-4">
-                    <Link :href="route('login')" class="text-xs text-[#d97706] hover:text-[#f59e0b] font-semibold transition-colors">
+                    <Link :href="route('login')" class="inline-block py-1 px-2 text-xs text-[#d97706] hover:text-[#f59e0b] font-semibold transition-colors">
                         Sudah Memiliki Akun? Masuk Log Di Sini
                     </Link>
-                    <Link href="/" class="text-xs text-[#64748b] hover:text-[#0f172a] font-medium transition-colors">
+                    <Link href="/" class="inline-block py-1 px-2 text-xs text-[#64748b] hover:text-[#0f172a] font-medium transition-colors">
                         ← Kembali ke Halaman Utama
                     </Link>
                 </div>

@@ -8,7 +8,7 @@ import { Label } from '@/Components/ui/label';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { 
-    ChevronLeft, Plus, Trash2, FileText, Users, ShieldAlert, Zap, Check
+    ChevronLeft, Plus, Trash2, FileText, Users, ShieldAlert, Zap, Check, Calendar, MapPin
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -233,41 +233,41 @@ const submitLaporan = () => form.post(route('astekpam.store'));
 </script>
 
 <template>
-    <Head title="Laporan Astekpam" />
+    <Head title="Buat Laporan Astekpam" />
     <AuthenticatedLayout>
         
         <div class="px-4 py-6 sm:py-8 bg-zinc-50/50 min-h-screen">
-            
             <div class="max-w-4xl mx-auto w-full">
+                
                 <div class="mb-5 sm:mb-8 flex items-start">
                     <Link :href="route('dashboard')">
-                        <Button variant="outline" size="sm" class="rounded-full bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900 shadow-sm h-9 px-4 font-bold tracking-wide">
+                        <Button variant="outline" size="sm" class="rounded-full bg-white border-zinc-200 text-zinc-600 hover:text-zinc-900 shadow-sm h-10 sm:h-9 px-4 sm:px-4 font-bold tracking-wide w-full sm:w-auto">
                             <ChevronLeft class="w-4 h-4 mr-1.5" /> Kembali ke Dashboard
                         </Button>
                     </Link>
                 </div>
 
                 <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 font-sans">
-                    <div>
-                        <h1 class="text-3xl font-extrabold text-zinc-900 tracking-tight">Laporan Astekpam</h1>
-                        <p class="text-zinc-500 font-medium mt-1">Sistem Informasi Pengamanan Terpadu</p>
+                    <div class="text-center sm:text-left">
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-zinc-900 tracking-tight">Laporan Astekpam</h1>
+                        <p class="text-zinc-500 text-sm font-medium mt-1">Sistem Informasi Pengamanan Terpadu</p>
                     </div>
-                    <Button v-if="isPreviewActive" type="button" @click="togglePreview" variant="outline" class="rounded-xl h-11 px-6 shadow-sm">
+                    <Button v-if="isPreviewActive" type="button" @click="togglePreview" variant="outline" class="rounded-xl h-12 sm:h-11 px-6 shadow-sm w-full sm:w-auto">
                         <ChevronLeft class="w-4 h-4 mr-2" /> Kembali Edit Form
                     </Button>
                 </div>
 
-                <form @submit.prevent class="space-y-6" v-if="!isPreviewActive">
+                <form @submit.prevent class="space-y-5 sm:space-y-6" v-if="!isPreviewActive">
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <Label class="text-xs font-bold text-zinc-500 tracking-wider">TANGGAL</Label>
-                            <Input type="date" v-model="form.tanggal" class="h-12 rounded-xl bg-white border-zinc-200 shadow-sm transition-all focus:ring-2 focus:ring-blue-500" />
+                            <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wider">TANGGAL LAPORAN</Label>
+                            <Input type="date" v-model="form.tanggal" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl bg-white border-zinc-200 shadow-sm transition-all focus:ring-2 focus:ring-blue-500" />
                         </div>
                         <div class="space-y-1.5">
-                            <Label class="text-xs font-bold text-zinc-500 tracking-wider">PUKUL</Label>
+                            <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wider">PUKUL (SHIFT)</Label>
                             <Select v-model="form.pukul">
-                                <SelectTrigger class="h-12 rounded-xl bg-white border-zinc-200 shadow-sm transition-all focus:ring-2 focus:ring-blue-500">
+                                <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl bg-white border-zinc-200 shadow-sm transition-all focus:ring-2 focus:ring-blue-500">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -280,22 +280,22 @@ const submitLaporan = () => form.post(route('astekpam.store'));
                     </div>
 
                     <Card class="rounded-2xl border border-zinc-200 shadow-sm overflow-hidden bg-white">
-                        <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-zinc-800 bg-zinc-50">
+                        <div class="px-5 sm:px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-zinc-800 bg-zinc-50">
                             <FileText class="w-4 h-4 text-blue-600"/> SERAH TERIMA
                         </div>
-                        <CardContent class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <CardContent class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                             <div class="space-y-2">
-                                <Label class="text-xs font-semibold text-zinc-500">DARI (LAMA)</Label>
+                                <Label class="text-[11px] sm:text-xs font-semibold text-zinc-500">DARI REGU (LAMA)</Label>
                                 <div class="flex gap-2">
                                     <Select v-model="form.dari_rupam">
-                                        <SelectTrigger class="h-11 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Rupam" /></SelectTrigger>
+                                        <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Rupam" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Rupam I">Rupam I</SelectItem><SelectItem value="Rupam II">Rupam II</SelectItem>
                                             <SelectItem value="Rupam III">Rupam III</SelectItem><SelectItem value="Rupam IV">Rupam IV</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Select v-model="form.dari_shift">
-                                        <SelectTrigger class="h-11 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Shift" /></SelectTrigger>
+                                        <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Shift" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Pagi">Pagi</SelectItem><SelectItem value="Siang">Siang</SelectItem><SelectItem value="Malam">Malam</SelectItem>
                                         </SelectContent>
@@ -303,17 +303,17 @@ const submitLaporan = () => form.post(route('astekpam.store'));
                                 </div>
                             </div>
                             <div class="space-y-2">
-                                <Label class="text-xs font-semibold text-zinc-500">KE (BARU)</Label>
+                                <Label class="text-[11px] sm:text-xs font-semibold text-zinc-500">KE REGU (BARU)</Label>
                                 <div class="flex gap-2">
                                     <Select v-model="form.ke_rupam">
-                                        <SelectTrigger class="h-11 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Rupam" /></SelectTrigger>
+                                        <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Rupam" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Rupam I">Rupam I</SelectItem><SelectItem value="Rupam II">Rupam II</SelectItem>
                                             <SelectItem value="Rupam III">Rupam III</SelectItem><SelectItem value="Rupam IV">Rupam IV</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Select v-model="form.ke_shift">
-                                        <SelectTrigger class="h-11 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Shift" /></SelectTrigger>
+                                        <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Shift" /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="Pagi">Pagi</SelectItem><SelectItem value="Siang">Siang</SelectItem><SelectItem value="Malam">Malam</SelectItem>
                                         </SelectContent>
@@ -321,178 +321,190 @@ const submitLaporan = () => form.post(route('astekpam.store'));
                                 </div>
                             </div>
                             <div class="md:col-span-2 space-y-2">
-                                <Label class="text-xs font-semibold text-zinc-500">DIPIMPIN OLEH</Label>
-                                <Input v-model="form.pimpinan" class="h-11 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 focus:bg-white" />
+                                <Label class="text-[11px] sm:text-xs font-semibold text-zinc-500">DIPIMPIN OLEH (PIMPINAN APEL)</Label>
+                                <Input v-model="form.pimpinan" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 focus:bg-white" />
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card class="rounded-2xl border border-zinc-200 shadow-sm overflow-hidden bg-white">
-                        <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-white tracking-wider bg-zinc-900">
+                        <div class="px-5 sm:px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-white tracking-wider bg-zinc-900">
                             <Users class="w-4 h-4 text-emerald-400"/> A. JUMLAH PENGHUNI
                         </div>
-                        <CardContent class="p-6 space-y-6">
+                        <CardContent class="p-5 sm:p-6 space-y-5 sm:space-y-6">
+                            
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div class="space-y-2">
-                                    <Label class="text-xs font-medium text-zinc-600 flex justify-between items-center w-full">
-                                        <span>Kapasitas</span>
+                                    <Label class="text-[11px] sm:text-xs font-medium text-zinc-600 flex justify-between items-center w-full">
+                                        <span>Kapasitas Lapas</span>
                                         <span v-if="getPreviousData('kapasitas')" class="text-[10px] bg-zinc-100 px-2 py-0.5 rounded-md text-zinc-500 font-bold">= {{ getPreviousData('kapasitas') }}</span>
                                     </Label>
-                                    <Input v-model="form.kapasitas" class="h-11 rounded-lg"/>
+                                    <Input type="number" v-model="form.kapasitas" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg"/>
                                 </div>
                                 <div class="space-y-2">
-                                    <Label class="text-xs font-bold text-indigo-700 flex justify-between items-center w-full">
-                                        <span>Narapidana</span>
-                                        <span v-if="getPreviousData('narapidana')" class="text-[11px] bg-indigo-100 px-2 py-0.5 rounded-md text-indigo-600 font-extrabold">= {{ getPreviousData('narapidana') }}</span>
+                                    <Label class="text-[11px] sm:text-xs font-bold text-indigo-700 flex justify-between items-center w-full">
+                                        <span>Total Narapidana</span>
+                                        <span v-if="getPreviousData('narapidana')" class="text-[10px] bg-indigo-100 px-2 py-0.5 rounded-md text-indigo-600 font-extrabold">= {{ getPreviousData('narapidana') }}</span>
                                     </Label>
-                                    <Input v-model="form.narapidana" class="h-11 rounded-lg border-indigo-200 bg-indigo-50/50 font-semibold text-indigo-900 focus:ring-indigo-500" />
+                                    <Input type="number" v-model="form.narapidana" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg border-indigo-200 bg-indigo-50/50 font-semibold text-indigo-900 focus:ring-indigo-500" />
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                                 <div v-for="b in ['blok_a', 'blok_b', 'dapur', 'klinik']" :key="b" class="space-y-1.5">
-                                    <Label class="capitalize text-xs font-medium text-zinc-600 flex justify-between items-center w-full">
+                                    <Label class="capitalize text-[10px] sm:text-xs font-medium text-zinc-600 flex justify-between items-center w-full">
                                         <span>{{ b.replace('_', ' ') }}</span>
-                                        <span v-if="getPreviousData(b)" class="text-[10px] bg-zinc-100 px-2 py-0.5 rounded-md text-zinc-500 font-bold">= {{ getPreviousData(b) }}</span>
+                                        <span v-if="getPreviousData(b)" class="hidden sm:inline text-[9px] bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-500 font-bold">={{ getPreviousData(b) }}</span>
                                     </Label>
-                                    <Input v-model="form[b]" class="h-11 rounded-lg bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500" />
+                                    <Input type="number" v-model="form[b]" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500" />
                                 </div>
                             </div>
                             
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-zinc-100">
                                 <div class="space-y-2">
-                                    <Label class="text-xs font-medium text-zinc-600 flex justify-between items-center w-full">
+                                    <Label class="text-[11px] sm:text-xs font-medium text-zinc-600 flex justify-between items-center w-full">
                                         <span>Dalam Lapas</span>
                                         <span v-if="getPreviousData('dalam_lapas')" class="text-[10px] bg-zinc-100 px-2 py-0.5 rounded-md text-zinc-500 font-bold">= {{ getPreviousData('dalam_lapas') }}</span>
                                     </Label>
-                                    <Input v-model="form.dalam_lapas" class="h-11 rounded-lg" />
+                                    <Input type="number" v-model="form.dalam_lapas" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg" />
                                 </div>
                                 <div class="space-y-2">
-                                    <Label class="text-xs font-medium text-zinc-600 flex justify-between items-center w-full">
+                                    <Label class="text-[11px] sm:text-xs font-medium text-zinc-600 flex justify-between items-center w-full">
                                         <span>Luar Lapas</span>
                                         <span v-if="getPreviousData('luar_lapas')" class="text-[10px] bg-zinc-100 px-2 py-0.5 rounded-md text-zinc-500 font-bold">= {{ getPreviousData('luar_lapas') }}</span>
                                     </Label>
-                                    <Input v-model="form.luar_lapas" class="h-11 rounded-lg" />
+                                    <Input type="number" v-model="form.luar_lapas" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg" />
                                 </div>
                             </div>
                             
                             <div v-for="(items, key) in { rawat_inap_items: 'Rawat Inap RS', berobat_items: 'Berobat RS', bon_luar_items: 'Lain-lain (Bon Luar)' }" :key="key" class="space-y-3 pt-2">
-                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-zinc-50 px-3 py-2 rounded-lg border border-zinc-100 gap-2">
-                                    <Label class="text-[11px] font-bold text-zinc-700 uppercase flex items-center gap-3">
+                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-zinc-50 px-3 py-2.5 sm:py-2 rounded-xl sm:rounded-lg border border-zinc-100 gap-2">
+                                    <Label class="text-[11px] font-bold text-zinc-700 uppercase flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
                                         <span>{{ items }}</span>
-                                        <span v-if="getPreviousData(key) && getPreviousData(key) !== '(-)'" class="text-[9px] bg-blue-100/50 text-blue-600 px-2 py-0.5 rounded-md font-bold normal-case border border-blue-200">
-                                            Sebelumnya {{ getPreviousData(key) }}
+                                        <span v-if="getPreviousData(key) && getPreviousData(key) !== '(-)'" class="text-[9px] bg-blue-100/50 text-blue-600 px-2 py-0.5 rounded-md font-bold normal-case border border-blue-200 self-start sm:self-auto">
+                                            Sblmnya: {{ getPreviousData(key) }}
                                         </span>
                                     </Label>
-                                    <Button type="button" @click="addItem(key)" size="sm" variant="ghost" class="h-7 text-xs hover:bg-zinc-200 self-start sm:self-auto">
-                                        <Plus class="w-3 h-3 mr-1"/> Tambah
+                                    <Button type="button" @click="addItem(key)" size="sm" variant="ghost" class="h-9 sm:h-7 text-xs bg-white sm:bg-transparent border border-zinc-200 sm:border-0 hover:bg-zinc-200 w-full sm:w-auto shadow-sm sm:shadow-none">
+                                        <Plus class="w-3.5 h-3.5 sm:w-3 sm:h-3 mr-1"/> Tambah
                                     </Button>
                                 </div>
                                 <div v-for="(item, i) in form[key]" :key="i" class="flex gap-2">
-                                    <Input v-model="item.ket" class="h-11 rounded-lg" placeholder="Masukkan keterangan..."/>
-                                    <Button v-if="form[key].length > 1" type="button" @click="removeItem(key, i)" variant="ghost" class="h-11 w-11 px-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600 shrink-0"><Trash2 class="w-4 h-4"/></Button>
+                                    <Input v-model="item.ket" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg" placeholder="Masukkan detail keterangan..."/>
+                                    <Button v-if="form[key].length > 1" type="button" @click="removeItem(key, i)" variant="ghost" class="h-12 w-12 sm:h-11 sm:w-11 px-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600 shrink-0 border border-transparent hover:border-rose-100 rounded-xl sm:rounded-lg">
+                                        <Trash2 class="w-4 h-4 sm:w-4 sm:h-4"/>
+                                    </Button>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
                     <Card class="rounded-2xl border border-zinc-200 shadow-sm overflow-hidden bg-white">
-                        <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-zinc-800 bg-zinc-50">
-                            <ShieldAlert class="w-4 h-4 text-rose-600"/> B. PERSONIL PENGAMANAN
+                        <div class="px-5 sm:px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-zinc-800 bg-zinc-50">
+                            <ShieldAlert class="w-4 h-4 text-rose-600"/> B. PERSONIL PENGAMANAN & TUGAS
                         </div>
-                        <CardContent class="p-6 space-y-6">
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div class="sm:col-span-3 text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">1. Rupam</div>
-                                <Select v-model="form.rupam_pilihan">
-                                    <SelectTrigger class="h-11 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih Rupam" /></SelectTrigger>
-                                    <SelectContent><SelectItem value="Rupam I">Rupam I</SelectItem><SelectItem value="Rupam II">Rupam II</SelectItem><SelectItem value="Rupam III">Rupam III</SelectItem><SelectItem value="Rupam IV">Rupam IV</SelectItem></SelectContent>
-                                </Select>
-                                <Input v-model="form.rupam_jumlah" type="number" placeholder="Jumlah Personil" class="h-11 rounded-lg bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
-                                <Input v-model="form.rupam_hadir" type="number" placeholder="Jumlah Hadir" class="h-11 rounded-lg bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
-                                <Input class="sm:col-span-3 h-11 rounded-lg bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500" v-model="form.rupam_keterangan" placeholder="Keterangan Tambahan (Opsional)..."/>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-zinc-100">
-                                <div class="sm:col-span-3 text-xs font-bold text-zinc-400 uppercase tracking-wider mb-1">2. Satgas P2U</div>
-                                <Input v-model="form.p2u_jumlah" type="number" placeholder="Jumlah" class="h-11 rounded-lg bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
-                                <Input v-model="form.p2u_hadir" type="number" placeholder="Hadir" class="h-11 rounded-lg bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
-                                <Input v-model="form.p2u_keterangan" placeholder="Keterangan (Opsional)" class="h-11 rounded-lg bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card class="rounded-2xl border border-zinc-200 shadow-sm overflow-hidden bg-white">
-                        <div class="px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-zinc-800 bg-zinc-50">
-                            <Zap class="w-4 h-4 text-amber-500"/> 3. PEMBAGIAN TUGAS
-                        </div>
-                        <CardContent class="p-6 space-y-5">
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="space-y-1.5"><Label class="text-xs font-medium">Ka. Rupam</Label><Input v-model="form.tugas.ka_rupam" class="h-11 rounded-lg" /></div>
-                                <div class="space-y-1.5"><Label class="text-xs font-medium">Wakarupam</Label><Input v-model="form.tugas.wakarupam" class="h-11 rounded-lg" /></div>
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="space-y-1.5"><Label class="text-xs font-medium">Kasatgas P2U</Label><Input v-model="form.tugas.kasatgas_p2u" class="h-11 rounded-lg" /></div>
-                                <div class="space-y-1.5"><Label class="text-xs font-medium">Wakasatgas P2U</Label><Input v-model="form.tugas.wakasatgas_p2u" class="h-11 rounded-lg" /></div>
-                            </div>
+                        <CardContent class="p-5 sm:p-6 space-y-6 sm:space-y-6">
                             
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-zinc-100">
-                                <div v-for="(label, key) in dropdownTugas" :key="key" class="p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-3">
-                                    <Label class="text-xs text-zinc-800 font-bold tracking-wide uppercase">{{label}}</Label>
-                                    <div class="grid gap-2" :class="jumlahJam === 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'">
-                                        <div v-for="jam in jumlahJam" :key="jam" class="space-y-1.5">
-                                            <Label class="text-[9px] text-zinc-500 font-semibold tracking-wide uppercase">Jam Ke-{{ jam }}</Label>
-                                            <Select v-model="form.tugas[key]['jam_' + jam]">
-                                                <SelectTrigger class="h-9 rounded-lg text-xs bg-white border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih..." /></SelectTrigger>
-                                                <SelectContent><SelectItem value="-">(Kosong)</SelectItem><SelectItem v-for="anggota in anggotaReguOptions" :key="anggota.id" :value="anggota.name">{{ anggota.name }}</SelectItem></SelectContent>
-                                            </Select>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                                <div class="sm:col-span-3 text-[11px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider mb-0.5 sm:mb-1">1. Rupam & Kehadiran</div>
+                                <Select v-model="form.rupam_pilihan">
+                                    <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih Rupam Terlibat" /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Rupam I">Rupam I</SelectItem><SelectItem value="Rupam II">Rupam II</SelectItem>
+                                        <SelectItem value="Rupam III">Rupam III</SelectItem><SelectItem value="Rupam IV">Rupam IV</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <div class="grid grid-cols-2 gap-3 sm:col-span-2">
+                                    <Input v-model="form.rupam_jumlah" type="number" placeholder="Total Regu" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
+                                    <Input v-model="form.rupam_hadir" type="number" placeholder="Jml Hadir" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
+                                </div>
+                                <Input class="sm:col-span-3 h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500" v-model="form.rupam_keterangan" placeholder="Keterangan Rupam (Opsional)..."/>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-5 sm:pt-6 border-t border-zinc-100">
+                                <div class="sm:col-span-3 text-[11px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider mb-0.5 sm:mb-1">2. Satgas P2U</div>
+                                <div class="grid grid-cols-2 gap-3 sm:col-span-2">
+                                    <Input v-model="form.p2u_jumlah" type="number" placeholder="Total P2U" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
+                                    <Input v-model="form.p2u_hadir" type="number" placeholder="Hadir P2U" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500"/>
+                                </div>
+                                <Input v-model="form.p2u_keterangan" placeholder="Keterangan P2U (Opsional)" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500 sm:col-span-1"/>
+                            </div>
+
+                            <div class="pt-5 sm:pt-6 border-t border-zinc-100 space-y-4">
+                                <div class="text-[11px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">3. Pembagian Tugas Spesifik</div>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <div class="space-y-1.5"><Label class="text-[11px] sm:text-xs font-medium">Ka. Rupam</Label><Input v-model="form.tugas.ka_rupam" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg" /></div>
+                                    <div class="space-y-1.5"><Label class="text-[11px] sm:text-xs font-medium">Wakarupam</Label><Input v-model="form.tugas.wakarupam" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg" /></div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    <div class="space-y-1.5"><Label class="text-[11px] sm:text-xs font-medium">Kasatgas P2U</Label><Input v-model="form.tugas.kasatgas_p2u" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg" /></div>
+                                    <div class="space-y-1.5"><Label class="text-[11px] sm:text-xs font-medium">Wakasatgas P2U</Label><Input v-model="form.tugas.wakasatgas_p2u" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg" /></div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-4">
+                                    <div v-for="(label, key) in dropdownTugas" :key="key" class="p-3 sm:p-4 bg-zinc-50/50 border border-zinc-200 rounded-2xl sm:rounded-xl space-y-3">
+                                        <Label class="text-[11px] sm:text-xs text-zinc-800 font-bold tracking-wide uppercase">{{label}}</Label>
+                                        <div class="grid gap-2" :class="jumlahJam === 3 ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'">
+                                            <div v-for="jam in jumlahJam" :key="jam" class="space-y-1.5">
+                                                <Label class="text-[10px] sm:text-[9px] text-zinc-500 font-semibold tracking-wide uppercase">Jam Ke-{{ jam }}</Label>
+                                                <Select v-model="form.tugas[key]['jam_' + jam]">
+                                                    <SelectTrigger class="h-12 sm:h-9 rounded-xl sm:rounded-lg text-base sm:text-xs bg-white border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih..." /></SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="-">(Kosong)</SelectItem>
+                                                        <SelectItem v-for="anggota in anggotaReguOptions" :key="anggota.id" :value="anggota.name">{{ anggota.name }}</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-zinc-100">
-                                <div class="space-y-1.5">
-                                    <Label class="text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">Perwira Piket</Label>
-                                    <Select v-model="form.tugas.perwira_kontrol">
-                                        <SelectTrigger class="h-10 rounded-lg text-sm bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih..." /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="-">(Kosong)</SelectItem>
-                                            <SelectItem v-for="p in perwiraPiketOptions" :key="p.id" :value="p.nama">{{ p.nama }} {{ p.jabatan ? `(${p.jabatan})` : '' }}</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4">
+                                    <div class="space-y-1.5">
+                                        <Label class="text-[10px] sm:text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">Perwira Piket</Label>
+                                        <Select v-model="form.tugas.perwira_kontrol">
+                                            <SelectTrigger class="h-12 sm:h-10 rounded-xl sm:rounded-lg text-base sm:text-sm bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="-">(Kosong)</SelectItem>
+                                                <SelectItem v-for="p in perwiraPiketOptions" :key="p.id" :value="p.nama">{{ p.nama }} {{ p.jabatan ? `(${p.jabatan})` : '' }}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <Label class="text-[10px] sm:text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">Pengawas Piket</Label>
+                                        <Select v-model="form.tugas.perwira_piket">
+                                            <SelectTrigger class="h-12 sm:h-10 rounded-xl sm:rounded-lg text-base sm:text-sm bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="-">(Kosong)</SelectItem>
+                                                <SelectItem v-for="p in pengawasPiketOptions" :key="p.id" :value="p.nama">{{ p.nama }} {{ p.jabatan ? `(${p.jabatan})` : '' }}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <Label class="text-[10px] sm:text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">Staff KPLP</Label>
+                                        <Select v-model="form.tugas.staff_kplp">
+                                            <SelectTrigger class="h-12 sm:h-10 rounded-xl sm:rounded-lg text-base sm:text-sm bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="-">(Kosong)</SelectItem>
+                                                <SelectItem v-for="p in staffKplpOptions" :key="p.id" :value="p.nama">{{ p.nama }} {{ p.jabatan ? `(${p.jabatan})` : '' }}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
-                                <div class="space-y-1.5">
-                                    <Label class="text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">Pengawas Piket</Label>
-                                    <Select v-model="form.tugas.perwira_piket">
-                                        <SelectTrigger class="h-10 rounded-lg text-sm bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih..." /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="-">(Kosong)</SelectItem>
-                                            <SelectItem v-for="p in pengawasPiketOptions" :key="p.id" :value="p.nama">{{ p.nama }} {{ p.jabatan ? `(${p.jabatan})` : '' }}</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div class="space-y-1.5">
-                                    <Label class="text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">Staff KPLP</Label>
-                                    <Select v-model="form.tugas.staff_kplp">
-                                        <SelectTrigger class="h-10 rounded-lg text-sm bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Pilih..." /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="-">(Kosong)</SelectItem>
-                                            <SelectItem v-for="p in staffKplpOptions" :key="p.id" :value="p.nama">{{ p.nama }} {{ p.jabatan ? `(${p.jabatan})` : '' }}</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-6 border-t border-zinc-100">
-                                <div v-for="(label, key) in inputTugas" :key="key" class="space-y-1.5">
-                                    <Label class="text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">{{label}}</Label>
-                                    <Input v-model="form.tugas[key]" class="h-10 rounded-lg text-sm bg-zinc-50 border-0 focus:bg-white focus:ring-1 focus:ring-blue-500" />
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 pt-4">
+                                    <div v-for="(label, key) in inputTugas" :key="key" class="space-y-1.5">
+                                        <Label class="text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">{{label}}</Label>
+                                        <Input v-model="form.tugas[key]" class="h-12 sm:h-10 rounded-xl sm:rounded-lg text-base sm:text-sm bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-1 focus:ring-blue-500" />
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <div class="pt-4 sticky bottom-6 z-10">
-                        <Button type="button" @click="togglePreview" class="w-full h-14 rounded-2xl bg-zinc-900 text-white font-bold text-base hover:bg-zinc-800 shadow-xl shadow-zinc-300 transition-all active:scale-[0.99]">
+                    <div class="pt-4 sticky bottom-4 sm:bottom-6 z-10">
+                        <Button type="button" @click="togglePreview" class="w-full h-14 sm:h-14 rounded-2xl bg-zinc-900 text-white font-bold text-sm sm:text-base hover:bg-zinc-800 shadow-xl shadow-zinc-300 transition-all active:scale-[0.99]">
                             <FileText class="w-5 h-5 mr-2" /> Lihat Pratinjau Teks Laporan
                         </Button>
                     </div>
@@ -500,9 +512,9 @@ const submitLaporan = () => form.post(route('astekpam.store'));
 
                 <div v-if="isPreviewActive" class="animate-in fade-in zoom-in-95 duration-300 font-sans w-full">
                      
-                    <Card class="border-none shadow-xl bg-white p-8 md:p-12 rounded-xl text-zinc-900 font-sans text-[14px] sm:text-[15px] leading-relaxed mb-6">
+                    <Card class="border-none shadow-xl bg-white p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-xl text-zinc-900 font-sans text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed mb-6 overflow-x-auto custom-scrollbar">
                         
-                        <div class="font-bold text-center mb-8 text-base uppercase font-sans">
+                        <div class="font-bold text-center mb-6 sm:mb-8 text-sm sm:text-base uppercase font-sans">
                             ASTEKPAM LAPAS KELAS I PALEMBANG
                         </div>
                         
@@ -510,7 +522,7 @@ const submitLaporan = () => form.post(route('astekpam.store'));
                         <p>Selamat {{ salamWaktu }}....</p>
                         <br>
                         
-                        <div class="grid grid-cols-[130px_15px_1fr] sm:grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
+                        <div class="grid grid-cols-[100px_10px_1fr] sm:grid-cols-[130px_15px_1fr] md:grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
                             <div>Hari/Tgl</div><div>:</div><div>{{ displayHari }}</div>
                             <div>Pukul</div><div>:</div><div>{{ form.pukul }} WIB</div>
                         </div>
@@ -521,72 +533,72 @@ const submitLaporan = () => form.post(route('astekpam.store'));
                         
                         <p>Dengan rincian sebagai berikut :</p>
                         
-                        <p class="font-bold mt-3">A. JUMLAH PENGHUNI</p>
-                        <div class="grid grid-cols-[130px_15px_1fr] sm:grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
+                        <p class="font-bold mt-4 sm:mt-3">A. JUMLAH PENGHUNI</p>
+                        <div class="grid grid-cols-[115px_10px_1fr] sm:grid-cols-[140px_15px_1fr] md:grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
                             <div>1. Kapasitas</div><div>:</div><div>{{ formatOrg(form.kapasitas) }}</div>
                             <div>2. Narapidana</div><div>:</div><div>{{ formatOrg(form.narapidana) }}</div>
-                            <div>3. Isi Blok Hunian</div><div>:</div><div></div>
+                            <div class="col-span-3 mt-1 font-semibold">3. Isi Blok Hunian :</div>
                             
                             <div class="pl-4 sm:pl-5">* Blok A</div><div>:</div><div>{{ formatOrg(form.blok_a) }}</div>
                             <div class="pl-4 sm:pl-5">* Blok B</div><div>:</div><div>{{ formatOrg(form.blok_b) }}</div>
                             <div class="pl-4 sm:pl-5">* Dapur</div><div>:</div><div>{{ formatOrg(form.dapur) }}</div>
                             <div class="pl-4 sm:pl-5">* Klinik</div><div>:</div><div>{{ formatOrg(form.klinik) }}</div>
                             
-                            <div>Jumlah</div><div>:</div><div></div>
+                            <div class="col-span-3 mt-1 font-semibold">Posisi Penghuni :</div>
                             <div class="pl-4 sm:pl-5">* Didalam Lapas</div><div>:</div><div>{{ formatOrg(form.dalam_lapas) }}</div>
                             <div class="pl-4 sm:pl-5">* Diluar Lapas</div><div>:</div><div>{{ formatOrg(form.luar_lapas) }}</div>
                             
-                            <div class="mt-2 leading-tight">4. Keterangan di luar Lapas</div><div class="mt-2">:</div><div class="mt-2"></div>
-                            <div class="pl-4 sm:pl-5">* Rawat Inap RS</div><div>:</div><div>{{ formatKetLuar(form.rawat_inap_items) }}</div>
-                            <div class="pl-4 sm:pl-5">* Berobat RS</div><div>:</div><div>{{ formatKetLuar(form.berobat_items) }}</div>
-                            <div class="pl-4 sm:pl-5">* Lain-lain (bon luar)</div><div>:</div><div>{{ formatKetLuar(form.bon_luar_items) }}</div>
+                            <div class="col-span-3 mt-2 font-semibold">4. Keterangan di luar Lapas :</div>
+                            <div class="pl-4 sm:pl-5 align-top">* Rawat Inap RS</div><div class="align-top">:</div><div class="align-top break-words">{{ formatKetLuar(form.rawat_inap_items) }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">* Berobat RS</div><div class="align-top">:</div><div class="align-top break-words">{{ formatKetLuar(form.berobat_items) }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">* Bon luar</div><div class="align-top">:</div><div class="align-top break-words">{{ formatKetLuar(form.bon_luar_items) }}</div>
                             
-                            <div class="font-bold mt-2">5. Total Jumlah WBP</div><div class="font-bold mt-2">:</div><div class="font-bold mt-2">{{ formatOrg(form.total_wbp) }}</div>
+                            <div class="font-bold mt-3">5. Total WBP</div><div class="font-bold mt-3">:</div><div class="font-bold mt-3">{{ formatOrg(form.total_wbp) }}</div>
                         </div>
                         <br>
 
                         <p class="font-bold">B. PERSONIL PENGAMANAN</p>
-                        <div class="grid grid-cols-[130px_15px_1fr] sm:grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
-                            <div class="font-semibold">1. {{ form.rupam_pilihan || 'Rupam -' }}</div><div></div><div></div>
+                        <div class="grid grid-cols-[100px_10px_1fr] sm:grid-cols-[130px_15px_1fr] md:grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
+                            <div class="col-span-3 font-semibold mt-1">1. {{ form.rupam_pilihan || 'Rupam -' }}</div>
                             <div class="pl-4 sm:pl-5">Jumlah</div><div>:</div><div>{{ form.rupam_jumlah ? form.rupam_jumlah + ' Org' : '-' }}</div>
                             <div class="pl-4 sm:pl-5">Hadir</div><div>:</div><div>{{ form.rupam_hadir ? form.rupam_hadir + ' Org' : '-' }}</div>
                             <div class="pl-4 sm:pl-5">Tidak Hadir</div><div>:</div><div>{{ tidakHadirRupam }}</div>
-                            <div class="pl-4 sm:pl-5">Keterangan</div><div>:</div><div>{{ form.rupam_keterangan || '-' }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Keterangan</div><div class="align-top">:</div><div class="align-top break-words">{{ form.rupam_keterangan || '-' }}</div>
                             
-                            <div class="font-semibold mt-2">2. SATGAS P2U (-)</div><div></div><div></div>
+                            <div class="col-span-3 font-semibold mt-2">2. SATGAS P2U (-)</div>
                             <div class="pl-4 sm:pl-5">Jumlah</div><div>:</div><div>{{ form.p2u_jumlah ? form.p2u_jumlah + ' Org' : '-' }}</div>
                             <div class="pl-4 sm:pl-5">Hadir</div><div>:</div><div>{{ form.p2u_hadir ? form.p2u_hadir + ' Org' : '-' }}</div>
-                            <div class="pl-4 sm:pl-5">Keterangan</div><div>:</div><div>{{ form.p2u_keterangan || '-' }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Keterangan</div><div class="align-top">:</div><div class="align-top break-words">{{ form.p2u_keterangan || '-' }}</div>
                         </div>
                         <br>
 
                         <p class="font-bold">3. Pembagian Tugas :</p>
-                        <div class="grid grid-cols-[130px_15px_1fr] sm:grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
-                            <div class="font-semibold">a. Ka. Rupam</div><div>:</div><div>{{ form.tugas.ka_rupam || '-' }}</div>
-                            <div class="pl-4 sm:pl-5">Wakarupam</div><div>:</div><div>{{ form.tugas.wakarupam || '-' }}</div>
+                        <div class="grid grid-cols-[100px_10px_1fr] sm:grid-cols-[130px_15px_1fr] md:grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
+                            <div class="font-semibold align-top">a. Ka. Rupam</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.ka_rupam || '-' }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Wakarupam</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.wakarupam || '-' }}</div>
                             
-                            <div class="font-semibold mt-2">b. Petugas P2U</div><div class="mt-2">:</div><div class="mt-2"></div>
-                            <div class="pl-4 sm:pl-5">Kasatgas</div><div>:</div><div>{{ form.tugas.kasatgas_p2u || '-' }}</div>
-                            <div class="pl-4 sm:pl-5">Wakasatgas</div><div>:</div><div>{{ form.tugas.wakasatgas_p2u || '-' }}</div>
+                            <div class="col-span-3 font-semibold mt-2">b. Petugas P2U :</div>
+                            <div class="pl-4 sm:pl-5 align-top">Kasatgas</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.kasatgas_p2u || '-' }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Wakasatgas</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.wakasatgas_p2u || '-' }}</div>
                             
-                            <div class="font-semibold mt-2">c. Petugas Blok</div><div class="mt-2">:</div><div class="mt-2"></div>
-                            <div class="pl-4 sm:pl-5">Blok A</div><div>:</div><div>{{ formatJam(form.tugas.blok_a) }}</div>
-                            <div class="pl-4 sm:pl-5">Blok B</div><div>:</div><div>{{ formatJam(form.tugas.blok_b) }}</div>
+                            <div class="col-span-3 font-semibold mt-2">c. Petugas Blok :</div>
+                            <div class="pl-4 sm:pl-5 align-top">Blok A</div><div class="align-top">:</div><div class="align-top break-words">{{ formatJam(form.tugas.blok_a) }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Blok B</div><div class="align-top">:</div><div class="align-top break-words">{{ formatJam(form.tugas.blok_b) }}</div>
                             
-                            <div class="font-semibold mt-2">d. Petugas Pos Atas</div><div class="mt-2">:</div><div class="mt-2"></div>
-                            <div class="pl-4 sm:pl-5">* Menara 1</div><div>:</div><div>{{ formatJam(form.tugas.menara_1) }}</div>
-                            <div class="pl-4 sm:pl-5">* Menara 2</div><div>:</div><div>{{ formatJam(form.tugas.menara_2) }}</div>
-                            <div class="pl-4 sm:pl-5">* Menara 3</div><div>:</div><div>{{ formatJam(form.tugas.menara_3) }}</div>
-                            <div class="pl-4 sm:pl-5">* Menara 4</div><div>:</div><div>{{ formatJam(form.tugas.menara_4) }}</div>
+                            <div class="col-span-3 font-semibold mt-2">d. Petugas Pos Atas :</div>
+                            <div class="pl-4 sm:pl-5 align-top">* Menara 1</div><div class="align-top">:</div><div class="align-top break-words">{{ formatJam(form.tugas.menara_1) }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">* Menara 2</div><div class="align-top">:</div><div class="align-top break-words">{{ formatJam(form.tugas.menara_2) }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">* Menara 3</div><div class="align-top">:</div><div class="align-top break-words">{{ formatJam(form.tugas.menara_3) }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">* Menara 4</div><div class="align-top">:</div><div class="align-top break-words">{{ formatJam(form.tugas.menara_4) }}</div>
                             
-                            <div class="mt-2">e. Petugas Jaga RS</div><div class="mt-2">:</div><div class="mt-2">{{ form.tugas.jaga_rs || '-' }}</div>
-                            <div>f. Piket Dapur</div><div>:</div><div>{{ form.tugas.piket_dapur || '-' }}</div>
-                            <div>g. Pengawas Piket</div><div>:</div><div>{{ form.tugas.perwira_piket || '-' }}</div>
-                            <div>h. Perwira Piket</div><div>:</div><div>{{ form.tugas.perwira_kontrol || '-' }}</div>
-                            <div>i. Banja</div><div>:</div><div>{{ form.tugas.banjaga || '-' }}</div>
-                            <div>j. Staff KPLP</div><div>:</div><div>{{ form.tugas.staff_kplp || '-' }}</div>
-                            <div>k. Amanah</div><div>:</div><div>{{ form.tugas.amanah || '-' }}</div>
-                            <div class="font-bold border-t pt-1 mt-1">l. Petugas Laporan</div><div class="font-bold pt-1 mt-1">:</div><div class="font-bold pt-1 mt-1 uppercase">{{ form.tugas.petugas_laporan || '-' }}</div>
+                            <div class="mt-2 align-top break-words">e. Jaga RS</div><div class="mt-2 align-top">:</div><div class="mt-2 align-top break-words">{{ form.tugas.jaga_rs || '-' }}</div>
+                            <div class="align-top break-words">f. Piket Dapur</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.piket_dapur || '-' }}</div>
+                            <div class="align-top break-words">g. Pengawas</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.perwira_piket || '-' }}</div>
+                            <div class="align-top break-words">h. Perwira</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.perwira_kontrol || '-' }}</div>
+                            <div class="align-top break-words">i. Banja</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.banjaga || '-' }}</div>
+                            <div class="align-top break-words">j. Staff KPLP</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.staff_kplp || '-' }}</div>
+                            <div class="align-top break-words">k. Amanah</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.amanah || '-' }}</div>
+                            <div class="font-bold border-t pt-2 mt-2 align-top">l. Pelapor</div><div class="font-bold pt-2 mt-2 align-top">:</div><div class="font-bold pt-2 mt-2 uppercase align-top break-words">{{ form.tugas.petugas_laporan || '-' }}</div>
                         </div>
                         <br>
 
@@ -598,12 +610,21 @@ const submitLaporan = () => form.post(route('astekpam.store'));
 
                     </Card>
                      
-                     <div class="sticky bottom-6 flex flex-col sm:flex-row gap-3 bg-zinc-900/90 backdrop-blur-md p-4 rounded-3xl border border-zinc-800 shadow-xl max-w-4xl mx-auto z-20">
-                         <Button @click="togglePreview" type="button" variant="outline" class="w-full sm:w-1/3 h-12 sm:h-14 rounded-2xl font-bold text-zinc-900 bg-white hover:bg-zinc-100 border-0">
+                     <div class="sticky bottom-4 sm:bottom-6 flex flex-col sm:flex-row gap-3 bg-zinc-900/90 backdrop-blur-md p-4 sm:p-4 rounded-3xl border border-zinc-800 shadow-xl max-w-4xl mx-auto z-20">
+                         <Button @click="togglePreview" type="button" variant="outline" class="w-full sm:w-1/3 h-14 sm:h-14 rounded-2xl font-bold text-sm sm:text-base text-zinc-900 bg-white hover:bg-zinc-100 border-0">
                              <ChevronLeft class="w-5 h-5 mr-1"/> Kembali Edit Form
                          </Button>
-                         <Button @click="submitLaporan" type="button" class="w-full sm:w-2/3 h-12 sm:h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-lg shadow-lg transition-all active:scale-[0.99] border-0">
-                             <Check class="w-5 h-5 mr-2"/> KIRIM LAPORAN SEKARANG
+                         <Button @click="submitLaporan" type="button" class="w-full sm:w-2/3 h-14 sm:h-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold text-sm sm:text-base shadow-lg transition-all active:scale-[0.99] border-0" :disabled="form.processing">
+                             <span v-if="form.processing" class="flex items-center gap-2">
+                                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Sedang Mengirim...
+                            </span>
+                            <span v-else class="flex items-center">
+                                <Check class="w-5 h-5 mr-2"/> KIRIM LAPORAN SEKARANG
+                            </span>
                          </Button>
                      </div>
                 </div>
@@ -612,3 +633,18 @@ const submitLaporan = () => form.post(route('astekpam.store'));
         </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9; 
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 4px;
+}
+</style>

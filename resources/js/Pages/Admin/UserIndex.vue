@@ -128,31 +128,31 @@ const deleteUser = (id) => {
     <Head title="Manajemen Pengguna" />
 
     <AuthenticatedLayout>
-        <div class="py-6 bg-zinc-50/30 min-h-screen">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="py-6 sm:py-8 bg-zinc-50/30 min-h-screen">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
                 
-                <div class="bg-white rounded-2xl p-6 border border-zinc-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-zinc-900 tracking-tight flex items-center gap-2">
-                            <Users class="w-6 h-6 text-blue-600" /> Manajemen Pengguna
+                <div class="bg-white rounded-2xl p-5 sm:p-6 border border-zinc-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="text-center sm:text-left">
+                        <h1 class="text-xl sm:text-2xl font-extrabold text-zinc-900 tracking-tight flex items-center justify-center sm:justify-start gap-2">
+                            <Users class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" /> Manajemen Pengguna
                         </h1>
-                        <p class="text-zinc-500 text-sm mt-0.5">Kelola data petugas, pembagian regu pengamanan, dan jabatan.</p>
+                        <p class="text-zinc-500 text-xs sm:text-sm mt-1 sm:mt-0.5">Kelola data petugas, pembagian regu pengamanan, dan jabatan.</p>
                     </div>
-                    <Button @click="openAddModal" class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md shadow-blue-200 h-11 px-5 w-full sm:w-auto">
-                        <UserPlus class="w-4 h-4 mr-2" /> Tambah Petugas
+                    <Button @click="openAddModal" class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md shadow-blue-200 h-12 sm:h-11 px-5 w-full sm:w-auto">
+                        <UserPlus class="w-4 h-4 mr-2" /> <span class="text-sm">Tambah Petugas</span>
                     </Button>
                 </div>
 
                 <Card class="rounded-2xl border border-zinc-200 shadow-sm bg-white p-4">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        <div class="flex items-center gap-2 text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                            <Filter class="w-4 h-4 text-zinc-400" />
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                        <div class="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                            <Filter class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400" />
                             <span>Filter Data:</span>
                         </div>
                         
-                        <div class="grid grid-cols-1 sm:flex gap-3 w-full sm:w-auto">
+                        <div class="grid grid-cols-2 sm:flex gap-3 w-full sm:w-auto">
                             <Select v-model="filterRegu">
-                                <SelectTrigger class="h-10 rounded-xl bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full sm:w-44 text-xs font-bold">
+                                <SelectTrigger class="h-11 sm:h-10 rounded-xl bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 w-full sm:w-44 text-sm sm:text-xs font-bold">
                                     <SelectValue placeholder="Semua Regu" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -165,7 +165,7 @@ const deleteUser = (id) => {
                             </Select>
 
                             <Select v-model="filterJabatanGroup">
-                                <SelectTrigger class="h-10 rounded-xl bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full sm:w-48 text-xs font-bold">
+                                <SelectTrigger class="h-11 sm:h-10 rounded-xl bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 w-full sm:w-48 text-sm sm:text-xs font-bold">
                                     <SelectValue placeholder="Semua Jabatan" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -180,88 +180,90 @@ const deleteUser = (id) => {
                 </Card>
 
                 <Card class="rounded-2xl border border-zinc-200 shadow-sm bg-white overflow-hidden">
-                    <CardContent class="p-0 overflow-x-auto">
+                    <CardContent class="p-0 overflow-x-auto custom-scrollbar">
                         <table class="w-full text-left border-collapse min-w-[700px]">
                             <thead>
-                                <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[11px] tracking-wider uppercase">
-                                    <th class="py-4 px-6">Nama / NIP</th>
-                                    <th class="py-4 px-6">Email</th>
-                                    <th class="py-4 px-6">Regu</th>
-                                    <th class="py-4 px-6">Jabatan</th>
-                                    <th class="py-4 px-6 text-right">Aksi</th>
+                                <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[10px] sm:text-[11px] tracking-wider uppercase">
+                                    <th class="py-3.5 sm:py-4 px-4 sm:px-6">Nama / NIP</th>
+                                    <th class="py-3.5 sm:py-4 px-4 sm:px-6">Email</th>
+                                    <th class="py-3.5 sm:py-4 px-4 sm:px-6">Regu</th>
+                                    <th class="py-3.5 sm:py-4 px-4 sm:px-6">Jabatan</th>
+                                    <th class="py-3.5 sm:py-4 px-4 sm:px-6 text-right">Aksi</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-zinc-100 text-sm font-medium text-zinc-800">
+                            <tbody class="divide-y divide-zinc-100 text-xs sm:text-sm font-medium text-zinc-800">
                                 <tr v-for="user in filteredAndSortedUsers" :key="user.id" class="hover:bg-zinc-50/50 transition-colors">
-                                    <td class="py-4 px-6">
+                                    <td class="py-3 sm:py-4 px-4 sm:px-6">
                                         <p class="font-bold text-zinc-900">{{ user.name }}</p>
-                                        <p class="text-xs text-zinc-400 font-normal mt-0.5">NIP. {{ user.nip || '-' }}</p>
+                                        <p class="text-[10px] sm:text-xs text-zinc-400 font-normal mt-0.5">NIP. {{ user.nip || '-' }}</p>
                                     </td>
-                                    <td class="py-4 px-6 text-zinc-600">{{ user.email }}</td>
-                                    <td class="py-4 px-6">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-zinc-100 text-zinc-800 border border-zinc-200">
+                                    <td class="py-3 sm:py-4 px-4 sm:px-6 text-zinc-600">{{ user.email }}</td>
+                                    <td class="py-3 sm:py-4 px-4 sm:px-6">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-zinc-100 text-zinc-800 border border-zinc-200">
                                             Regu {{ user.regu || '-' }}
                                         </span>
                                     </td>
-                                    <td class="py-4 px-6">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
+                                    <td class="py-3 sm:py-4 px-4 sm:px-6">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-blue-50 text-blue-700 border border-blue-100">
                                             {{ user.jabatan || '-' }}
                                         </span>
                                     </td>
-                                    <td class="py-4 px-6 text-right space-x-2">
-                                        <Button @click="openEditModal(user)" variant="ghost" size="sm" class="h-9 w-9 p-0 text-zinc-600 hover:bg-zinc-100">
+                                    <td class="py-3 sm:py-4 px-4 sm:px-6 text-right space-x-1 sm:space-x-2 whitespace-nowrap">
+                                        <Button @click="openEditModal(user)" variant="ghost" size="sm" class="h-10 w-10 sm:h-9 sm:w-9 p-0 text-zinc-600 hover:bg-zinc-100">
                                             <Edit2 class="w-4 h-4" />
                                         </Button>
-                                        <Button @click="deleteUser(user.id)" variant="ghost" size="sm" class="h-9 w-9 p-0 text-rose-600 hover:bg-rose-50">
+                                        <Button @click="deleteUser(user.id)" variant="ghost" size="sm" class="h-10 w-10 sm:h-9 sm:w-9 p-0 text-rose-600 hover:bg-rose-50">
                                             <Trash2 class="w-4 h-4" />
                                         </Button>
                                     </td>
                                 </tr>
                                 <tr v-if="filteredAndSortedUsers.length === 0">
-                                    <td colspan="5" class="text-center py-12 text-zinc-400 italic">Tidak ada data petugas yang cocok dengan filter.</td>
+                                    <td colspan="5" class="text-center py-12 text-xs sm:text-sm text-zinc-400 italic">Tidak ada data petugas yang cocok dengan filter.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </CardContent>
                 </Card>
 
-                <div v-if="isModalOpen" class="fixed inset-0 bg-zinc-950/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div class="bg-white rounded-2xl border border-zinc-200 shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
-                        <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50 sticky top-0 bg-white z-10">
-                            <h3 class="font-bold text-zinc-900 flex items-center gap-2">
+                <div v-if="isModalOpen" class="fixed inset-0 bg-zinc-950/40 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4">
+                    <div class="bg-white sm:rounded-2xl rounded-t-3xl border border-zinc-200 shadow-2xl w-full max-w-lg overflow-hidden animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+                        
+                        <div class="px-5 sm:px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/80 sticky top-0 z-10 shrink-0">
+                            <h3 class="font-bold text-zinc-900 flex items-center gap-2 text-sm sm:text-base">
                                 <Shield class="w-4 h-4 text-blue-600" />
                                 <span>{{ isEditMode ? 'Edit Data Petugas' : 'Tambah Petugas Baru' }}</span>
                             </h3>
-                            <button type="button" @click="closeModal" class="text-zinc-400 hover:text-zinc-600 transition-colors">
-                                <X class="w-4 h-4" />
+                            <button type="button" @click="closeModal" class="p-2 -mr-2 text-zinc-400 hover:text-zinc-600 transition-colors">
+                                <X class="w-5 h-5 sm:w-4 sm:h-4" />
                             </button>
                         </div>
 
-                        <form @submit.prevent="submitForm" class="p-6 space-y-4">
-                            <div class="space-y-1">
-                                <Label class="text-xs font-bold text-zinc-500">NAMA LENGKAP</Label>
-                                <Input v-model="form.name" placeholder="Masukkan nama petugas" class="h-11 rounded-xl" />
+                        <form @submit.prevent="submitForm" class="p-5 sm:p-6 space-y-4 sm:space-y-5 overflow-y-auto custom-scrollbar">
+                            
+                            <div class="space-y-1.5">
+                                <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">NAMA LENGKAP</Label>
+                                <Input v-model="form.name" placeholder="Masukkan nama petugas" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl" />
                                 <p v-if="form.errors.name" class="text-xs text-rose-500 mt-1">{{ form.errors.name }}</p>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="space-y-1">
-                                    <Label class="text-xs font-bold text-zinc-500">NIP</Label>
-                                    <Input v-model="form.nip" placeholder="Masukkan NIP" class="h-11 rounded-xl" />
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                                <div class="space-y-1.5">
+                                    <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">NIP</Label>
+                                    <Input v-model="form.nip" placeholder="Masukkan NIP" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl" />
                                     <p v-if="form.errors.nip" class="text-xs text-rose-500 mt-1">{{ form.errors.nip }}</p>
                                 </div>
-                                <div class="space-y-1">
-                                    <Label class="text-xs font-bold text-zinc-500">EMAIL</Label>
-                                    <Input type="email" v-model="form.email" placeholder="alamat@email.com" class="h-11 rounded-xl" />
+                                <div class="space-y-1.5">
+                                    <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">EMAIL</Label>
+                                    <Input type="email" v-model="form.email" placeholder="alamat@email.com" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl" />
                                     <p v-if="form.errors.email" class="text-xs text-rose-500 mt-1">{{ form.errors.email }}</p>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="space-y-1">
-                                    <Label class="text-xs font-bold text-zinc-500">REGU PENGAMANAN</Label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                                <div class="space-y-1.5">
+                                    <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">REGU PENGAMANAN</Label>
                                     <Select v-model="form.regu">
-                                        <SelectTrigger class="h-11 rounded-xl bg-white border-zinc-200 shadow-sm w-full">
+                                        <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl bg-white border-zinc-200 shadow-sm w-full">
                                             <SelectValue placeholder="Pilih Regu" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -274,10 +276,10 @@ const deleteUser = (id) => {
                                     <p v-if="form.errors.regu" class="text-xs text-rose-500 mt-1">{{ form.errors.regu }}</p>
                                 </div>
 
-                                <div class="space-y-1">
-                                    <Label class="text-xs font-bold text-zinc-500">JABATAN</Label>
+                                <div class="space-y-1.5">
+                                    <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">JABATAN</Label>
                                     <Select v-model="form.jabatan">
-                                        <SelectTrigger class="h-11 rounded-xl bg-white border-zinc-200 shadow-sm w-full">
+                                        <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl bg-white border-zinc-200 shadow-sm w-full">
                                             <SelectValue placeholder="Pilih Jabatan" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -299,18 +301,18 @@ const deleteUser = (id) => {
                                 </div>
                             </div>
 
-                            <div class="space-y-1">
-                                <Label class="text-xs font-bold text-zinc-500">
-                                    PASSWORD {{ isEditMode ? '(Kosongkan jika tidak ingin diubah)' : '' }}
+                            <div class="space-y-1.5">
+                                <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">
+                                    PASSWORD {{ isEditMode ? '(Kosongkan jika tak diubah)' : '' }}
                                 </Label>
-                                <Input type="password" v-model="form.password" placeholder="••••••••" class="h-11 rounded-xl" />
+                                <Input type="password" v-model="form.password" placeholder="••••••••" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl" />
                                 <p v-if="form.errors.password" class="text-xs text-rose-500 mt-1">{{ form.errors.password }}</p>
                             </div>
 
-                            <div class="flex gap-3 pt-4 border-t border-zinc-100 mt-6 sticky bottom-0 bg-white">
-                                <Button type="button" variant="outline" @click="closeModal" class="flex-1 h-11 rounded-xl">Batal</Button>
-                                <Button type="submit" class="flex-1 h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200" :disabled="form.processing">
-                                    {{ form.processing ? 'Menyimpan...' : (isEditMode ? 'Simpan Perubahan' : 'Daftarkan Petugas') }}
+                            <div class="flex gap-3 pt-5 sm:pt-4 border-t border-zinc-100 mt-6 shrink-0">
+                                <Button type="button" variant="outline" @click="closeModal" class="flex-1 h-12 sm:h-11 text-sm sm:text-sm rounded-xl">Batal</Button>
+                                <Button type="submit" class="flex-1 h-12 sm:h-11 text-sm sm:text-sm rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200" :disabled="form.processing">
+                                    {{ form.processing ? 'Menyimpan...' : (isEditMode ? 'Simpan' : 'Daftarkan') }}
                                 </Button>
                             </div>
                         </form>
@@ -321,3 +323,22 @@ const deleteUser = (id) => {
         </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+/* Opsional: Membuat scrollbar horizontal pada tabel terlihat lebih rapi di HP */
+.custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9; 
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; 
+}
+</style>

@@ -17,10 +17,12 @@ defineProps({
     <Head title="Selamat Datang" />
 
     <div class="min-h-screen bg-[#f8fafc] flex flex-col justify-between text-[#0f172a] font-sans selection:bg-[#d97706] selection:text-white">
+        
         <header class="bg-white/95 backdrop-blur-md sticky top-0 z-50 border-b border-[#e2e8f0] shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-[#0f172a] rounded-lg flex items-center justify-center shadow-md border border-[#d97706]/30">
+                    <div class="w-10 h-10 bg-[#0f172a] rounded-lg flex items-center justify-center shadow-md border border-[#d97706]/30 shrink-0">
                         <span class="text-[#f59e0b] font-bold text-xl tracking-wider">A</span>
                     </div>
                     <div>
@@ -53,6 +55,7 @@ defineProps({
                         <Link
                             v-if="canRegister"
                             :href="route('register')"
+                            class="hidden sm:inline-flex"
                         >
                             <Button class="bg-[#0f172a] hover:bg-[#1e293b] text-[#f59e0b] font-semibold shadow-sm">
                                 Daftar Akun
@@ -64,10 +67,11 @@ defineProps({
         </header>
 
         <main class="flex-grow">
-            <div class="relative overflow-hidden bg-gradient-to-b from-[#0f172a] via-[#0f172a] to-[#1e293b] py-24 sm:py-32 text-white border-b border-[#d97706]/10">
+            <div class="relative overflow-hidden bg-gradient-to-b from-[#0f172a] via-[#0f172a] to-[#1e293b] py-20 sm:py-32 text-white border-b border-[#d97706]/10">
                 <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:20px_20px]"></div>
                 
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                    
                     <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] text-xs font-semibold uppercase tracking-wider mb-6">
                         <span class="flex h-2 w-2 rounded-full bg-[#f59e0b] animate-pulse"></span>
                         Smart Governance
@@ -80,18 +84,18 @@ defineProps({
                         </span>
                     </h2>
                     
-                    <p class="text-[#94a3b8] text-base sm:text-lg max-w-3xl mx-auto mb-10 leading-relaxed">
+                    <p class="text-[#94a3b8] text-base sm:text-lg max-w-3xl mx-auto mb-10 leading-relaxed px-2 sm:px-0">
                         Sistem terpusat untuk memasukkan data serta melakukan validasi laporan Apel Serah Terima Kepala Regu Pengamanan secara akurat dan terintegrasi di lingkungan Lapas Kelas I Palembang.
                     </p>
 
-                    <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
-                        <Link :href="route('login')">
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-4 px-4 sm:px-0">
+                        <Link :href="route('login')" class="w-full sm:w-auto">
                             <Button size="lg" class="w-full sm:w-auto px-8 bg-[#f59e0b] hover:bg-[#d97706] text-[#0f172a] font-bold text-base shadow-lg shadow-[#f59e0b]/20 transition-all duration-200 transform hover:-translate-y-0.5">
                                 Masuk ke Aplikasi
                             </Button>
                         </Link>
-                        <a href="#fitur">
-                            <Button size="lg" variant="outline" class="w-full sm:w-auto px-8 border-[#334155] text-[#cbd5e1] hover:bg-[#1e293b] hover:text-white text-base">
+                        <a href="#fitur" class="w-full sm:w-auto">
+                            <Button size="lg" variant="outline" class="w-full sm:w-auto px-8 border-[#334155] text-[#cbd5e1] bg-transparent hover:bg-[#1e293b] hover:text-white text-base">
                                 Pelajari Fitur
                             </Button>
                         </a>

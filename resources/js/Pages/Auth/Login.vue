@@ -12,7 +12,7 @@ defineProps({
 });
 
 const form = useForm({
-    nip: '', // Diubah dari email menjadi nip
+    nip: '',
     password: '',
     remember: false,
 });
@@ -35,6 +35,7 @@ const submit = () => {
     <Head title="Masuk Log" />
 
     <div class="min-h-screen flex flex-col md:flex-row bg-[#f8fafc] font-sans selection:bg-[#d97706] selection:text-white">
+        
         <div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#0f172a] to-[#1e293b] p-12 flex-col justify-between relative overflow-hidden text-white border-r border-[#d97706]/10">
             <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:24px_24px]"></div>
             <div class="absolute -top-40 -left-40 w-96 h-96 bg-[#f59e0b]/5 rounded-full blur-3xl"></div>
@@ -68,7 +69,7 @@ const submit = () => {
         </div>
 
         <div class="flex-grow md:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white md:bg-[#f8fafc]">
-            <div class="w-full max-w-md bg-white p-8 md:p-10 md:rounded-2xl md:shadow-xl md:border md:border-[#e2e8f0]">
+            <div class="w-full max-w-md bg-white p-6 sm:p-8 md:p-10 md:rounded-2xl md:shadow-xl md:border md:border-[#e2e8f0]">
                 
                 <div class="md:hidden flex flex-col items-center mb-8">
                     <div class="w-12 h-12 bg-[#0f172a] rounded-xl flex items-center justify-center border border-[#f59e0b]/30 shadow-lg mb-3">
@@ -114,7 +115,7 @@ const submit = () => {
                             <Link
                                 v-if="canResetPassword"
                                 :href="route('password.request')"
-                                class="text-xs font-semibold text-[#d97706] hover:text-[#f59e0b] transition-colors"
+                                class="text-xs font-semibold text-[#d97706] hover:text-[#f59e0b] transition-colors py-1"
                             >
                                 Lupa Sandi?
                             </Link>
@@ -134,7 +135,7 @@ const submit = () => {
                             <button
                                 type="button"
                                 @click="togglePasswordVisibility"
-                                class="absolute inset-y-0 right-0 pr-4 flex items-center text-[#64748b] hover:text-[#0f172a] focus:outline-none select-none touch-none"
+                                class="absolute inset-y-0 right-0 px-4 flex items-center text-[#64748b] hover:text-[#0f172a] focus:outline-none select-none touch-none"
                                 title="Tampilkan/Sembunyikan Kata Sandi"
                             >
                                 <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
@@ -157,7 +158,7 @@ const submit = () => {
                     </div>
 
                     <div class="flex items-center">
-                        <label class="flex items-center cursor-pointer select-none">
+                        <label class="flex items-center cursor-pointer select-none py-1">
                             <input
                                 type="checkbox"
                                 v-model="form.remember"
@@ -182,8 +183,8 @@ const submit = () => {
                     </div>
                 </form>
 
-                <div class="mt-8 text-center">
-                    <Link href="/" class="text-xs text-[#64748b] hover:text-[#0f172a] font-medium transition-colors">
+                <div class="mt-8 text-center border-t border-slate-100 pt-4">
+                    <Link href="/" class="inline-block py-2 px-4 text-xs text-[#64748b] hover:text-[#0f172a] font-medium transition-colors">
                         ← Kembali ke Halaman Utama
                     </Link>
                 </div>
