@@ -56,17 +56,23 @@ class AstekpamController extends Controller
      */
     public function store(Request $request)
     {
+        // 1. Validasi Input + Foto Maksimal 10MB (10240 KB)
         $validated = $request->validate([
             'tanggal' => 'required',
             'pukul' => 'required',
             'dari_rupam' => 'required',
             'tugas' => 'required|array',
+            'foto_laporan' => 'nullable|image|mimes:jpeg,png,jpg|max:10240', 
+        ], [
+            'foto_laporan.image' => 'File harus berupa gambar.',
+            'foto_laporan.mimes' => 'Format gambar harus jpeg, png, atau jpg.',
+            'foto_laporan.max'   => 'Ukuran foto maksimal adalah 10MB.',
         ]);
 
-        // 1. Ambil semua data input
+        // 2. Ambil semua data input
         $data = $request->all();
 
-        // 2. TANGANI KOLOM ANGKA: Ubah null/kosong menjadi 0
+        // 3. TANGANI KOLOM ANGKA: Ubah null/kosong menjadi 0
         $kolomAngka = [
             'kapasitas', 'narapidana', 'blok_a', 'blok_b', 'dapur', 'klinik', 
             'dalam_lapas', 'luar_lapas', 'total_wbp', 
@@ -76,7 +82,7 @@ class AstekpamController extends Controller
             $data[$kolom] = $data[$kolom] ?? 0;
         }
 
-        // 3. TANGANI KOLOM TEKS: Ubah null/kosong menjadi tanda strip '-'
+        // 4. TANGANI KOLOM TEKS: Ubah null/kosong menjadi tanda strip '-'
         $kolomTeks = [
             'dari_shift', 'ke_rupam', 'ke_shift', 'pimpinan', 
             'rupam_pilihan', 'rupam_keterangan', 'p2u_keterangan'
@@ -85,18 +91,26 @@ class AstekpamController extends Controller
             $data[$kolom] = $data[$kolom] ?? '-';
         }
 
-        // 4. TANGANI KOLOM JSON: Beri array kosong jika tidak ada isian
+        // 5. TANGANI KOLOM JSON: Beri array kosong jika tidak ada isian
         $data['rawat_inap_items'] = $data['rawat_inap_items'] ?? [];
         $data['berobat_items'] = $data['berobat_items'] ?? [];
         $data['bon_luar_items'] = $data['bon_luar_items'] ?? [];
 
-        // 5. Simpan ke database menggunakan $data yang sudah dibersihkan
+        // 6. TANGANI UPLOAD FOTO
+        if ($request->hasFile('foto_laporan')) {
+            // Simpan foto di storage/app/public/foto_laporan
+            $path = $request->file('foto_laporan')->store('foto_laporan', 'public');
+            $data['foto_laporan'] = $path;
+        }
+
+        // 7. Simpan ke database menggunakan $data yang sudah dibersihkan
+        //$data['user_id'] = auth()->id(); // Pastikan ID pengisi laporan tersimpan
         $astekpam = Astekpam::create($data);
 
-        // 6. Format Teks Laporan Lengkap
+        // 8. Format Teks Laporan Lengkap
         $pesanWA = $this->generatePesanLaporan($astekpam);
 
-        // 7. Proses Pengiriman via HTTP Request Fonnte
+        // 9. Proses Pengiriman via HTTP Request Fonnte
         try {
             Http::withHeaders([
                 'Authorization' => env('FONNTE_TOKEN')
@@ -110,7 +124,7 @@ class AstekpamController extends Controller
             Log::error('Gagal kirim Notif WA Astekpam: ' . $e->getMessage());
         }
 
-        // 8. Redirect kembali ke halaman index
+        // 10. Redirect kembali ke halaman index
         return redirect()->route('astekpam.index')->with('success', 'Laporan berhasil disimpan dan diteruskan ke WhatsApp Grup!');
     }
 

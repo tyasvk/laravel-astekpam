@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { 
-    FileText, Plus, Eye, Filter, Calendar, Clock, ShieldCheck, User, Copy 
+    FileText, Plus, Eye, Filter, Calendar, Clock, ShieldCheck, User, Copy, MessageCircle 
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -73,7 +73,7 @@ const getPetugasPelapor = (laporan) => {
 };
 
 // =========================================================================
-// LOGIKA UNTUK COPY TEKS LAPORAN (Menyesuaikan Template yang Diminta)
+// LOGIKA UNTUK COPY TEKS LAPORAN
 // =========================================================================
 const formatJsonArray = (data) => {
     if (!data) return null;
@@ -109,119 +109,96 @@ const generatePesanLaporan = (data) => {
     const dateObj = new Date(data.tanggal);
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    const tanggalIndo = `${days[dateObj.getDay()]}, ${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+    
+    // Menghilangkan angka 0 di depan tanggal jika ada (contoh: 04 jadi 4)
+    const tglNum = dateObj.getDate();
+    const tanggalIndo = `${days[dateObj.getDay()]}, ${tglNum} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
     
     const salamWaktu = getGreeting(data.pukul);
 
     // Helpers untuk mengatasi null atau 0
-    const formatOrg = (val) => (val && val !== '0' && val !== 0) ? `${val} Org` : '-';
-    const formatOrgDot = (val) => (val && val !== '0' && val !== 0) ? `${val} Org.` : '-';
+    const formatOrg = (val) => (val && val !== '0' && val !== 0) ? `${val} Org` : '0 Org';
     const formatStr = (val) => (val && val !== '-') ? val : '-';
-    const formatBintang = (val) => (val && val !== '-') ? `*${val}*` : '-';
 
-    let pesan = "*ASTEKPAM*\n";
-    pesan += "*LAPAS KELAS 1 PALEMBANG*  \n\n";
-    
-    pesan += "Assalamu’alaikum \n";
-    pesan += "Warahmatullahi Wabarakatuh\n";
-    pesan += `${salamWaktu}\n \n`;
+    let pesan = "ASTEKPAM LAPAS KELAS I PALEMBANG\n";
+    pesan += "Assalamu’alaikum Warahmatullahi Wabarakatuh\n";
+    pesan += `${salamWaktu}\n\n`;
     
     pesan += `Hari/Tgl : ${tanggalIndo}\n`;
-    pesan += `Pukul     : ${data.pukul} WIB\n\n`;
+    pesan += `Pukul : ${formatStr(data.pukul)} WIB\n\n`;
     
-    pesan += `Berikut, ASTEKPAM dari ${formatStr(data.dari_rupam)} (Shift ${formatStr(data.dari_shift)}) ke ${formatStr(data.ke_rupam)} (Shift ${formatStr(data.ke_shift)}) Dipimpin oleh ${formatStr(data.pimpinan)} berjalan aman dan tertib.  \n\n`;
+    pesan += `Berikut, ASTEKPAM dari ${formatStr(data.dari_rupam)} (Shift ${formatStr(data.dari_shift)}) ke ${formatStr(data.ke_rupam)} (Shift ${formatStr(data.ke_shift)}) Dipimpin oleh ${formatStr(data.pimpinan)} berjalan aman dan tertib.\n\n`;
     
-    pesan += "Dengan rincian \n";
-    pesan += "sebagai berikut : \n";
-    pesan += "*A. JUMLAH PENGHUNI*   \n";
-    pesan += `1. Kapasitas    :  ${formatOrg(data.kapasitas)}\n`;
-    pesan += `2. Narapidana : ${formatOrg(data.narapidana)}     \n`;
+    pesan += "Dengan rincian sebagai berikut :\n";
+    pesan += "A. JUMLAH PENGHUNI\n";
+    pesan += `1. Kapasitas : ${formatOrg(data.kapasitas)}\n`;
+    pesan += `2. Narapidana : ${formatOrg(data.narapidana)}\n`;
     pesan += "3. Isi Blok Hunian :\n";
-    pesan += `* ‌Blok A        : ${formatOrgDot(data.blok_a)}\n`;
-    pesan += `* ‌Blok B        : ${formatOrgDot(data.blok_b)}\n`;
-    pesan += `* ‌Dapur         : ${formatOrgDot(data.dapur)}\n`;
-    pesan += `* ‌Klinik          : ${formatOrgDot(data.klinik)}\n`;
-    pesan += "‌Jumlah  :\n";
-    pesan += `* Didalam Lapas : *${data.dalam_lapas && data.dalam_lapas != '0' ? data.dalam_lapas + ' org' : '-'}*\n`;
-    pesan += `* Diluar Lapas      : ${data.luar_lapas && data.luar_lapas != '0' ? data.luar_lapas + ' Org' : '-'}\n\n`;
+    pesan += `* Blok A : ${formatOrg(data.blok_a)}\n`;
+    pesan += `* Blok B : ${formatOrg(data.blok_b)}\n`;
+    pesan += `* Dapur : ${formatOrg(data.dapur)}\n`;
+    pesan += `* Klinik : ${formatOrg(data.klinik)}\n`;
+    pesan += "Jumlah :\n";
+    pesan += `* Didalam Lapas : ${formatOrg(data.dalam_lapas)}\n`;
+    pesan += `* Diluar Lapas : ${formatOrg(data.luar_lapas)}\n`;
 
     const rawatInap = formatJsonArray(data.rawat_inap_items);
     const berobat = formatJsonArray(data.berobat_items);
     const bonLuar = formatJsonArray(data.bon_luar_items);
-    const hasKeteranganLuar = rawatInap || berobat || bonLuar;
 
-    pesan += `4. Keterangan di luar Lapas :${hasKeteranganLuar ? '' : '-'}\n`;
-    pesan += `* ‌Rawat Inap RS :${rawatInap ? rawatInap : '-'}\n`;
-    pesan += `* ‌Berobat RS       :${berobat ? berobat : '-'}\n`;
-    pesan += "* ‌Lain-lain \n";
-    pesan += `     (bon luar)          :${bonLuar ? bonLuar : '-'}\n\n`;
+    pesan += "4. Keterangan di luar Lapas :\n";
+    pesan += `* Rawat Inap RS : ${rawatInap ? rawatInap : '-'}\n`;
+    pesan += `* Berobat RS : ${berobat ? berobat : '-'}\n`;
+    pesan += `* Lain-lain (bon luar) : ${bonLuar ? bonLuar : '-'}\n`;
     
-    pesan += "5. Total\n";
-    pesan += `*‌Jumlah WBP :   ${formatOrg(data.total_wbp)}*\n\n`;
+    pesan += `5. Total Jumlah WBP : ${formatOrg(data.total_wbp)}\n\n`;
 
-    pesan += "*B. PERSONIL PENGAMANAN* \n";
-    pesan += `1. ${formatStr(data.rupam_pilihan)}\n`;
-    pesan += `‌Jumlah         : ${formatOrg(data.rupam_jumlah)}   \n`;
-    pesan += `Hadir            : ${formatOrg(data.rupam_hadir)}\n`;
+    pesan += "B. PERSONIL PENGAMANAN\n";
+    pesan += `1. ${data.rupam_pilihan ? data.rupam_pilihan : '-'}\n`;
+    pesan += `Jumlah : ${formatOrg(data.rupam_jumlah)}\n`;
+    pesan += `Hadir : ${formatOrg(data.rupam_hadir)}\n`;
     const tHadir = (parseInt(data.rupam_jumlah) || 0) - (parseInt(data.rupam_hadir) || 0);
-    pesan += `Tidak Hadir  : ${tHadir > 0 ? tHadir + ' Org' : '-'}\n`;
-    pesan += `‌Keterangan  : \n${formatStr(data.rupam_keterangan)}\n\n`;
+    pesan += `Tidak Hadir : ${tHadir > 0 ? tHadir + ' Org' : '-'}\n`;
+    pesan += `Keterangan : ${formatStr(data.rupam_keterangan)}\n`;
 
-    pesan += "2. SATGAS P2U \n";
-    pesan += `${formatStr(data.rupam_pilihan)}\n`;
-    pesan += `‌Jumlah        : ${formatOrg(data.p2u_jumlah)}         \n`;
-    pesan += `‌Hadir            : ${formatOrg(data.p2u_hadir)}\n`;
-    pesan += `‌Keterangan : ${formatStr(data.p2u_keterangan)}\n\n`;
+    pesan += `2. SATGAS P2U\n`;
+    pesan += `Jumlah : ${formatOrg(data.p2u_jumlah)}\n`;
+    pesan += `Hadir : ${formatOrg(data.p2u_hadir)}\n`;
+    pesan += `Keterangan : ${formatStr(data.p2u_keterangan)}\n\n`;
 
     let tugas = typeof data.tugas === 'string' ? JSON.parse(data.tugas) : data.tugas;
     
     if (tugas && typeof tugas === 'object') {
         pesan += "3. Pembagian Tugas :\n";
-        pesan += `     a. Ka.Rupam    : ${formatBintang(tugas.ka_rupam)}\n`;
-        pesan += `         Wakarupam : ${formatBintang(tugas.wakarupam)}\n\n`;
-        pesan += "     b. Petugas P2U : \n";
-        pesan += `         Kasatgas      : ${formatStr(tugas.kasatgas_p2u)}\n`;
-        pesan += `         Wakasatgas : ${formatStr(tugas.wakasatgas_p2u)}\n\n`;
-        
-        pesan += "     c. Petugas Blok\n";
-        pesan += `Blok A: ${formatJamTugas(tugas.blok_a)}\n`;
-        pesan += `Blok B: ${formatJamTugas(tugas.blok_b)}\n     \n`;
-        
-        pesan += "d. Petugas Pos Atas \n";
-        pesan += `     * Menara 1 : ${formatJamTugas(tugas.menara_1)}\n`;
-        pesan += `     * Menara 2 : ${formatJamTugas(tugas.menara_2)}\n`;
-        pesan += `     * Menara 3 : ${formatJamTugas(tugas.menara_3)}\n`;
-        pesan += `     * Menara 4 : ${formatJamTugas(tugas.menara_4)}\n\n`;
-
-        pesan += `e. Petugas jaga RS :${formatStr(tugas.jaga_rs)}\n        \n`;
-        pesan += `f. Piket Dapur  :${formatStr(tugas.piket_dapur)}\n       \n`;
-        pesan += `g. Pengawas Piket: ${formatBintang(tugas.perwira_piket)}\n\n`;
-        pesan += `h. Perwira piket: ${formatBintang(tugas.perwira_kontrol)}\n\n`;
-        pesan += `i. Banja:${formatStr(tugas.banjaga)}\n\n`;
-        pesan += `j. Staff KPLP : ${formatBintang(tugas.staff_kplp)}\n    \n`;
-        pesan += ` k. Amanah :${formatStr(tugas.amanah)}\n    \n`;
-        pesan += ` l. Petugas Laporan Astekpam : ${formatBintang(tugas.petugas_laporan)}\n`;
+        pesan += `a. Ka. Rupam : ${formatStr(tugas.ka_rupam)}\n`;
+        pesan += `   Wakarupam : ${formatStr(tugas.wakarupam)}\n`;
+        pesan += `b. Petugas P2U :\n`;
+        pesan += `   Kasatgas : ${formatStr(tugas.kasatgas_p2u)}\n`;
+        pesan += `   Wakasatgas : ${formatStr(tugas.wakasatgas_p2u)}\n`;
+        pesan += `c. Petugas Blok :\n`;
+        pesan += `   Blok A : ${formatJamTugas(tugas.blok_a)}\n`;
+        pesan += `   Blok B : ${formatJamTugas(tugas.blok_b)}\n`;
+        pesan += `d. Petugas Pos Atas :\n`;
+        pesan += `   * Menara 1 : ${formatJamTugas(tugas.menara_1)}\n`;
+        pesan += `   * Menara 2 : ${formatJamTugas(tugas.menara_2)}\n`;
+        pesan += `   * Menara 3 : ${formatJamTugas(tugas.menara_3)}\n`;
+        pesan += `   * Menara 4 : ${formatJamTugas(tugas.menara_4)}\n`;
+        pesan += `e. Petugas Jaga RS : ${formatStr(tugas.jaga_rs)}\n`;
+        pesan += `f. Piket Dapur : ${formatStr(tugas.piket_dapur)}\n`;
+        pesan += `g. Pengawas Piket : ${formatStr(tugas.perwira_piket)}\n`;
+        pesan += `h. Perwira Piket : ${formatStr(tugas.perwira_kontrol)}\n`;
+        pesan += `i. Banja : ${formatStr(tugas.banjaga)}\n`;
+        pesan += `j. Staff KPLP : ${formatStr(tugas.staff_kplp)}\n`;
+        pesan += `k. Amanah : ${formatStr(tugas.amanah)}\n`;
+        pesan += `l. Petugas Laporan : ${formatStr(tugas.petugas_laporan)}\n\n`;
+    } else {
+        pesan += "3. Pembagian Tugas :\n(Data belum diisi)\n\n";
     }
 
-    pesan += "\nDemikian Laporan ini,\n";
-    pesan += "kami sampaikan\n";
-    pesan += "dan diucapkan terima kasih. \n\n";
-    pesan += "Wassalamu'alaikum \n";
-    pesan += "Warahmatullaahi wabarakaatuh\n";
+    pesan += "Demikian Laporan ini, kami sampaikan dan diucapkan terima kasih.\n\n";
+    pesan += "Wassalamu'alaikum Warahmatullaahi wabarakaatuh\n";
     pesan += "Salam Sejahtera\n";
-    pesan += "Salam Sehat Selalu…🙏\n\n";
-
-    if (data.user) {
-        const namaPetugas = data.user.name || '-';
-        let nomorHp = data.user.no_hp || ''; 
-        if (nomorHp.startsWith('0')) {
-            nomorHp = '62' + nomorHp.substring(1);
-        }
-        pesan += "-----------------------------------\n";
-        pesan += "*Dikirim Oleh:*\n";
-        pesan += `Nama : ${namaPetugas}\n`;
-        pesan += `No. WA : @${nomorHp}`;
-    }
+    pesan += "Salam Sehat Selalu…🙏\n";
 
     return pesan;
 };
@@ -236,6 +213,24 @@ const copyTeksLaporan = async (laporan) => {
         console.error('Failed to copy text: ', err);
     }
 };
+
+const shareKeWhatsAppGroup = async (laporan) => {
+    const teks = generatePesanLaporan(laporan);
+    try {
+        // Copy teks ke clipboard
+        await navigator.clipboard.writeText(teks);
+        
+        alert('Teks berhasil disalin! Silakan "Paste/Tempel" pesan tersebut di Grup WhatsApp.');
+
+        // GANTI LINK DI BAWAH INI DENGAN LINK INVITE GRUP WHATSAPP ANDA
+        const linkGrupWA = 'https://chat.whatsapp.com/CehSunQDnfiFmrNOVJy3CK'; 
+        
+        window.open(linkGrupWA, '_blank');
+    } catch (err) {
+        alert('Gagal menyalin teks. Silakan coba lagi.');
+        console.error('Failed to copy text: ', err);
+    }
+};
 </script>
 
 <template>
@@ -245,7 +240,6 @@ const copyTeksLaporan = async (laporan) => {
         <div class="py-6 bg-zinc-50/30 min-h-screen">
             <div class="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
                 
-                <!-- HEADER & TOMBOL BUAT LAPORAN -->
                 <div class="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 class="text-xl font-extrabold text-zinc-900 tracking-tight flex items-center gap-2">
@@ -260,7 +254,6 @@ const copyTeksLaporan = async (laporan) => {
                     </Link>
                 </div>
 
-                <!-- FILTER DATA -->
                 <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white p-3">
                     <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
                         <div class="flex items-center gap-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider shrink-0 mb-1 md:mb-0">
@@ -300,13 +293,9 @@ const copyTeksLaporan = async (laporan) => {
                 <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white overflow-hidden">
                     <CardContent class="p-0">
                         
-                        <!-- ============================================== -->
-                        <!-- TAMPILAN KHUSUS MOBILE (Card View) -->
-                        <!-- ============================================== -->
                         <div class="block lg:hidden divide-y divide-zinc-100">
                             <div v-for="laporan in filteredAstekpams" :key="laporan.id" class="p-4 space-y-4 hover:bg-zinc-50 transition-colors">
                                 
-                                <!-- Waktu -->
                                 <div class="flex flex-col">
                                     <span class="font-bold text-zinc-900 flex items-center gap-1.5 text-[13px]">
                                         <Calendar class="w-4 h-4 text-zinc-400 shrink-0"/> {{ formatVal(laporan.tanggal) }}
@@ -316,14 +305,11 @@ const copyTeksLaporan = async (laporan) => {
                                     </span>
                                 </div>
 
-                                <!-- Box Serah Terima, Pimpinan, Pelapor -->
                                 <div class="bg-zinc-50 p-3.5 rounded-xl border border-zinc-100 space-y-3">
                                     
-                                    <!-- Serah Terima Grid -->
                                     <div class="flex flex-col gap-1.5 w-full">
                                         <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider shrink-0 mb-0.5">Serah Terima</span>
                                         <div class="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
-                                            <!-- Regu -->
                                             <span class="px-2 py-1.5 bg-white text-zinc-600 text-[11px] font-bold rounded-md border border-zinc-200 uppercase text-center truncate shadow-sm">
                                                 {{ formatVal(laporan.dari_rupam) }}
                                             </span>
@@ -332,7 +318,6 @@ const copyTeksLaporan = async (laporan) => {
                                                 {{ formatVal(laporan.ke_rupam) }}
                                             </span>
                                             
-                                            <!-- Shift -->
                                             <span class="px-2 py-1.5 bg-white text-zinc-600 text-[11px] font-bold rounded-md border border-zinc-200 uppercase text-center truncate shadow-sm">
                                                 {{ formatVal(laporan.dari_shift) }}
                                             </span>
@@ -343,7 +328,6 @@ const copyTeksLaporan = async (laporan) => {
                                         </div>
                                     </div>
                                     
-                                    <!-- Pimpinan -->
                                     <div class="border-t border-zinc-200/60 pt-2.5">
                                         <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Pimpinan Apel</span>
                                         <span class="font-semibold text-zinc-800 flex items-start gap-2 text-[12px] whitespace-normal leading-snug">
@@ -352,7 +336,6 @@ const copyTeksLaporan = async (laporan) => {
                                         </span>
                                     </div>
 
-                                    <!-- Pelapor -->
                                     <div class="border-t border-zinc-200/60 pt-2.5">
                                         <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Pelapor</span>
                                         <span class="font-bold text-zinc-800 flex items-start gap-2 text-[12px] whitespace-normal leading-snug">
@@ -362,15 +345,18 @@ const copyTeksLaporan = async (laporan) => {
                                     </div>
                                 </div>
 
-                                <!-- TOMBOL AKSI MOBILE -->
                                 <div class="grid grid-cols-2 gap-3 w-full pt-1">
                                     <Link :href="route('astekpam.show', laporan.id)" class="w-full block">
                                         <Button variant="outline" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
                                             <Eye class="w-4 h-4 mr-1.5 shrink-0" /> Detail
                                         </Button>
                                     </Link>
-                                    <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
+                                    <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-zinc-600 border-zinc-200 hover:bg-zinc-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
                                         <Copy class="w-4 h-4 mr-1.5 shrink-0" /> Copy Teks
+                                    </Button>
+
+                                    <Button @click="shareKeWhatsAppGroup(laporan)" variant="outline" class="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center col-span-2">
+                                        <MessageCircle class="w-4 h-4 mr-1.5 shrink-0" /> Copy & Buka Grup WA
                                     </Button>
                                 </div>
 
@@ -382,26 +368,20 @@ const copyTeksLaporan = async (laporan) => {
                             </div>
                         </div>
 
-                        <!-- ============================================== -->
-                        <!-- TAMPILAN DESKTOP (Table View) -->
-                        <!-- ============================================== -->
                         <div class="hidden lg:block w-full">
-                            <!-- table-fixed memaksa tabel menuruti lebar layar (tidak overflow horizontal) -->
                             <table class="w-full text-left border-collapse table-fixed">
                                 <thead>
                                     <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[11px] tracking-wider uppercase">
-                                        <!-- Lebar proporsional dengan % -->
-                                        <th class="py-3.5 px-4 w-[18%]">Tanggal & Waktu</th>
-                                        <th class="py-3.5 px-4 w-[28%]">Serah Terima</th>
-                                        <th class="py-3.5 px-4 w-[18%]">Pimpinan Apel</th>
-                                        <th class="py-3.5 px-4 w-[18%]">Petugas Pelapor</th>
-                                        <th class="py-3.5 px-4 w-[18%] text-center">Aksi</th>
+                                        <th class="py-3.5 px-4 w-[15%]">Tanggal & Waktu</th>
+                                        <th class="py-3.5 px-4 w-[25%]">Serah Terima</th>
+                                        <th class="py-3.5 px-4 w-[15%]">Pimpinan Apel</th>
+                                        <th class="py-3.5 px-4 w-[15%]">Petugas Pelapor</th>
+                                        <th class="py-3.5 px-4 w-[30%] text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-zinc-100 text-[13px] font-medium text-zinc-800">
                                     <tr v-for="laporan in filteredAstekpams" :key="laporan.id" class="hover:bg-zinc-50/50 transition-colors align-top">
                                         
-                                        <!-- Kolom 1 -->
                                         <td class="py-4 px-4 align-middle">
                                             <div class="flex flex-col">
                                                 <span class="font-bold text-zinc-900 flex items-center gap-1.5 leading-snug">
@@ -413,10 +393,8 @@ const copyTeksLaporan = async (laporan) => {
                                             </div>
                                         </td>
                                         
-                                        <!-- Kolom 2: Serah Terima -->
                                         <td class="py-4 px-4 align-middle">
                                             <div class="flex flex-col gap-2 w-full">
-                                                <!-- Row Regu -->
                                                 <div class="flex items-center gap-1.5 w-full">
                                                     <span class="flex-1 px-1.5 py-1 bg-zinc-100 text-zinc-600 text-[11px] font-bold rounded border border-zinc-200 uppercase tracking-wide text-center truncate">
                                                         {{ formatVal(laporan.dari_rupam) }}
@@ -426,7 +404,6 @@ const copyTeksLaporan = async (laporan) => {
                                                         {{ formatVal(laporan.ke_rupam) }}
                                                     </span>
                                                 </div>
-                                                <!-- Row Shift -->
                                                 <div class="flex items-center gap-1.5 w-full">
                                                     <span class="flex-1 px-1.5 py-1 bg-zinc-100 text-zinc-600 text-[11px] font-bold rounded border border-zinc-200 uppercase tracking-wide text-center truncate">
                                                         {{ formatVal(laporan.dari_shift) }}
@@ -439,7 +416,6 @@ const copyTeksLaporan = async (laporan) => {
                                             </div>
                                         </td>
                                         
-                                        <!-- Kolom 3 -->
                                         <td class="py-4 px-4 align-middle">
                                             <div class="flex items-start gap-1.5">
                                                 <ShieldCheck class="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
@@ -449,7 +425,6 @@ const copyTeksLaporan = async (laporan) => {
                                             </div>
                                         </td>
                                         
-                                        <!-- Kolom 4 -->
                                         <td class="py-4 px-4 align-middle">
                                             <div class="flex items-start gap-1.5">
                                                 <User class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -459,17 +434,19 @@ const copyTeksLaporan = async (laporan) => {
                                             </div>
                                         </td>
                                         
-                                        <!-- Kolom 5: Aksi -->
                                         <td class="py-4 px-4 text-center align-middle">
-                                            <!-- flex-wrap membuat tombol bertumpuk jika layar sempit -->
                                             <div class="flex items-center justify-center gap-2 flex-wrap">
                                                 <Link :href="route('astekpam.show', laporan.id)">
                                                     <Button variant="outline" class="text-blue-600 border-blue-200 hover:bg-blue-50 font-bold text-[11px] h-8 px-2.5 rounded-lg flex items-center">
                                                         <Eye class="w-3.5 h-3.5 mr-1 shrink-0" /> Detail
                                                     </Button>
                                                 </Link>
-                                                <Button @click="copyTeksLaporan(laporan)" variant="outline" class="text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[11px] h-8 px-2.5 rounded-lg flex items-center">
+                                                <Button @click="copyTeksLaporan(laporan)" variant="outline" class="text-zinc-600 border-zinc-200 hover:bg-zinc-50 font-bold text-[11px] h-8 px-2.5 rounded-lg flex items-center">
                                                     <Copy class="w-3.5 h-3.5 mr-1 shrink-0" /> Copy
+                                                </Button>
+
+                                                <Button @click="shareKeWhatsAppGroup(laporan)" variant="outline" class="text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[11px] h-8 px-2.5 rounded-lg flex items-center">
+                                                    <MessageCircle class="w-3.5 h-3.5 mr-1 shrink-0" /> Buka WA
                                                 </Button>
                                             </div>
                                         </td>

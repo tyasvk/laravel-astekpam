@@ -8,7 +8,8 @@ import { Label } from '@/Components/ui/label';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { 
-    ChevronLeft, Plus, Trash2, FileText, Users, ShieldAlert, Zap, Check, Calendar, MapPin
+    ChevronLeft, Plus, Trash2, FileText, Users, ShieldAlert, Zap, Check, Calendar, MapPin,
+    Image as ImageIcon, UploadCloud
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -26,6 +27,9 @@ const props = defineProps({
 
 const previousReportData = computed(() => props.latestReport || props.lastReport);
 const isPreviewActive = ref(false);
+
+// State untuk Preview Foto
+const previewUrl = ref(null);
 
 const anggotaReguOptions = ref([]);
 
@@ -86,6 +90,9 @@ const form = useForm({
     ke_shift: '',
     pimpinan: 'STAF KPLP',
     
+    // Field Foto Laporan
+    foto_laporan: null,
+    
     kapasitas: previousReportData.value?.kapasitas ?? 813,
     narapidana: previousReportData.value?.narapidana ?? 0,
     blok_a: previousReportData.value?.blok_a ?? 0,
@@ -124,6 +131,30 @@ const form = useForm({
         piket_dapur: '', amanah: '', petugas_laporan: ''
     }
 });
+
+// ==========================================
+// HANDLER UPLOAD FOTO
+// ==========================================
+const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    
+    if (file) {
+        // Cek ukuran file (Maks 10MB = 10 * 1024 * 1024)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('Ukuran file tidak boleh lebih dari 10MB!');
+            e.target.value = ''; // Kosongkan input
+            form.foto_laporan = null;
+            previewUrl.value = null;
+            return;
+        }
+
+        form.foto_laporan = file;
+        previewUrl.value = URL.createObjectURL(file);
+    } else {
+        form.foto_laporan = null;
+        previewUrl.value = null;
+    }
+};
 
 const jumlahJam = computed(() => form.ke_shift === 'Malam' ? 3 : 2);
 
@@ -229,7 +260,9 @@ const togglePreview = () => {
     isPreviewActive.value = !isPreviewActive.value;
 };
 
-const submitLaporan = () => form.post(route('astekpam.store'));
+const submitLaporan = () => form.post(route('astekpam.store'), {
+    forceFormData: true // SANGAT PENTING untuk mengirim file foto
+});
 </script>
 
 <template>
@@ -259,6 +292,53 @@ const submitLaporan = () => form.post(route('astekpam.store'));
 
                 <form @submit.prevent class="space-y-5 sm:space-y-6" v-if="!isPreviewActive">
                     
+                    <!-- ============================================== -->
+                    <!-- CARD UPLOAD FOTO -->
+                    <!-- ============================================== -->
+                    <Card class="rounded-2xl border border-zinc-200 shadow-sm overflow-hidden bg-white">
+                        <div class="px-5 sm:px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-zinc-800 bg-zinc-50">
+                            <ImageIcon class="w-4 h-4 text-blue-600"/> BUKTI FOTO LAPORAN
+                        </div>
+                        <CardContent class="p-5 sm:p-6">
+                            <div class="flex flex-col md:flex-row items-start gap-6">
+                                <div class="flex-1 w-full">
+                                    <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wider mb-2 block">UPLOAD FOTO (MAKS. 10MB)</Label>
+                                    
+                                    <div class="relative group mt-2">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <UploadCloud class="w-5 h-5 text-zinc-400 group-hover:text-blue-500 transition-colors" />
+                                        </div>
+                                        <input 
+                                            type="file" 
+                                            @change="handleFileUpload" 
+                                            accept="image/png, image/jpeg, image/jpg"
+                                            class="block w-full text-sm text-zinc-500 file:hidden pl-10 pr-4 py-3 sm:py-2.5 border border-zinc-200 rounded-xl sm:rounded-lg cursor-pointer bg-zinc-50 hover:bg-zinc-100 focus:outline-none transition-colors"
+                                        />
+                                        <div class="absolute inset-y-0 left-10 flex items-center pointer-events-none">
+                                            <span v-if="!form.foto_laporan" class="text-sm text-zinc-400 font-medium">Pilih file gambar...</span>
+                                            <span v-else class="text-sm text-zinc-800 font-medium truncate pr-4">{{ form.foto_laporan.name }}</span>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-[11px] text-zinc-400 mt-2 font-medium">Format didukung: JPG, JPEG, PNG.</p>
+                                    
+                                    <div v-if="form.errors.foto_laporan" class="text-red-500 text-[12px] font-bold mt-1">
+                                        {{ form.errors.foto_laporan }}
+                                    </div>
+                                </div>
+
+                                <!-- Preview Area di Form -->
+                                <div class="shrink-0 w-full md:w-40 flex flex-col">
+                                    <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wider mb-2 block">PREVIEW GAMBAR</Label>
+                                    <div class="w-full h-40 md:w-40 md:h-40 rounded-xl border-2 border-dashed border-zinc-200 flex items-center justify-center bg-zinc-50 overflow-hidden relative">
+                                        <img v-if="previewUrl" :src="previewUrl" alt="Preview" class="w-full h-full object-cover" />
+                                        <ImageIcon v-else class="w-8 h-8 text-zinc-300" />
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
                             <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wider">TANGGAL LAPORAN</Label>
@@ -516,6 +596,16 @@ const submitLaporan = () => form.post(route('astekpam.store'));
                         
                         <div class="font-bold text-center mb-6 sm:mb-8 text-sm sm:text-base uppercase font-sans">
                             ASTEKPAM LAPAS KELAS I PALEMBANG
+                        </div>
+
+                        <!-- ============================================== -->
+                        <!-- TAMPILAN FOTO DI PRATINJAU -->
+                        <!-- ============================================== -->
+                        <div v-if="previewUrl" class="mb-8 flex flex-col items-center bg-zinc-50/80 p-4 rounded-xl border border-zinc-200">
+                            <span class="text-xs font-bold text-zinc-500 mb-3 w-full text-left uppercase tracking-wider flex items-center gap-2">
+                                <ImageIcon class="w-4 h-4" /> Lampiran Foto Bukti
+                            </span>
+                            <img :src="previewUrl" alt="Foto Laporan" class="w-full max-w-sm rounded-lg shadow-sm border border-zinc-200 object-contain" />
                         </div>
                         
                         <p>Assalamu’alaikum Warahmatullahi Wabarakatuh</p>
