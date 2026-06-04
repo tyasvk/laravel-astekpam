@@ -139,7 +139,6 @@ const handleFileUpload = (e) => {
     const file = e.target.files[0];
     
     if (file) {
-        // Cek ukuran file (Maks 10MB = 10 * 1024 * 1024)
         if (file.size > 10 * 1024 * 1024) {
             alert('Ukuran file tidak boleh lebih dari 10MB!');
             e.target.value = ''; // Kosongkan input
@@ -178,9 +177,6 @@ const removeItem = (type, index) => {
     else form[type][0].ket = '';
 };
 
-// ==========================================
-// FORMATTER UNTUK PRATINJAU
-// ==========================================
 const displayHari = computed(() => {
     if (!form.tanggal) return '';
     return new Intl.DateTimeFormat('id-ID', { 
@@ -215,7 +211,6 @@ const formatKetLuar = (items) => {
     if (valid.length === 0) return '-';
     return valid.map(i => i.ket).join(', ');
 };
-// ==========================================
 
 watch(() => form.rupam_pilihan, (newRupam) => {
     const bersihkanTeks = (teks) => String(teks || '').toLowerCase().replace(/[\s.]/g, '');
@@ -260,9 +255,25 @@ const togglePreview = () => {
     isPreviewActive.value = !isPreviewActive.value;
 };
 
-const submitLaporan = () => form.post(route('astekpam.store'), {
-    forceFormData: true // SANGAT PENTING untuk mengirim file foto
-});
+// ==========================================
+// FUNGSI SUBMIT DIPERBAIKI 
+// ==========================================
+const submitLaporan = () => {
+    form.post(route('astekpam.store'), {
+        forceFormData: true, // SANGAT PENTING untuk mengirim file foto
+        preserveScroll: true,
+        onError: (errors) => {
+            console.error(errors);
+            alert("GAGAL MENYIMPAN! Terdapat field wajib yang belum diisi. Silakan cek kembali form berwarna merah.");
+            
+            // Otomatis kembalikan layar ke Form agar user bisa melihat errornya
+            if (isPreviewActive.value) {
+                isPreviewActive.value = false;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    });
+};
 </script>
 
 <template>
@@ -290,11 +301,17 @@ const submitLaporan = () => form.post(route('astekpam.store'), {
                     </Button>
                 </div>
 
+                <div v-if="Object.keys(form.errors).length > 0 && !isPreviewActive" class="mb-6 p-4 bg-red-50/80 border border-red-200 rounded-xl text-red-600 text-sm font-semibold">
+                    <div class="flex items-center gap-2 mb-2">
+                        <ShieldAlert class="w-5 h-5" /> Gagal Menyimpan. Ada field yang belum diisi:
+                    </div>
+                    <ul class="list-disc pl-5 text-xs text-red-500">
+                        <li v-for="(error, key) in form.errors" :key="key">{{ key }}: {{ error }}</li>
+                    </ul>
+                </div>
+
                 <form @submit.prevent class="space-y-5 sm:space-y-6" v-if="!isPreviewActive">
                     
-                    <!-- ============================================== -->
-                    <!-- CARD UPLOAD FOTO -->
-                    <!-- ============================================== -->
                     <Card class="rounded-2xl border border-zinc-200 shadow-sm overflow-hidden bg-white">
                         <div class="px-5 sm:px-6 py-4 border-b border-zinc-100 flex items-center gap-2 font-bold text-sm text-zinc-800 bg-zinc-50">
                             <ImageIcon class="w-4 h-4 text-blue-600"/> BUKTI FOTO LAPORAN
@@ -319,15 +336,7 @@ const submitLaporan = () => form.post(route('astekpam.store'), {
                                             <span v-else class="text-sm text-zinc-800 font-medium truncate pr-4">{{ form.foto_laporan.name }}</span>
                                         </div>
                                     </div>
-
-                                    <p class="text-[11px] text-zinc-400 mt-2 font-medium">Format didukung: JPG, JPEG, PNG.</p>
-                                    
-                                    <div v-if="form.errors.foto_laporan" class="text-red-500 text-[12px] font-bold mt-1">
-                                        {{ form.errors.foto_laporan }}
-                                    </div>
                                 </div>
-
-                                <!-- Preview Area di Form -->
                                 <div class="shrink-0 w-full md:w-40 flex flex-col">
                                     <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wider mb-2 block">PREVIEW GAMBAR</Label>
                                     <div class="w-full h-40 md:w-40 md:h-40 rounded-xl border-2 border-dashed border-zinc-200 flex items-center justify-center bg-zinc-50 overflow-hidden relative">
@@ -365,7 +374,7 @@ const submitLaporan = () => form.post(route('astekpam.store'), {
                         </div>
                         <CardContent class="p-5 sm:p-6 grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                             <div class="space-y-2">
-                                <Label class="text-[11px] sm:text-xs font-semibold text-zinc-500">DARI REGU (LAMA)</Label>
+                                <Label class="text-[11px] sm:text-xs font-semibold text-zinc-500">DARI REGU (LAMA) <span class="text-red-500">*</span></Label>
                                 <div class="flex gap-2">
                                     <Select v-model="form.dari_rupam">
                                         <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl sm:rounded-lg bg-zinc-50 border-zinc-200 focus:ring-1 focus:ring-blue-500 w-full"><SelectValue placeholder="Rupam" /></SelectTrigger>
@@ -598,9 +607,6 @@ const submitLaporan = () => form.post(route('astekpam.store'), {
                             ASTEKPAM LAPAS KELAS I PALEMBANG
                         </div>
 
-                        <!-- ============================================== -->
-                        <!-- TAMPILAN FOTO DI PRATINJAU -->
-                        <!-- ============================================== -->
                         <div v-if="previewUrl" class="mb-8 flex flex-col items-center bg-zinc-50/80 p-4 rounded-xl border border-zinc-200">
                             <span class="text-xs font-bold text-zinc-500 mb-3 w-full text-left uppercase tracking-wider flex items-center gap-2">
                                 <ImageIcon class="w-4 h-4" /> Lampiran Foto Bukti

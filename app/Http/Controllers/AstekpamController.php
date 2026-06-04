@@ -54,9 +54,9 @@ class AstekpamController extends Controller
     /**
      * Menyimpan laporan baru ke database dan mengirim WA via Fonnte.
      */
-    public function store(Request $request)
+public function store(Request $request)
     {
-        // 1. Validasi Input + Foto Maksimal 10MB (10240 KB)
+        // 1. Validasi Input + Foto Maksimal 10MB
         $validated = $request->validate([
             'tanggal' => 'required',
             'pukul' => 'required',
@@ -67,6 +67,7 @@ class AstekpamController extends Controller
             'foto_laporan.image' => 'File harus berupa gambar.',
             'foto_laporan.mimes' => 'Format gambar harus jpeg, png, atau jpg.',
             'foto_laporan.max'   => 'Ukuran foto maksimal adalah 10MB.',
+            'dari_rupam.required' => 'Kolom "Dari Regu (Lama)" wajib dipilih.',
         ]);
 
         // 2. Ambil semua data input
@@ -91,20 +92,20 @@ class AstekpamController extends Controller
             $data[$kolom] = $data[$kolom] ?? '-';
         }
 
-        // 5. TANGANI KOLOM JSON: Beri array kosong jika tidak ada isian
+        // 5. TANGANI KOLOM ARRAY (Tanpa json_encode karena sudah di-cast oleh Model)
         $data['rawat_inap_items'] = $data['rawat_inap_items'] ?? [];
-        $data['berobat_items'] = $data['berobat_items'] ?? [];
-        $data['bon_luar_items'] = $data['bon_luar_items'] ?? [];
+        $data['berobat_items']    = $data['berobat_items'] ?? [];
+        $data['bon_luar_items']   = $data['bon_luar_items'] ?? [];
+        $data['tugas']            = $data['tugas'] ?? [];
 
         // 6. TANGANI UPLOAD FOTO
         if ($request->hasFile('foto_laporan')) {
-            // Simpan foto di storage/app/public/foto_laporan
             $path = $request->file('foto_laporan')->store('foto_laporan', 'public');
             $data['foto_laporan'] = $path;
         }
 
-        // 7. Simpan ke database menggunakan $data yang sudah dibersihkan
-        //$data['user_id'] = auth()->id(); // Pastikan ID pengisi laporan tersimpan
+        // 7. Simpan ke database
+        $data['user_id'] = auth()->id(); 
         $astekpam = Astekpam::create($data);
 
         // 8. Format Teks Laporan Lengkap
@@ -115,12 +116,11 @@ class AstekpamController extends Controller
             Http::withHeaders([
                 'Authorization' => env('FONNTE_TOKEN')
             ])->post('https://api.fonnte.com/send', [
-                'target' => env('WA_GROUP_TARGET'), // Pastikan target benar di .env
+                'target' => env('WA_GROUP_TARGET'), 
                 'message' => $pesanWA,
-                'delay' => '2', // Jeda natural
+                'delay' => '2', 
             ]);
         } catch (\Exception $e) {
-            // Log error jika WA gagal, tapi biarkan proses web berlanjut
             Log::error('Gagal kirim Notif WA Astekpam: ' . $e->getMessage());
         }
 

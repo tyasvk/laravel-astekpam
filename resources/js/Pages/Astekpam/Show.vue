@@ -3,7 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Card } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { ChevronLeft, Printer, Copy, Check } from 'lucide-vue-next';
+import { ChevronLeft, Printer, Copy, Check, Image as ImageIcon } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
@@ -56,7 +56,10 @@ const formatItems = (items) => {
 const copyToClipboard = () => {
     const pad = (str, length = 25) => str.padEnd(length, ' ');
     
-    const text = `ASTEKPAM LAPAS KELAS I PALEMBANG
+    // Tambahkan URL Foto jika ada
+    const urlFoto = props.astekpam.foto_laporan ? `${window.location.origin}/storage/${props.astekpam.foto_laporan}\n\n` : '';
+    
+    const text = `${urlFoto}ASTEKPAM LAPAS KELAS I PALEMBANG
 
 Assalamu’alaikum Warahmatullahi Wabarakatuh
 Selamat ${salamWaktu.value}....
@@ -66,7 +69,7 @@ Pukul         : ${props.astekpam.pukul} WIB
 
 Berikut, ASTEKPAM dari ${props.astekpam.dari_rupam} (Shift ${props.astekpam.dari_shift}) ke ${props.astekpam.ke_rupam} (Shift ${props.astekpam.ke_shift}) Dipimpin oleh ${props.astekpam.pimpinan || '-'} berjalan aman dan tertib.
 
-With rincian sebagai berikut :
+Dengan rincian sebagai berikut :
 
 A. JUMLAH PENGHUNI
 ${pad('1. Kapasitas')} : ${formatOrg(props.astekpam.kapasitas)}
@@ -164,6 +167,17 @@ const printPage = () => window.print();
         <div class="max-w-4xl mx-auto py-10 px-4 font-sans print:p-0 print:max-w-full">
             <Card class="border-none shadow-2xl bg-white p-8 md:p-16 rounded-xl text-zinc-900 font-sans text-[15px] leading-relaxed print:shadow-none print:p-0">
                 
+                <!-- TAMPILAN FOTO LAPORAN (Paling Atas) -->
+                <div v-if="astekpam.foto_laporan" class="mb-8 flex flex-col items-center bg-zinc-50/80 p-4 rounded-xl border border-zinc-200 print:hidden">
+                    <span class="text-xs font-bold text-zinc-500 mb-3 w-full text-center uppercase tracking-wider flex items-center justify-center gap-2">
+                        <ImageIcon class="w-4 h-4" /> Lampiran Foto Bukti
+                    </span>
+                    <a :href="`/storage/${astekpam.foto_laporan}`" target="_blank" title="Klik untuk memperbesar">
+                        <img :src="`/storage/${astekpam.foto_laporan}`" alt="Foto Laporan" class="w-full max-w-sm rounded-lg shadow-sm border border-zinc-200 object-contain hover:opacity-90 transition-opacity" />
+                    </a>
+                </div>
+                
+                <!-- JUDUL -->
                 <div class="font-bold text-center mb-8 text-base uppercase font-sans">
                     ASTEKPAM LAPAS KELAS I PALEMBANG
                 </div>

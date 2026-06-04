@@ -5,7 +5,7 @@ import { computed } from 'vue';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { 
-    Users, ShieldAlert, Zap, Clock, Calendar, ArrowRight, Activity, MapPin, ClipboardList, FileText
+    Users, ShieldAlert, Zap, Clock, Calendar, ArrowRight, Activity, MapPin, ClipboardList, FileText, Image as ImageIcon
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -118,7 +118,8 @@ const taskRows = computed(() => {
                 <!-- Welcome Banner -->
                 <div class="bg-white rounded-2xl p-5 sm:p-6 md:p-8 border border-zinc-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div class="text-center sm:text-left">
-                        <h1 class="text-xl sm:text-2xl font-extrabold text-zinc-900 tracking-tight">Selamat Datang, Admin</h1>
+                        <!-- Menggunakan $page.props.auth.user.name untuk memanggil nama user -->
+                        <h1 class="text-xl sm:text-2xl font-extrabold text-zinc-900 tracking-tight">Selamat Datang, {{ $page.props.auth.user.name }}</h1>
                         <p class="text-zinc-500 text-xs sm:text-sm mt-1 sm:mt-1.5">Pantau ringkasan laporan regu pengamanan Lapas Kelas I Palembang hari ini.</p>
                     </div>
                     <Link :href="route('astekpam.create')" class="w-full sm:w-auto mt-2 sm:mt-0">
@@ -176,10 +177,22 @@ const taskRows = computed(() => {
                                                 </div>
                                             </div>
                                         </div>
+                                        
                                         <div class="bg-zinc-50 p-3.5 sm:p-4 rounded-xl border border-zinc-100">
                                             <p class="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase mb-0.5 sm:mb-1">Dipimpin</p>
                                             <p class="font-semibold text-zinc-800 text-xs sm:text-sm">{{ formatVal(props.latestAstekpam.pimpinan) }}</p>
                                         </div>
+
+                                        <!-- Menampilkan Foto Laporan Sesuai Aspect Ratio (Proporsi Asli) -->
+                                        <div v-if="props.latestAstekpam.foto_laporan" class="bg-zinc-50 p-3.5 sm:p-4 rounded-xl border border-zinc-100">
+                                            <p class="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase mb-2 flex items-center gap-1.5">
+                                                <ImageIcon class="w-3.5 h-3.5" /> Foto Bukti
+                                            </p>
+                                            <a :href="`/storage/${props.latestAstekpam.foto_laporan}`" target="_blank" class="block w-full rounded-lg overflow-hidden border border-zinc-200 bg-white">
+                                                <img :src="`/storage/${props.latestAstekpam.foto_laporan}`" alt="Foto Laporan" class="w-full h-auto hover:scale-105 transition-transform duration-300" />
+                                            </a>
+                                        </div>
+
                                         <Link :href="route('astekpam.show', props.latestAstekpam.id)" class="block w-full">
                                             <Button variant="outline" class="w-full rounded-xl border-zinc-200 text-zinc-700 font-bold hover:bg-zinc-50 text-[11px] sm:text-xs h-11 sm:h-10">
                                                 Lihat Detail Laporan

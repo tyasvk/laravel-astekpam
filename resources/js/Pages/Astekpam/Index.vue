@@ -1,67 +1,74 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Input } from '@/Components/ui/input'; // Pastikan Input di-import
 import { 
-    FileText, Plus, Eye, Filter, Calendar, Clock, ShieldCheck, User, Copy, MessageCircle 
+    FileText, Plus, Eye, Filter, Calendar, Clock, ShieldCheck, User, Copy, MessageCircle, Image as ImageIcon,
+    ChevronLeft, ChevronRight, Download, X
 } from 'lucide-vue-next';
+import { usePermission } from '@/Composables/usePermission';
+
+// Import library PDF
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; // <-- PERBAIKAN: Import autoTable secara eksplisit
 
 const props = defineProps({
     astekpams: Array
 });
 
-// State untuk Filter
+// Cek hak akses (Role) User yang sedang login
+const { hasRole } = usePermission();
+
+// State untuk Filter & Pagination
 const filterRegu = ref('all');
-const filterWaktu = ref('all');
+const filterTanggal = ref(''); // <-- PERBAIKAN: Menggunakan filter tanggal (kalender)
+const currentPage = ref(1);
+const itemsPerPage = 10; // Jumlah data per halaman
 
-// Helper untuk perhitungan Waktu
-const isSameDay = (date1, date2) => {
-    return date1.getFullYear() === date2.getFullYear() &&
-           date1.getMonth() === date2.getMonth() &&
-           date1.getDate() === date2.getDate();
-};
-
-const getWeekNumber = (d) => {
-    const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    const dayNr = (target.getUTCDay() + 6) % 7;
-    target.setUTCDate(target.getUTCDate() - dayNr + 3);
-    const firstThursday = target.valueOf();
-    target.setUTCMonth(0, 1);
-    if (target.getUTCDay() !== 4) {
-        target.setUTCMonth(0, 1 + ((4 - target.getUTCDay()) + 7) % 7);
-    }
-    return 1 + Math.ceil((firstThursday - target) / 604800000);
-};
+// Reset pagination ke halaman 1 setiap kali filter diubah
+watch([filterRegu, filterTanggal], () => {
+    currentPage.value = 1;
+});
 
 // Logika Penyaringan (Filter) Otomatis
 const filteredAstekpams = computed(() => {
     let result = props.astekpams || [];
     
+    // Filter Regu
     if (filterRegu.value !== 'all') {
         result = result.filter(item => {
             const regu = item.ke_rupam || ''; 
-            return regu.includes(filterRegu.value);
+            return regu === `Rupam ${filterRegu.value}` || regu === filterRegu.value;
         });
     }
 
-    if (filterWaktu.value !== 'all') {
-        const today = new Date();
+    // Filter Tanggal Presisi (Kalender)
+    if (filterTanggal.value) {
         result = result.filter(item => {
-            if (!item.tanggal) return false;
-            const itemDate = new Date(item.tanggal);
-            
-            if (filterWaktu.value === 'harian') return isSameDay(itemDate, today);
-            if (filterWaktu.value === 'mingguan') return itemDate.getFullYear() === today.getFullYear() && getWeekNumber(itemDate) === getWeekNumber(today);
-            if (filterWaktu.value === 'bulanan') return itemDate.getFullYear() === today.getFullYear() && itemDate.getMonth() === today.getMonth();
-            return true;
+            return item.tanggal === filterTanggal.value;
         });
     }
 
     return result.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 });
+
+// Logika Pagination (Memotong array sesuai halaman saat ini)
+const paginatedAstekpams = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredAstekpams.value.slice(start, end);
+});
+
+const totalPages = computed(() => {
+    return Math.ceil(filteredAstekpams.value.length / itemsPerPage);
+});
+
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++; };
+const prevPage = () => { if (currentPage.value > 1) currentPage.value--; };
 
 const formatVal = (val) => val ? val : '-';
 
@@ -73,7 +80,96 @@ const getPetugasPelapor = (laporan) => {
 };
 
 // =========================================================================
-// LOGIKA UNTUK COPY TEKS LAPORAN
+// LOGIKA DOWNLOAD LAPORAN KE PDF
+// =========================================================================
+const downloadPDF = () => {
+    const data = filteredAstekpams.value;
+    
+    if (data.length === 0) {
+        alert('Tidak ada data laporan untuk diunduh pada filter ini.');
+        return;
+    }
+
+    // Buat dokumen PDF baru (Orientasi Landscape, ukuran A4)
+    const doc = new jsPDF('l', 'mm', 'a4');
+
+    // Tambahkan Judul
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text('REKAPITULASI LAPORAN ASTEKPAM', 14, 15);
+    
+    // Tambahkan Sub-Judul (Info Filter)
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    const infoRegu = filterRegu.value === 'all' ? 'Semua Regu' : `Regu ${filterRegu.value}`;
+    const infoWaktu = filterTanggal.value ? filterTanggal.value : 'Semua Waktu';
+    doc.text(`Filter: ${infoRegu} | Tanggal: ${infoWaktu} | Total: ${data.length} Laporan`, 14, 22);
+
+    // Siapkan Header Tabel
+    const tableColumn = [
+        "Tanggal", "Pukul", "Serah Terima", "Pimpinan Apel", 
+        "Kap.", "Napi", "Total WBP", "Hadir Rupam", "Hadir P2U", "Petugas Pelapor"
+    ];
+
+    // Siapkan Data Tabel (Baris)
+    const tableRows = [];
+    data.forEach(item => {
+        const rowData = [
+            item.tanggal || '-',
+            item.pukul || '-',
+            `${item.dari_rupam || '-'} (${item.dari_shift || '-'}) -> ${item.ke_rupam || '-'} (${item.ke_shift || '-'})`,
+            item.pimpinan || '-',
+            item.kapasitas || '0',
+            item.narapidana || '0',
+            item.total_wbp || '0',
+            `${item.rupam_hadir || '0'}/${item.rupam_jumlah || '0'}`,
+            `${item.p2u_hadir || '0'}/${item.p2u_jumlah || '0'}`,
+            getPetugasPelapor(item)
+        ];
+        tableRows.push(rowData);
+    });
+
+    // <-- PERBAIKAN: Gunakan autoTable(doc, {...}) sebagai fungsi terpisah
+    autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 28, 
+        theme: 'grid',
+        styles: {
+            fontSize: 8, 
+            cellPadding: 2,
+            font: "helvetica"
+        },
+        headStyles: {
+            fillColor: [39, 39, 42], // Warna header tabel (Zinc-800)
+            textColor: [255, 255, 255],
+            fontSize: 8,
+            fontStyle: 'bold',
+            halign: 'center'
+        },
+        columnStyles: {
+            0: { cellWidth: 22 }, 
+            1: { cellWidth: 22 }, 
+            2: { cellWidth: 45 }, 
+        },
+        alternateRowStyles: {
+            fillColor: [244, 244, 245] 
+        }
+    });
+
+    // Buat Nama File Dinamis
+    let fileName = 'Laporan_Astekpam';
+    if (filterRegu.value !== 'all') fileName += `_Regu_${filterRegu.value}`;
+    if (filterTanggal.value) fileName += `_${filterTanggal.value}`;
+    fileName += '.pdf';
+
+    // Eksekusi Download
+    doc.save(fileName);
+};
+
+
+// =========================================================================
+// LOGIKA UNTUK COPY TEKS LAPORAN (WHATSAPP)
 // =========================================================================
 const formatJsonArray = (data) => {
     if (!data) return null;
@@ -110,17 +206,20 @@ const generatePesanLaporan = (data) => {
     const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     
-    // Menghilangkan angka 0 di depan tanggal jika ada (contoh: 04 jadi 4)
     const tglNum = dateObj.getDate();
     const tanggalIndo = `${days[dateObj.getDay()]}, ${tglNum} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
-    
     const salamWaktu = getGreeting(data.pukul);
 
-    // Helpers untuk mengatasi null atau 0
     const formatOrg = (val) => (val && val !== '0' && val !== 0) ? `${val} Org` : '0 Org';
     const formatStr = (val) => (val && val !== '-') ? val : '-';
 
-    let pesan = "ASTEKPAM LAPAS KELAS I PALEMBANG\n";
+    let pesan = "";
+
+    if (data.foto_laporan) {
+        pesan += `${window.location.origin}/storage/${data.foto_laporan}\n\n`;
+    }
+
+    pesan += "ASTEKPAM LAPAS KELAS I PALEMBANG\n";
     pesan += "Assalamu’alaikum Warahmatullahi Wabarakatuh\n";
     pesan += `${salamWaktu}\n\n`;
     
@@ -217,14 +316,10 @@ const copyTeksLaporan = async (laporan) => {
 const shareKeWhatsAppGroup = async (laporan) => {
     const teks = generatePesanLaporan(laporan);
     try {
-        // Copy teks ke clipboard
         await navigator.clipboard.writeText(teks);
-        
         alert('Teks berhasil disalin! Silakan "Paste/Tempel" pesan tersebut di Grup WhatsApp.');
 
-        // GANTI LINK DI BAWAH INI DENGAN LINK INVITE GRUP WHATSAPP ANDA
         const linkGrupWA = 'https://chat.whatsapp.com/CehSunQDnfiFmrNOVJy3CK'; 
-        
         window.open(linkGrupWA, '_blank');
     } catch (err) {
         alert('Gagal menyalin teks. Silakan coba lagi.');
@@ -255,37 +350,46 @@ const shareKeWhatsAppGroup = async (laporan) => {
                 </div>
 
                 <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white p-3">
-                    <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
-                        <div class="flex items-center gap-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider shrink-0 mb-1 md:mb-0">
-                            <Filter class="w-4 h-4 text-zinc-400" />
-                            <span>Filter Data:</span>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-2 w-full md:flex md:w-auto">
-                            <Select v-model="filterRegu">
-                                <SelectTrigger class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-40 text-[12px] font-bold">
-                                    <SelectValue placeholder="Semua Regu" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Semua Regu</SelectItem>
-                                    <SelectItem value="I">Regu I</SelectItem>
-                                    <SelectItem value="II">Regu II</SelectItem>
-                                    <SelectItem value="III">Regu III</SelectItem>
-                                    <SelectItem value="IV">Regu IV</SelectItem>
-                                </SelectContent>
-                            </Select>
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                        <div class="flex flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto">
+                            <div class="flex items-center gap-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider shrink-0 mb-1 md:mb-0">
+                                <Filter class="w-4 h-4 text-zinc-400" />
+                                <span>Filter Data:</span>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                                <Select v-model="filterRegu">
+                                    <SelectTrigger class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-36 text-[12px] font-bold">
+                                        <SelectValue placeholder="Semua Regu" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Semua Regu</SelectItem>
+                                        <SelectItem value="I">Regu I</SelectItem>
+                                        <SelectItem value="II">Regu II</SelectItem>
+                                        <SelectItem value="III">Regu III</SelectItem>
+                                        <SelectItem value="IV">Regu IV</SelectItem>
+                                    </SelectContent>
+                                </Select>
 
-                            <Select v-model="filterWaktu">
-                                <SelectTrigger class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-40 text-[12px] font-bold">
-                                    <SelectValue placeholder="Semua Waktu" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Semua Waktu</SelectItem>
-                                    <SelectItem value="harian">Hari Ini</SelectItem>
-                                    <SelectItem value="mingguan">Minggu Ini</SelectItem>
-                                    <SelectItem value="bulanan">Bulan Ini</SelectItem>
-                                </SelectContent>
-                            </Select>
+                                <!-- Kalender / Date Picker dengan tombol Reset -->
+                                <div class="flex items-center gap-1.5">
+                                    <Input 
+                                        type="date" 
+                                        v-model="filterTanggal" 
+                                        class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-40 text-[12px] font-bold px-3 shadow-none"
+                                    />
+                                    <Button v-if="filterTanggal" @click="filterTanggal = ''" variant="ghost" class="h-10 md:h-9 px-2.5 text-zinc-400 hover:text-rose-500 rounded-lg hover:bg-rose-50" title="Hapus Tanggal">
+                                        <X class="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tombol Download Laporan Khusus Admin -->
+                        <div v-if="hasRole('admin')" class="w-full md:w-auto">
+                            <Button @click="downloadPDF" variant="outline" class="w-full md:w-auto text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-10 md:h-9 text-[12px] font-bold rounded-lg flex items-center justify-center transition-colors shadow-sm">
+                                <Download class="w-4 h-4 mr-1.5" /> Unduh Laporan (PDF)
+                            </Button>
                         </div>
                     </div>
                 </Card>
@@ -293,8 +397,9 @@ const shareKeWhatsAppGroup = async (laporan) => {
                 <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white overflow-hidden">
                     <CardContent class="p-0">
                         
+                        <!-- VIEW MOBILE -->
                         <div class="block lg:hidden divide-y divide-zinc-100">
-                            <div v-for="laporan in filteredAstekpams" :key="laporan.id" class="p-4 space-y-4 hover:bg-zinc-50 transition-colors">
+                            <div v-for="laporan in paginatedAstekpams" :key="laporan.id" class="p-4 space-y-4 hover:bg-zinc-50 transition-colors">
                                 
                                 <div class="flex flex-col">
                                     <span class="font-bold text-zinc-900 flex items-center gap-1.5 text-[13px]">
@@ -343,6 +448,14 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                             <span class="break-words">{{ getPetugasPelapor(laporan) }}</span>
                                         </span>
                                     </div>
+
+                                    <!-- FOTO DI VIEW MOBILE -->
+                                    <div v-if="laporan.foto_laporan" class="border-t border-zinc-200/60 pt-2.5">
+                                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Foto Laporan</span>
+                                        <a :href="`/storage/${laporan.foto_laporan}`" target="_blank" class="block w-full">
+                                            <img :src="`/storage/${laporan.foto_laporan}`" class="w-full h-auto object-cover rounded-lg border border-zinc-200 hover:opacity-90 transition-opacity" alt="Foto Laporan" />
+                                        </a>
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-2 gap-3 w-full pt-1">
@@ -362,25 +475,27 @@ const shareKeWhatsAppGroup = async (laporan) => {
 
                             </div>
                             
-                            <div v-if="filteredAstekpams.length === 0" class="text-center py-10 px-4">
+                            <div v-if="paginatedAstekpams.length === 0" class="text-center py-10 px-4">
                                 <FileText class="w-10 h-10 text-zinc-300 mx-auto mb-3" />
                                 <p class="text-sm font-semibold text-zinc-500">Tidak ada data laporan ditemukan.</p>
                             </div>
                         </div>
 
+                        <!-- VIEW DESKTOP -->
                         <div class="hidden lg:block w-full">
                             <table class="w-full text-left border-collapse table-fixed">
                                 <thead>
                                     <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[11px] tracking-wider uppercase">
                                         <th class="py-3.5 px-4 w-[15%]">Tanggal & Waktu</th>
-                                        <th class="py-3.5 px-4 w-[25%]">Serah Terima</th>
+                                        <th class="py-3.5 px-4 w-[20%]">Serah Terima</th>
                                         <th class="py-3.5 px-4 w-[15%]">Pimpinan Apel</th>
                                         <th class="py-3.5 px-4 w-[15%]">Petugas Pelapor</th>
-                                        <th class="py-3.5 px-4 w-[30%] text-center">Aksi</th>
+                                        <th class="py-3.5 px-4 w-[10%] text-center">Foto</th>
+                                        <th class="py-3.5 px-4 w-[25%] text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-zinc-100 text-[13px] font-medium text-zinc-800">
-                                    <tr v-for="laporan in filteredAstekpams" :key="laporan.id" class="hover:bg-zinc-50/50 transition-colors align-top">
+                                    <tr v-for="laporan in paginatedAstekpams" :key="laporan.id" class="hover:bg-zinc-50/50 transition-colors align-top">
                                         
                                         <td class="py-4 px-4 align-middle">
                                             <div class="flex flex-col">
@@ -433,6 +548,18 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                                 </span>
                                             </div>
                                         </td>
+
+                                        <!-- FOTO DI VIEW DESKTOP -->
+                                        <td class="py-4 px-4 text-center align-middle">
+                                            <div v-if="laporan.foto_laporan" class="flex justify-center">
+                                                <a :href="`/storage/${laporan.foto_laporan}`" target="_blank" title="Klik untuk memperbesar">
+                                                    <img :src="`/storage/${laporan.foto_laporan}`" alt="Foto Laporan" class="w-12 h-12 object-cover rounded border border-zinc-200 shadow-sm hover:opacity-80 transition-all cursor-pointer hover:scale-110" />
+                                                </a>
+                                            </div>
+                                            <div v-else class="text-zinc-400 text-[11px] italic">
+                                                -
+                                            </div>
+                                        </td>
                                         
                                         <td class="py-4 px-4 text-center align-middle">
                                             <div class="flex items-center justify-center gap-2 flex-wrap">
@@ -452,13 +579,36 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                         </td>
                                     </tr>
                                     
-                                    <tr v-if="filteredAstekpams.length === 0">
-                                        <td colspan="5" class="text-center py-10 text-zinc-400 italic text-[13px]">
+                                    <tr v-if="paginatedAstekpams.length === 0">
+                                        <td colspan="6" class="text-center py-10 text-zinc-400 italic text-[13px]">
                                             Tidak ada data laporan ditemukan.
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <!-- KONTROL PAGINATION -->
+                        <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-zinc-100 bg-zinc-50/50">
+                            <span class="text-xs text-zinc-500 font-medium">
+                                Menampilkan {{ ((currentPage - 1) * itemsPerPage) + 1 }} - 
+                                {{ Math.min(currentPage * itemsPerPage, filteredAstekpams.length) }} 
+                                dari {{ filteredAstekpams.length }} data
+                            </span>
+                            
+                            <div class="flex items-center gap-2">
+                                <Button @click="prevPage" :disabled="currentPage === 1" variant="outline" class="h-9 px-3 rounded-lg border-zinc-200 text-zinc-600 text-xs font-bold flex items-center hover:bg-zinc-100">
+                                    <ChevronLeft class="w-4 h-4 mr-1" /> Prev
+                                </Button>
+                                
+                                <div class="flex items-center px-3 text-xs font-bold text-zinc-700 bg-white h-9 rounded-lg border border-zinc-200 shadow-sm">
+                                    Hal {{ currentPage }} / {{ totalPages }}
+                                </div>
+
+                                <Button @click="nextPage" :disabled="currentPage === totalPages" variant="outline" class="h-9 px-3 rounded-lg border-zinc-200 text-zinc-600 text-xs font-bold flex items-center hover:bg-zinc-100">
+                                    Next <ChevronRight class="w-4 h-4 ml-1" />
+                                </Button>
+                            </div>
                         </div>
 
                     </CardContent>

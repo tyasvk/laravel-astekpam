@@ -26,6 +26,8 @@ class User extends Authenticatable
         'regu_pengamanan', // Kolom tambahan untuk Regu Pengamanan (Rupam I - IV)
         'regu',     // <--- TAMBAHKAN INI
         'jabatan',  // <--- TAMBAHKAN INI
+        // Tambahkan baris di bawah ini
+        'no_hp'
     ];
 
     /**
