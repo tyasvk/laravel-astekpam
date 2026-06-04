@@ -29,6 +29,31 @@ const parseJsonCount = (data) => {
     return 0;
 };
 
+// Helper untuk membersihkan dan hanya menampilkan nama petugas tanpa format jam
+const formatNamaTugas = (dataTugas) => {
+    if (!dataTugas) return '-';
+    
+    let obj = dataTugas;
+    // Coba parse jika datanya berupa string JSON dari database
+    if (typeof dataTugas === 'string') {
+        try {
+            obj = JSON.parse(dataTugas);
+        } catch (e) {
+            return dataTugas; // Jika string biasa, langsung kembalikan
+        }
+    }
+    
+    // Jika bentuknya object yang memiliki jam_1, jam_2, jam_3
+    if (obj && typeof obj === 'object' && ('jam_1' in obj || 'jam_2' in obj || 'jam_3' in obj)) {
+        const jams = [obj.jam_1, obj.jam_2, obj.jam_3].filter(j => j && j !== '-');
+        // Gunakan Set untuk membuang nama duplikat (jika orang yang sama jaga 2 shift)
+        const namaUnik = [...new Set(jams)];
+        return namaUnik.length > 0 ? namaUnik.join(', ') : '-';
+    }
+    
+    return dataTugas;
+};
+
 // Pengelompokan Pembagian Tugas berdasarkan Baris yang diminta
 const taskRows = computed(() => {
     if (!props.latestAstekpam) return [];
@@ -45,17 +70,17 @@ const taskRows = computed(() => {
             { letter: 'c', label: 'Kasatgas P2U', value: t.kasatgas_p2u },
             { letter: 'd', label: 'Wakasatgas P2U', value: t.wakasatgas_p2u },
         ]},
-        // Baris 3: Blok A, Blok B
+        // Baris 3: Blok A, Blok B (Format Nama Saja)
         { cols: 'sm:grid-cols-2', items: [
-            { letter: 'e', label: 'Blok A', value: t.blok_a },
-            { letter: 'f', label: 'Blok B', value: t.blok_b },
+            { letter: 'e', label: 'Blok A', value: formatNamaTugas(t.blok_a) },
+            { letter: 'f', label: 'Blok B', value: formatNamaTugas(t.blok_b) },
         ]},
-        // Baris 4: Menara 1 s.d 4 (4 Kolom di desktop, 2 kolom di HP)
+        // Baris 4: Menara 1 s.d 4 (Format Nama Saja)
         { cols: 'grid-cols-2 sm:grid-cols-4', items: [
-            { letter: 'g', label: 'Menara 1', value: t.menara_1 },
-            { letter: 'h', label: 'Menara 2', value: t.menara_2 },
-            { letter: 'i', label: 'Menara 3', value: t.menara_3 },
-            { letter: 'j', label: 'Menara 4', value: t.menara_4 },
+            { letter: 'g', label: 'Menara 1', value: formatNamaTugas(t.menara_1) },
+            { letter: 'h', label: 'Menara 2', value: formatNamaTugas(t.menara_2) },
+            { letter: 'i', label: 'Menara 3', value: formatNamaTugas(t.menara_3) },
+            { letter: 'j', label: 'Menara 4', value: formatNamaTugas(t.menara_4) },
         ]},
         // Baris 5: Jaga RS, Piket Dapur
         { cols: 'sm:grid-cols-2', items: [

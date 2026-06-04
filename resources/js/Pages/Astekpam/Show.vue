@@ -34,6 +34,24 @@ const formatOrg = (val) => {
     return (val !== null && val !== undefined && val !== '') ? `${val} Org` : '-';
 };
 
+// Fungsi untuk membersihkan dan menampilkan nama petugas saja tanpa format jam
+const formatNamaTugas = (dataTugas) => {
+    if (!dataTugas) return '-';
+    if (typeof dataTugas === 'string') return dataTugas;
+    
+    const jams = [dataTugas.jam_1, dataTugas.jam_2, dataTugas.jam_3].filter(j => j && j !== '-');
+    const namaUnik = [...new Set(jams)];
+    return namaUnik.length > 0 ? namaUnik.join(', ') : '-';
+};
+
+// Fungsi baru untuk memformat data array Keterangan Luar Lapas (Rawat Inap, Berobat, Bon Luar)
+const formatItems = (items) => {
+    if (!items || !Array.isArray(items)) return '-';
+    // Filter item yang memiliki keterangan valid dan tidak kosong
+    const validItems = items.filter(item => item && item.ket && String(item.ket).trim() !== '');
+    return validItems.length > 0 ? validItems.map(item => item.get ? item.get : item.ket).join(', ') : '-';
+};
+
 // FITUR COPY TEXT DENGAN SPASI PRESISI
 const copyToClipboard = () => {
     const pad = (str, length = 25) => str.padEnd(length, ' ');
@@ -48,7 +66,7 @@ Pukul         : ${props.astekpam.pukul} WIB
 
 Berikut, ASTEKPAM dari ${props.astekpam.dari_rupam} (Shift ${props.astekpam.dari_shift}) ke ${props.astekpam.ke_rupam} (Shift ${props.astekpam.ke_shift}) Dipimpin oleh ${props.astekpam.pimpinan || '-'} berjalan aman dan tertib.
 
-Dengan rincian sebagai berikut :
+With rincian sebagai berikut :
 
 A. JUMLAH PENGHUNI
 ${pad('1. Kapasitas')} : ${formatOrg(props.astekpam.kapasitas)}
@@ -63,9 +81,9 @@ ${pad('   * Didalam Lapas')} : ${formatOrg(props.astekpam.dalam_lapas)}
 ${pad('   * Diluar Lapas')} : ${formatOrg(props.astekpam.luar_lapas)}
 
 4. Keterangan di luar Lapas :
-${pad('   * Rawat Inap RS')} : ${props.astekpam.rawat_inap_rs ? props.astekpam.rawat_inap_rs + ' Org' : '-'}
-${pad('   * Berobat RS')} : ${props.astekpam.berobat_rs ? props.astekpam.berobat_rs + ' Org' : '-'}
-${pad('   * Lain-lain (bon luar)')} : ${props.astekpam.bon_luar ? props.astekpam.bon_luar + ' Org' : '-'}
+${pad('   * Rawat Inap RS')} : ${formatItems(props.astekpam.rawat_inap_items)}
+${pad('   * Berobat RS')} : ${formatItems(props.astekpam.berobat_items)}
+${pad('   * Lain-lain (bon luar)')} : ${formatItems(props.astekpam.bon_luar_items)}
 
 ${pad('5. Total Jumlah WBP')} : ${formatOrg(props.astekpam.total_wbp)}
 
@@ -88,13 +106,13 @@ b. Petugas P2U            :
 ${pad('   Kasatgas')} : ${props.astekpam.tugas.kasatgas_p2u || '-'}
 ${pad('   Wakasatgas')} : ${props.astekpam.tugas.wakasatgas_p2u || '-'}
 c. Petugas Blok           :
-${pad('   Blok A')} : ${props.astekpam.tugas.blok_a || '-'}
-${pad('   Blok B')} : ${props.astekpam.tugas.blok_b || '-'}
+${pad('   Blok A')} : ${formatNamaTugas(props.astekpam.tugas.blok_a)}
+${pad('   Blok B')} : ${formatNamaTugas(props.astekpam.tugas.blok_b)}
 d. Petugas Pos Atas       :
-${pad('   * Menara 1')} : ${props.astekpam.tugas.menara_1 || '-'}
-${pad('   * Menara 2')} : ${props.astekpam.tugas.menara_2 || '-'}
-${pad('   * Menara 3')} : ${props.astekpam.tugas.menara_3 || '-'}
-${pad('   * Menara 4')} : ${props.astekpam.tugas.menara_4 || '-'}
+${pad('   * Menara 1')} : ${formatNamaTugas(props.astekpam.tugas.menara_1)}
+${pad('   * Menara 2')} : ${formatNamaTugas(props.astekpam.tugas.menara_2)}
+${pad('   * Menara 3')} : ${formatNamaTugas(props.astekpam.tugas.menara_3)}
+${pad('   * Menara 4')} : ${formatNamaTugas(props.astekpam.tugas.menara_4)}
 
 ${pad('e. Petugas Jaga RS')} : ${props.astekpam.tugas.jaga_rs || '-'}
 ${pad('f. Piket Dapur')} : ${props.astekpam.tugas.piket_dapur || '-'}
@@ -107,7 +125,7 @@ ${pad('l. Petugas Laporan')} : ${props.astekpam.tugas.petugas_laporan || '-'}
 
 Demikian Laporan ini, kami sampaikan dan diucapkan terima kasih.
 
-Wassalamu'alaikum Warahmatullaahi wabarakaatuh
+Wassalamu’alaikum Warahmatullaahi wabarakaatuh
 Salam Sejahtera
 Salam Sehat Selalu…🙏`;
 
@@ -181,9 +199,9 @@ const printPage = () => window.print();
                     <div class="pl-5">* Diluar Lapas</div><div>:</div><div>{{ formatOrg(astekpam.luar_lapas) }}</div>
                     
                     <div class="mt-2">4. Keterangan di luar Lapas</div><div>:</div><div></div>
-                    <div class="pl-5">* Rawat Inap RS</div><div>:</div><div>{{ astekpam.rawat_inap_rs ? astekpam.rawat_inap_rs + ' Org' : '-' }}</div>
-                    <div class="pl-5">* Berobat RS</div><div>:</div><div>{{ astekpam.berobat_rs ? astekpam.berobat_rs + ' Org' : '-' }}</div>
-                    <div class="pl-5">* Lain-lain (bon luar)</div><div>:</div><div>{{ astekpam.bon_luar ? astekpam.bon_luar + ' Org' : '-' }}</div>
+                    <div class="pl-5">* Rawat Inap RS</div><div>:</div><div>{{ formatItems(astekpam.rawat_inap_items) }}</div>
+                    <div class="pl-5">* Berobat RS</div><div>:</div><div>{{ formatItems(astekpam.berobat_items) }}</div>
+                    <div class="pl-5">* Lain-lain (bon luar)</div><div>:</div><div>{{ formatItems(astekpam.bon_luar_items) }}</div>
                     
                     <div class="font-bold mt-2">5. Total Jumlah WBP</div><div>:</div><div class="font-bold">{{ formatOrg(astekpam.total_wbp) }}</div>
                 </div>
@@ -207,21 +225,22 @@ const printPage = () => window.print();
                 <p class="font-bold">3. Pembagian Tugas :</p>
                 <div class="grid grid-cols-[180px_15px_1fr] gap-y-1 font-sans">
                     <div class="font-semibold">a. Ka. Rupam</div><div>:</div><div>{{ astekpam.tugas.ka_rupam || '-' }}</div>
-                    <div class="pl-5 italic text-zinc-500">Wakarupam</div><div>:</div><div>{{ astekpam.tugas.wakarupam || '-' }}</div>
+                    
+                    <div class="pl-5">Wakarupam</div><div>:</div><div>{{ astekpam.tugas.wakarupam || '-' }}</div>
                     
                     <div class="font-semibold mt-2">b. Petugas P2U</div><div>:</div><div></div>
                     <div class="pl-5">Kasatgas</div><div>:</div><div>{{ astekpam.tugas.kasatgas_p2u || '-' }}</div>
                     <div class="pl-5">Wakasatgas</div><div>:</div><div>{{ astekpam.tugas.wakasatgas_p2u || '-' }}</div>
                     
                     <div class="font-semibold mt-2">c. Petugas Blok</div><div>:</div><div></div>
-                    <div class="pl-5">Blok A</div><div>:</div><div>{{ astekpam.tugas.blok_a || '-' }}</div>
-                    <div class="pl-5">Blok B</div><div>:</div><div>{{ astekpam.tugas.blok_b || '-' }}</div>
+                    <div class="pl-5">Blok A</div><div>:</div><div>{{ formatNamaTugas(astekpam.tugas.blok_a) }}</div>
+                    <div class="pl-5">Blok B</div><div>:</div><div>{{ formatNamaTugas(astekpam.tugas.blok_b) }}</div>
                     
                     <div class="font-semibold mt-2">d. Petugas Pos Atas</div><div>:</div><div></div>
-                    <div class="pl-5">* Menara 1</div><div>:</div><div>{{ astekpam.tugas.menara_1 || '-' }}</div>
-                    <div class="pl-5">* Menara 2</div><div>:</div><div>{{ astekpam.tugas.menara_2 || '-' }}</div>
-                    <div class="pl-5">* Menara 3</div><div>:</div><div>{{ astekpam.tugas.menara_3 || '-' }}</div>
-                    <div class="pl-5">* Menara 4</div><div>:</div><div>{{ astekpam.tugas.menara_4 || '-' }}</div>
+                    <div class="pl-5">* Menara 1</div><div>:</div><div>{{ formatNamaTugas(astekpam.tugas.menara_1) }}</div>
+                    <div class="pl-5">* Menara 2</div><div>:</div><div>{{ formatNamaTugas(astekpam.tugas.menara_2) }}</div>
+                    <div class="pl-5">* Menara 3</div><div>:</div><div>{{ formatNamaTugas(astekpam.tugas.menara_3) }}</div>
+                    <div class="pl-5">* Menara 4</div><div>:</div><div>{{ formatNamaTugas(astekpam.tugas.menara_4) }}</div>
                     
                     <div class="mt-2">e. Petugas Jaga RS</div><div>:</div><div>{{ astekpam.tugas.jaga_rs || '-' }}</div>
                     <div>f. Piket Dapur</div><div>:</div><div>{{ astekpam.tugas.piket_dapur || '-' }}</div>

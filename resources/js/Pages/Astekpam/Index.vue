@@ -93,32 +93,32 @@ const getPetugasPelapor = (laporan) => {
 
     <AuthenticatedLayout>
         <div class="py-6 bg-zinc-50/30 min-h-screen">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div class="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
                 
-                <div class="bg-white rounded-2xl p-6 border border-zinc-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 class="text-2xl font-extrabold text-zinc-900 tracking-tight flex items-center gap-2">
-                            <FileText class="w-6 h-6 text-blue-600" /> Riwayat Astekpam
+                        <h1 class="text-xl font-extrabold text-zinc-900 tracking-tight flex items-center gap-2">
+                            <FileText class="w-5 h-5 text-blue-600" /> Riwayat Astekpam
                         </h1>
-                        <p class="text-zinc-500 text-sm mt-0.5">Daftar laporan Apel Serah Terima Kepala Regu Pengamanan.</p>
+                        <p class="text-zinc-500 text-[13px] mt-0.5">Daftar laporan Apel Serah Terima Kepala Regu Pengamanan.</p>
                     </div>
-                    <Link :href="route('astekpam.create')" class="w-full sm:w-auto">
-                        <Button class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md shadow-blue-200 h-11 px-5 w-full">
-                            <Plus class="w-4 h-4 mr-2" /> Buat Laporan Baru
+                    <Link :href="route('astekpam.create')" class="w-full sm:w-auto shrink-0">
+                        <Button class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md shadow-blue-200 h-9 px-4 w-full text-[13px]">
+                            <Plus class="w-3.5 h-3.5 mr-1.5" /> Buat Laporan Baru
                         </Button>
                     </Link>
                 </div>
 
-                <Card class="rounded-2xl border border-zinc-200 shadow-sm bg-white p-4">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                        <div class="flex items-center gap-2 text-xs font-bold text-zinc-400 uppercase tracking-wider">
-                            <Filter class="w-4 h-4 text-zinc-400" />
+                <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white p-3">
+                    <div class="flex flex-col md:flex-row items-start md:items-center gap-3">
+                        <div class="flex items-center gap-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider shrink-0">
+                            <Filter class="w-3.5 h-3.5 text-zinc-400" />
                             <span>Filter Data:</span>
                         </div>
                         
-                        <div class="grid grid-cols-2 sm:flex gap-3 w-full sm:w-auto">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full md:w-auto">
                             <Select v-model="filterRegu">
-                                <SelectTrigger class="h-10 rounded-xl bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full sm:w-44 text-xs font-bold">
+                                <SelectTrigger class="h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full sm:w-40 text-[12px] font-bold">
                                     <SelectValue placeholder="Semua Regu" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -131,7 +131,7 @@ const getPetugasPelapor = (laporan) => {
                             </Select>
 
                             <Select v-model="filterWaktu">
-                                <SelectTrigger class="h-10 rounded-xl bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full sm:w-48 text-xs font-bold">
+                                <SelectTrigger class="h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full sm:w-40 text-[12px] font-bold">
                                     <SelectValue placeholder="Semua Waktu" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -145,118 +145,148 @@ const getPetugasPelapor = (laporan) => {
                     </div>
                 </Card>
 
-                <Card class="rounded-2xl border border-zinc-200 shadow-sm bg-white overflow-hidden">
+                <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white overflow-hidden">
                     <CardContent class="p-0">
                         
-                        <div class="block md:hidden divide-y divide-zinc-100">
-                            <div v-for="laporan in filteredAstekpams" :key="laporan.id" class="p-5 space-y-4 hover:bg-zinc-50 transition-colors">
-                                <div class="flex justify-between items-start">
-                                    <div class="flex flex-col">
-                                        <span class="font-bold text-zinc-900 flex items-center gap-1.5 text-sm">
-                                            <Calendar class="w-4 h-4 text-zinc-400"/> {{ formatVal(laporan.tanggal) }}
-                                        </span>
-                                        <span class="text-xs text-zinc-500 flex items-center gap-1.5 mt-1">
-                                            <Clock class="w-3.5 h-3.5 text-zinc-400"/> Pukul {{ formatVal(laporan.pukul) }}
-                                        </span>
-                                    </div>
+                        <div class="block lg:hidden divide-y divide-zinc-100">
+                            <div v-for="laporan in filteredAstekpams" :key="laporan.id" class="p-4 space-y-3 hover:bg-zinc-50 transition-colors">
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-zinc-900 flex items-center gap-1.5 text-[13px] whitespace-nowrap">
+                                        <Calendar class="w-3.5 h-3.5 text-zinc-400 shrink-0"/> {{ formatVal(laporan.tanggal) }}
+                                    </span>
+                                    <span class="text-[11px] text-zinc-500 flex items-center gap-1.5 mt-0.5 whitespace-nowrap">
+                                        <Clock class="w-3 h-3 text-zinc-400 shrink-0"/> Pukul {{ formatVal(laporan.pukul) }}
+                                    </span>
                                 </div>
 
-                                <div class="bg-zinc-50 p-3.5 rounded-xl border border-zinc-100 space-y-3 text-sm">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs text-zinc-500 font-bold uppercase tracking-wider">Serah Terima Regu</span>
-                                        <div class="flex items-center gap-1.5">
-                                            <span class="px-2 py-0.5 bg-white text-zinc-600 text-[10px] font-bold rounded-md border border-zinc-200 uppercase">{{ formatVal(laporan.dari_rupam) }}</span>
-                                            <span class="text-zinc-300 text-[10px] font-bold">➔</span>
-                                            <span class="px-2 py-0.5 bg-blue-50 text-blue-700 text-[10px] font-bold rounded-md border border-blue-200 uppercase">{{ formatVal(laporan.ke_rupam) }}</span>
+                                <div class="bg-zinc-50 p-3 rounded-lg border border-zinc-100 space-y-2.5">
+                                    
+                                    <div class="flex flex-col gap-1.5 w-full">
+                                        <span class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider shrink-0">Serah Terima</span>
+                                        <div class="grid grid-cols-[85px_12px_85px] gap-y-1.5 gap-x-1.5 items-center">
+                                            <span class="px-1.5 py-1 bg-white text-zinc-600 text-[10px] font-bold rounded border border-zinc-200 uppercase text-center w-full">
+                                                {{ formatVal(laporan.dari_rupam) }}
+                                            </span>
+                                            <span class="text-zinc-300 text-xs font-medium text-center">→</span>
+                                            <span class="px-1.5 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded border border-blue-200 uppercase text-center w-full">
+                                                {{ formatVal(laporan.ke_rupam) }}
+                                            </span>
+                                            
+                                            <span class="px-1.5 py-1 bg-white text-zinc-600 text-[10px] font-bold rounded border border-zinc-200 uppercase text-center w-full">
+                                                {{ formatVal(laporan.dari_shift) }}
+                                            </span>
+                                            <span class="text-zinc-300 text-xs font-medium text-center">→</span>
+                                            <span class="px-1.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-200 uppercase text-center w-full">
+                                                {{ formatVal(laporan.ke_shift) }}
+                                            </span>
                                         </div>
                                     </div>
                                     
-                                    <div class="flex justify-between items-center border-t border-zinc-200/60 pt-2">
-                                        <span class="text-xs text-zinc-500 font-semibold">Pimpinan Apel</span>
-                                        <span class="font-semibold text-zinc-800 flex items-center gap-1.5 text-xs"><ShieldCheck class="w-3.5 h-3.5 text-zinc-400"/> {{ formatVal(laporan.pimpinan) }}</span>
+                                    <div class="border-t border-zinc-200/50 pt-2 mt-1">
+                                        <span class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider block mb-0.5">Pimpinan Apel</span>
+                                        <span class="font-semibold text-zinc-800 flex items-start gap-1.5 text-[12px] break-words leading-tight">
+                                            <ShieldCheck class="w-3.5 h-3.5 text-zinc-400 shrink-0"/> 
+                                            {{ formatVal(laporan.pimpinan) }}
+                                        </span>
                                     </div>
 
-                                    <div class="flex justify-between items-center border-t border-zinc-200/60 pt-2">
-                                        <span class="text-xs text-zinc-500 font-semibold">Pelapor</span>
-                                        <span class="font-bold text-zinc-800 flex items-center gap-1.5 text-xs"><User class="w-3.5 h-3.5 text-amber-500"/> {{ getPetugasPelapor(laporan) }}</span>
+                                    <div class="border-t border-zinc-200/50 pt-2">
+                                        <span class="text-[9px] text-zinc-500 font-bold uppercase tracking-wider block mb-0.5">Pelapor</span>
+                                        <span class="font-bold text-zinc-800 flex items-start gap-1.5 text-[12px] break-words leading-tight">
+                                            <User class="w-3.5 h-3.5 text-amber-500 shrink-0"/> 
+                                            {{ getPetugasPelapor(laporan) }}
+                                        </span>
                                     </div>
                                 </div>
 
                                 <Link :href="route('astekpam.show', laporan.id)" class="block w-full">
-                                    <Button variant="outline" class="w-full text-blue-600 border-blue-100 hover:bg-blue-50 font-bold text-xs h-10 rounded-xl">
-                                        <Eye class="w-4 h-4 mr-2" /> Buka Detail Laporan
+                                    <Button variant="outline" class="w-full text-blue-600 border-blue-100 hover:bg-blue-50 font-bold text-[11px] h-8 rounded-lg">
+                                        <Eye class="w-3.5 h-3.5 mr-1.5 shrink-0" /> Detail
                                     </Button>
                                 </Link>
                             </div>
                             
-                            <div v-if="filteredAstekpams.length === 0" class="text-center py-12 px-4">
-                                <FileText class="w-10 h-10 text-zinc-300 mx-auto mb-3" />
-                                <p class="text-sm font-semibold text-zinc-500">Tidak ada data laporan yang sesuai filter.</p>
+                            <div v-if="filteredAstekpams.length === 0" class="text-center py-8 px-4">
+                                <FileText class="w-8 h-8 text-zinc-300 mx-auto mb-2" />
+                                <p class="text-[12px] font-semibold text-zinc-500">Tidak ada data.</p>
                             </div>
                         </div>
 
-                        <div class="hidden md:block">
-                            <table class="w-full text-left border-collapse">
+                        <div class="hidden lg:block w-full overflow-x-auto">
+                            <table class="w-full text-left border-collapse min-w-max">
                                 <thead>
-                                    <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[11px] tracking-wider uppercase">
-                                        <th class="py-4 px-6">Tanggal & Waktu</th>
-                                        <th class="py-4 px-6">Serah Terima Regu</th>
-                                        <th class="py-4 px-6">Pimpinan Apel</th>
-                                        <th class="py-4 px-6">Petugas Pelapor</th>
-                                        <th class="py-4 px-6 text-center">Aksi</th>
+                                    <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[10px] tracking-wider uppercase">
+                                        <th class="py-3 px-4 whitespace-nowrap">Tanggal & Waktu</th>
+                                        <th class="py-3 px-4 whitespace-nowrap">Serah Terima (Regu & Shift)</th>
+                                        <th class="py-3 px-4 whitespace-nowrap">Pimpinan Apel</th>
+                                        <th class="py-3 px-4 whitespace-nowrap">Petugas Pelapor</th>
+                                        <th class="py-3 px-4 text-center whitespace-nowrap">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-zinc-100 text-sm font-medium text-zinc-800">
-                                    <tr v-for="laporan in filteredAstekpams" :key="laporan.id" class="hover:bg-zinc-50/50 transition-colors">
-                                        <td class="py-4 px-6">
+                                <tbody class="divide-y divide-zinc-100 text-[12px] font-medium text-zinc-800">
+                                    <tr v-for="laporan in filteredAstekpams" :key="laporan.id" class="hover:bg-zinc-50/50 transition-colors align-top">
+                                        
+                                        <td class="py-3 px-4 pt-3.5 whitespace-nowrap">
                                             <div class="flex flex-col">
-                                                <span class="font-bold text-zinc-900 flex items-center gap-1.5">
-                                                    <Calendar class="w-3.5 h-3.5 text-zinc-400"/> {{ formatVal(laporan.tanggal) }}
+                                                <span class="font-bold text-zinc-900 flex items-center gap-1.5 text-[12px]">
+                                                    <Calendar class="w-3.5 h-3.5 text-zinc-400 shrink-0"/> {{ formatVal(laporan.tanggal) }}
                                                 </span>
-                                                <span class="text-xs text-zinc-500 flex items-center gap-1.5 mt-1">
-                                                    <Clock class="w-3.5 h-3.5 text-zinc-400"/> Pukul {{ formatVal(laporan.pukul) }}
+                                                <span class="text-[11px] text-zinc-500 flex items-center gap-1.5 mt-0.5">
+                                                    <Clock class="w-3 h-3 text-zinc-400 shrink-0"/> Pukul {{ formatVal(laporan.pukul) }}
                                                 </span>
                                             </div>
                                         </td>
                                         
-                                        <td class="py-4 px-6">
-                                            <div class="flex items-center gap-2">
-                                                <span class="px-2 py-1 bg-zinc-100 text-zinc-600 text-[11px] font-bold rounded-md border border-zinc-200 uppercase tracking-wide">
+                                        <td class="py-3 px-4 pb-3.5 pt-3 whitespace-nowrap">
+                                            <div class="grid grid-cols-[85px_16px_85px] gap-y-2 gap-x-2 items-center">
+                                                <span class="px-2 py-1 bg-zinc-100 text-zinc-600 text-[10px] font-bold rounded border border-zinc-200 uppercase tracking-wide text-center w-full">
                                                     {{ formatVal(laporan.dari_rupam) }}
                                                 </span>
-                                                <span class="text-zinc-300 text-xs font-bold">➔</span>
-                                                <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-md border border-blue-100 uppercase tracking-wide">
+                                                <span class="text-zinc-400 text-[11px] font-medium text-center">→</span>
+                                                <span class="px-2 py-1 bg-blue-50 text-blue-700 text-[10px] font-bold rounded border border-blue-100 uppercase tracking-wide text-center w-full">
                                                     {{ formatVal(laporan.ke_rupam) }}
+                                                </span>
+                                                
+                                                <span class="px-2 py-1 bg-zinc-100 text-zinc-600 text-[10px] font-bold rounded border border-zinc-200 uppercase tracking-wide text-center w-full">
+                                                    {{ formatVal(laporan.dari_shift) }}
+                                                </span>
+                                                <span class="text-zinc-400 text-[11px] font-medium text-center">→</span>
+                                                <span class="px-2 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded border border-emerald-100 uppercase tracking-wide text-center w-full">
+                                                    {{ formatVal(laporan.ke_shift) }}
                                                 </span>
                                             </div>
                                         </td>
                                         
-                                        <td class="py-4 px-6">
-                                            <div class="flex items-center gap-2">
-                                                <ShieldCheck class="w-4 h-4 text-zinc-400" />
-                                                <span class="text-zinc-700 font-semibold">{{ formatVal(laporan.pimpinan) }}</span>
+                                        <td class="py-3 px-4 align-top pt-3.5 whitespace-nowrap">
+                                            <div class="flex items-center gap-1.5">
+                                                <ShieldCheck class="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+                                                <span class="text-zinc-700 font-semibold text-[12px]">
+                                                    {{ formatVal(laporan.pimpinan) }}
+                                                </span>
                                             </div>
                                         </td>
                                         
-                                        <td class="py-4 px-6">
-                                            <div class="flex items-center gap-2">
-                                                <User class="w-4 h-4 text-amber-500" />
-                                                <span class="text-zinc-800 font-bold">{{ getPetugasPelapor(laporan) }}</span>
+                                        <td class="py-3 px-4 align-top pt-3.5 whitespace-nowrap">
+                                            <div class="flex items-center gap-1.5">
+                                                <User class="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                                <span class="text-zinc-800 font-bold text-[12px]">
+                                                    {{ getPetugasPelapor(laporan) }}
+                                                </span>
                                             </div>
                                         </td>
                                         
-                                        <td class="py-4 px-6 text-center">
+                                        <td class="py-3 px-4 text-center align-top pt-3.5 whitespace-nowrap">
                                             <Link :href="route('astekpam.show', laporan.id)">
-                                                <Button variant="ghost" size="sm" class="text-blue-600 hover:bg-blue-50 font-bold text-xs h-8">
-                                                    <Eye class="w-3.5 h-3.5 mr-1.5" /> Detail
+                                                <Button variant="ghost" size="sm" class="text-blue-600 hover:bg-blue-50 font-bold text-[11px] h-7 px-2">
+                                                    <Eye class="w-3 h-3 mr-1 shrink-0" /> Detail
                                                 </Button>
                                             </Link>
                                         </td>
                                     </tr>
                                     
                                     <tr v-if="filteredAstekpams.length === 0">
-                                        <td colspan="5" class="text-center py-12 text-zinc-400 italic">
-                                            Tidak ada data laporan yang sesuai dengan filter yang dipilih.
+                                        <td colspan="5" class="text-center py-8 text-zinc-400 italic whitespace-nowrap text-[12px]">
+                                            Tidak ada data laporan.
                                         </td>
                                     </tr>
                                 </tbody>

@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\PejabatController;
 
 // Halaman Welcome
 Route::get('/', function () {
@@ -32,6 +33,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // PERBAIKAN: Rute dengan parameter {astekpam} diletakkan di paling bawah
     Route::get('/astekpam/{astekpam}', [AstekpamController::class, 'show'])->name('astekpam.show');
+
+    Route::resource('pejabat', PejabatController::class)->only(['index', 'store', 'destroy']);
     
 
     // --- FITUR ADMIN (Manajemen User) ---

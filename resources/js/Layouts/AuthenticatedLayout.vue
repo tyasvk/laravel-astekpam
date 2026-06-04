@@ -5,15 +5,18 @@ import { usePermission } from '@/Composables/usePermission';
 import { Button } from '@/Components/ui/button';
 import { ScrollArea } from '@/Components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/Components/ui/sheet';
-import { LayoutDashboard, Users, FilePlus, History, LogOut, Menu, ShieldCheck } from 'lucide-vue-next';
+import { 
+    LayoutDashboard, Users, FilePlus, History, LogOut, Menu, ShieldCheck, Briefcase 
+} from 'lucide-vue-next';
 
 const { hasRole, hasPermission } = usePermission();
 const user = usePage().props.auth.user;
 
-// PERBAIKAN: Menambahkan 'activeRule' untuk mencocokkan nama rute secara tepat
+// Menambahkan 'Master Pejabat' ke dalam navigasi
 const navigation = [
     { name: 'Dashboard', href: route('dashboard'), icon: LayoutDashboard, show: true, activeRule: 'dashboard' },
     { name: 'Manajemen User', href: route('admin.users.index'), icon: Users, show: hasRole('admin'), activeRule: 'admin.users.*' },
+    { name: 'Master Pejabat', href: route('pejabat.index'), icon: Briefcase, show: hasRole('admin'), activeRule: 'pejabat.*' },
     { name: 'Input Astekpam', href: route('astekpam.create'), icon: FilePlus, show: hasPermission('create reports'), activeRule: 'astekpam.create' },
     { name: 'Riwayat Laporan', href: route('astekpam.index'), icon: History, show: true, activeRule: 'astekpam.index' },
 ];
