@@ -54,12 +54,6 @@ class AstekpamController extends Controller
     /**
      * Menyimpan laporan baru ke database dan mengirim WA via Fonnte.
      */
-/**
-     * Menyimpan laporan baru ke database dan mengirim WA via Fonnte.
-     */
-    /**
-     * Menyimpan laporan baru ke database dan mengirim WA via Fonnte.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -213,7 +207,27 @@ class AstekpamController extends Controller
         $pesan .= "\nDemikian Laporan ini, kami sampaikan dan diucapkan terima kasih.\n\n";
         $pesan .= "Wassalamu'alaikum Warahmatullaahi wabarakaatuh\n";
         $pesan .= "Salam Sejahtera\n";
-        $pesan .= "Salam Sehat Selalu…🙏";
+        $pesan .= "Salam Sehat Selalu…🙏\n\n";
+
+        // =======================================================
+        // TAMBAHAN: MENGAMBIL NAMA & NOMOR HP USER YANG LOGIN
+        // =======================================================
+        $user = auth()->user();
+        if ($user) {
+            $namaPetugas = $user->name;
+            
+            // NOTE: Sesuaikan 'no_hp' dengan nama kolom tabel database users Anda
+            $nomorHp = $user->no_hp ?? ''; 
+            
+            if (str_starts_with($nomorHp, '0')) {
+                $nomorHp = '62' . substr($nomorHp, 1);
+            }
+
+            $pesan .= "-----------------------------------\n";
+            $pesan .= "*Dikirim Oleh:*\n";
+            $pesan .= "Nama : " . $namaPetugas . "\n";
+            $pesan .= "No. WA : @" . $nomorHp; 
+        }
 
         return $pesan;
     }
