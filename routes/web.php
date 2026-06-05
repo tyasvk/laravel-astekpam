@@ -28,6 +28,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- FITUR ASTEKPAM ---
     Route::get('/astekpam', [AstekpamController::class, 'index'])->name('astekpam.index');
     
+    // ----------------------------------------------------------------------
+    // TAMBAHKAN DISINI: Endpoint untuk Download Laporan
+    // Pastikan di atas route /{astekpam}
+    // ----------------------------------------------------------------------
+    Route::get('/astekpam/download', [AstekpamController::class, 'download'])->name('astekpam.download');
+    
     // PERBAIKAN: Middleware permission Dihapus sementara agar tidak 403 Forbidden
     Route::get('/astekpam/create', [AstekpamController::class, 'create'])->name('astekpam.create');
     Route::post('/astekpam', [AstekpamController::class, 'store'])->name('astekpam.store');
@@ -55,6 +61,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
 
 require __DIR__.'/auth.php';

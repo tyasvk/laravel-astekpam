@@ -16,12 +16,26 @@ class AstekpamController extends Controller
     /**
      * Menampilkan daftar riwayat laporan Astekpam.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $astekpams = Astekpam::with('user')->latest()->get();
+        // Menyiapkan query dasar
+        $query = Astekpam::with('user')->latest();
+
+        // (Opsional) Filter Server-Side jika parameter tanggal dikirim via Inertia
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('tanggal', [$request->start_date, $request->end_date]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('tanggal', '>=', $request->start_date);
+        } elseif ($request->filled('end_date')) {
+            $query->where('tanggal', '<=', $request->end_date);
+        }
+
+        $astekpams = $query->get();
 
         return Inertia::render('Astekpam/Index', [
             'astekpams' => $astekpams,
+            // Mengirim kembali filter ke frontend agar state kalender tetap terisi (opsional)
+            'filters' => $request->only(['start_date', 'end_date']) 
         ]);
     }
 
@@ -54,7 +68,7 @@ class AstekpamController extends Controller
     /**
      * Menyimpan laporan baru ke database dan mengirim WA via Fonnte.
      */
-public function store(Request $request)
+    public function store(Request $request)
     {
         // 1. Validasi Input + Foto Maksimal 10MB
         $validated = $request->validate([
@@ -135,6 +149,40 @@ public function store(Request $request)
     {
         return Inertia::render('Astekpam/Show', [
             'astekpam' => $astekpam
+        ]);
+    }
+
+    /**
+     * Endpoint untuk Download Laporan dari Backend (Server-Side)
+     * Digunakan jika PDF / Excel digenerate di sisi server, bukan oleh jsPDF.
+     */
+    public function download(Request $request)
+    {
+        // 1. Ambil Data Dasar
+        $query = Astekpam::with('user')->latest();
+
+        // 2. Filter berdasarkan Tanggal Mulai & Selesai jika tersedia
+        if ($request->filled('start_date') && $request->filled('end_date')) {
+            $query->whereBetween('tanggal', [$request->start_date, $request->end_date]);
+        } elseif ($request->filled('start_date')) {
+            $query->where('tanggal', '>=', $request->start_date);
+        } elseif ($request->filled('end_date')) {
+            $query->where('tanggal', '<=', $request->end_date);
+        }
+
+        $laporanData = $query->get();
+
+        // 3. Proses Export
+        // Uncomment baris di bawah ini jika Anda menggunakan Laravel Excel (Maatwebsite) atau DomPDF.
+        // return Excel::download(new AstekpamExport($laporanData), 'laporan-astekpam.xlsx');
+        // return \PDF::loadView('pdf.laporan', compact('laporanData'))->download('laporan-astekpam.pdf');
+
+        // Output JSON sementara memastikan endpoint merespons dengan data yang terfilter.
+        return response()->json([
+            'message' => 'Data berhasil difilter',
+            'rentang' => $request->start_date . ' s/d ' . $request->end_date,
+            'total' => $laporanData->count(),
+            'data' => $laporanData
         ]);
     }
 

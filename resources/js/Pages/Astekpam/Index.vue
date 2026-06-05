@@ -5,7 +5,7 @@ import { ref, computed, watch } from 'vue';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Input } from '@/Components/ui/input'; // Pastikan Input di-import
+import { Input } from '@/Components/ui/input'; 
 import { 
     FileText, Plus, Eye, Filter, Calendar, Clock, ShieldCheck, User, Copy, MessageCircle, Image as ImageIcon,
     ChevronLeft, ChevronRight, Download, X
@@ -14,7 +14,7 @@ import { usePermission } from '@/Composables/usePermission';
 
 // Import library PDF
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // <-- PERBAIKAN: Import autoTable secara eksplisit
+import autoTable from 'jspdf-autotable';
 
 const props = defineProps({
     astekpams: Array
@@ -25,12 +25,13 @@ const { hasRole } = usePermission();
 
 // State untuk Filter & Pagination
 const filterRegu = ref('all');
-const filterTanggal = ref(''); // <-- PERBAIKAN: Menggunakan filter tanggal (kalender)
+const filterStartDate = ref(''); // <-- PERBAIKAN: State Tanggal Mulai
+const filterEndDate = ref('');   // <-- PERBAIKAN: State Tanggal Selesai
 const currentPage = ref(1);
-const itemsPerPage = 10; // Jumlah data per halaman
+const itemsPerPage = 10; 
 
 // Reset pagination ke halaman 1 setiap kali filter diubah
-watch([filterRegu, filterTanggal], () => {
+watch([filterRegu, filterStartDate, filterEndDate], () => {
     currentPage.value = 1;
 });
 
@@ -46,10 +47,20 @@ const filteredAstekpams = computed(() => {
         });
     }
 
-    // Filter Tanggal Presisi (Kalender)
-    if (filterTanggal.value) {
+    // <-- PERBAIKAN: Filter Rentang Tanggal
+    if (filterStartDate.value || filterEndDate.value) {
         result = result.filter(item => {
-            return item.tanggal === filterTanggal.value;
+            const itemDate = new Date(item.tanggal);
+            let isValid = true;
+
+            if (filterStartDate.value) {
+                isValid = isValid && itemDate >= new Date(filterStartDate.value);
+            }
+            if (filterEndDate.value) {
+                isValid = isValid && itemDate <= new Date(filterEndDate.value);
+            }
+            
+            return isValid;
         });
     }
 
@@ -82,7 +93,13 @@ const getPetugasPelapor = (laporan) => {
 // =========================================================================
 // LOGIKA DOWNLOAD LAPORAN KE PDF
 // =========================================================================
-const downloadPDF = () => {
+// =========================================================================
+// LOGIKA DOWNLOAD LAPORAN KE PDF (TAMPILKAN SELURUH ISI)
+// =========================================================================
+// =========================================================================
+// LOGIKA DOWNLOAD LAPORAN KE PDF (TAMPILKAN SELURUH ISI & FOTO)
+// =========================================================================
+const downloadPDF = async () => {
     const data = filteredAstekpams.value;
     
     if (data.length === 0) {
@@ -90,81 +107,188 @@ const downloadPDF = () => {
         return;
     }
 
-    // Buat dokumen PDF baru (Orientasi Landscape, ukuran A4)
-    const doc = new jsPDF('l', 'mm', 'a4');
+    // Karena mengubah foto menjadi data Base64 butuh sedikit waktu,
+    // Kita bisa ubah kursor menjadi 'loading' (wait) 
+    document.body.style.cursor = 'wait';
 
-    // Tambahkan Judul
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text('REKAPITULASI LAPORAN ASTEKPAM', 14, 15);
-    
-    // Tambahkan Sub-Judul (Info Filter)
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    const infoRegu = filterRegu.value === 'all' ? 'Semua Regu' : `Regu ${filterRegu.value}`;
-    const infoWaktu = filterTanggal.value ? filterTanggal.value : 'Semua Waktu';
-    doc.text(`Filter: ${infoRegu} | Tanggal: ${infoWaktu} | Total: ${data.length} Laporan`, 14, 22);
+    try {
+        // Buat dokumen PDF baru (Orientasi Landscape, ukuran A4)
+        const doc = new jsPDF('l', 'mm', 'a4');
 
-    // Siapkan Header Tabel
-    const tableColumn = [
-        "Tanggal", "Pukul", "Serah Terima", "Pimpinan Apel", 
-        "Kap.", "Napi", "Total WBP", "Hadir Rupam", "Hadir P2U", "Petugas Pelapor"
-    ];
-
-    // Siapkan Data Tabel (Baris)
-    const tableRows = [];
-    data.forEach(item => {
-        const rowData = [
-            item.tanggal || '-',
-            item.pukul || '-',
-            `${item.dari_rupam || '-'} (${item.dari_shift || '-'}) -> ${item.ke_rupam || '-'} (${item.ke_shift || '-'})`,
-            item.pimpinan || '-',
-            item.kapasitas || '0',
-            item.narapidana || '0',
-            item.total_wbp || '0',
-            `${item.rupam_hadir || '0'}/${item.rupam_jumlah || '0'}`,
-            `${item.p2u_hadir || '0'}/${item.p2u_jumlah || '0'}`,
-            getPetugasPelapor(item)
-        ];
-        tableRows.push(rowData);
-    });
-
-    // <-- PERBAIKAN: Gunakan autoTable(doc, {...}) sebagai fungsi terpisah
-    autoTable(doc, {
-        head: [tableColumn],
-        body: tableRows,
-        startY: 28, 
-        theme: 'grid',
-        styles: {
-            fontSize: 8, 
-            cellPadding: 2,
-            font: "helvetica"
-        },
-        headStyles: {
-            fillColor: [39, 39, 42], // Warna header tabel (Zinc-800)
-            textColor: [255, 255, 255],
-            fontSize: 8,
-            fontStyle: 'bold',
-            halign: 'center'
-        },
-        columnStyles: {
-            0: { cellWidth: 22 }, 
-            1: { cellWidth: 22 }, 
-            2: { cellWidth: 45 }, 
-        },
-        alternateRowStyles: {
-            fillColor: [244, 244, 245] 
+        // Tambahkan Judul
+        doc.setFontSize(14);
+        doc.setFont("helvetica", "bold");
+        doc.text('REKAPITULASI LAPORAN LENGKAP ASTEKPAM', 14, 15);
+        
+        // Tambahkan Sub-Judul (Info Filter)
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "normal");
+        const infoRegu = filterRegu.value === 'all' ? 'Semua Regu' : `Regu ${filterRegu.value}`;
+        
+        let infoWaktu = 'Semua Waktu';
+        if (filterStartDate.value && filterEndDate.value) {
+            infoWaktu = `${filterStartDate.value} s.d ${filterEndDate.value}`;
+        } else if (filterStartDate.value) {
+            infoWaktu = `Mulai ${filterStartDate.value}`;
+        } else if (filterEndDate.value) {
+            infoWaktu = `Sampai ${filterEndDate.value}`;
         }
-    });
 
-    // Buat Nama File Dinamis
-    let fileName = 'Laporan_Astekpam';
-    if (filterRegu.value !== 'all') fileName += `_Regu_${filterRegu.value}`;
-    if (filterTanggal.value) fileName += `_${filterTanggal.value}`;
-    fileName += '.pdf';
+        doc.text(`Filter: ${infoRegu} | Waktu: ${infoWaktu} | Total: ${data.length} Laporan`, 14, 22);
 
-    // Eksekusi Download
-    doc.save(fileName);
+        // Siapkan Header Tabel (Ditambah Kolom Foto Laporan)
+        const tableColumn = [
+            "Waktu & Shift", 
+            "Pimpinan & Pelapor", 
+            "Rincian WBP", 
+            "Kekuatan Pengamanan", 
+            "Pembagian Tugas Lengkap",
+            "Foto Laporan" // <--- KOLOM BARU
+        ];
+
+        const tableRows = [];
+        const base64Images = []; // Array terpisah untuk menyimpan file gambar yang telah dikonversi
+
+        // Loop asinkron untuk menarik data gambar
+        for (const item of data) {
+            const col1 = `Tgl: ${item.tanggal || '-'}\nPk. ${item.pukul || '-'} WIB\n\nSerah Terima:\n${item.dari_rupam || '-'} (${item.dari_shift || '-'}) \nMenuju \n${item.ke_rupam || '-'} (${item.ke_shift || '-'})`;
+            const col2 = `Pimpinan Apel:\n${item.pimpinan || '-'}\n\nPetugas Pelapor:\n${getPetugasPelapor(item)}`;
+
+            const rawatInap = formatJsonArray(item.rawat_inap_items);
+            const berobat = formatJsonArray(item.berobat_items);
+            const bonLuar = formatJsonArray(item.bon_luar_items);
+            
+            const col3 = `Total WBP: ${item.total_wbp || 0} Org\nKapasitas: ${item.kapasitas || 0} Org\nNarapidana: ${item.narapidana || 0} Org\n\nIsi Blok Hunian:\n- Blok A: ${item.blok_a || 0} Org\n- Blok B: ${item.blok_b || 0} Org\n- Dapur: ${item.dapur || 0} Org\n- Klinik: ${item.klinik || 0} Org\n\nPosisi:\n- Dalam Lapas: ${item.dalam_lapas || 0} Org\n- Luar Lapas: ${item.luar_lapas || 0} Org\n\nKet Luar:\n- Rawat Inap: ${rawatInap || '-'}\n- Berobat: ${berobat || '-'}\n- Bon Luar: ${bonLuar || '-'}`;
+
+            const tHadir = (parseInt(item.rupam_jumlah) || 0) - (parseInt(item.rupam_hadir) || 0);
+            const col4 = `REKAP RUPAM:\n(${item.rupam_pilihan || '-'})\n- Jumlah: ${item.rupam_jumlah || 0} Org\n- Hadir: ${item.rupam_hadir || 0} Org\n- Kurang: ${tHadir > 0 ? tHadir + ' Org' : '-'}\n- Ket: ${item.rupam_keterangan || '-'}\n\nREKAP P2U:\n- Jumlah: ${item.p2u_jumlah || 0} Org\n- Hadir: ${item.p2u_hadir || 0} Org\n- Ket: ${item.p2u_keterangan || '-'}`;
+
+            let tugasStr = "(Data belum diisi)";
+            let tugas = typeof item.tugas === 'string' ? JSON.parse(item.tugas) : item.tugas;
+            
+            if (tugas && typeof tugas === 'object') {
+                tugasStr = `Ka. Rupam: ${tugas.ka_rupam || '-'}\n` +
+                           `Wakarupam: ${tugas.wakarupam || '-'}\n\n` +
+                           `P2U (Kasatgas): ${tugas.kasatgas_p2u || '-'}\n` +
+                           `P2U (Wakasatgas): ${tugas.wakasatgas_p2u || '-'}\n\n` +
+                           `Petugas Blok:\n` +
+                           `- Blok A: ${formatJamTugas(tugas.blok_a)}\n` +
+                           `- Blok B: ${formatJamTugas(tugas.blok_b)}\n\n` +
+                           `Pos Menara Atas:\n` +
+                           `- Menara 1: ${formatJamTugas(tugas.menara_1)}\n` +
+                           `- Menara 2: ${formatJamTugas(tugas.menara_2)}\n` +
+                           `- Menara 3: ${formatJamTugas(tugas.menara_3)}\n` +
+                           `- Menara 4: ${formatJamTugas(tugas.menara_4)}\n\n` +
+                           `Lainnya:\n` +
+                           `- Jaga RS: ${tugas.jaga_rs || '-'}\n` +
+                           `- Piket Dapur: ${tugas.piket_dapur || '-'}\n` +
+                           `- Pengawas Piket: ${tugas.perwira_piket || '-'}\n` +
+                           `- Perwira Kontrol: ${tugas.perwira_kontrol || '-'}\n` +
+                           `- Banjaga: ${tugas.banjaga || '-'}\n` +
+                           `- Staff KPLP: ${tugas.staff_kplp || '-'}\n` +
+                           `- Amanah: ${tugas.amanah || '-'}`;
+            }
+
+            // PROSES GAMBAR: Download dari URL dan ubah ke format base64
+            let base64Img = null;
+            if (item.foto_laporan) {
+                try {
+                    const response = await fetch(`/storage/${item.foto_laporan}`);
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        // Pastikan yang ditarik benar-benar file gambar
+                        if (blob.type.startsWith('image/')) {
+                            base64Img = await new Promise(resolve => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => resolve(reader.result);
+                                reader.readAsDataURL(blob);
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error('Gagal load gambar untuk ID:', item.id, e);
+                }
+            }
+            base64Images.push(base64Img); // Simpan ke array sesuai index baris
+
+            // Masukkan data ke baris PDF
+            tableRows.push([
+                col1, 
+                col2, 
+                col3, 
+                col4, 
+                tugasStr, 
+                // Kolom ke-6 adalah tempat untuk foto. Kita beri string kosong, 
+                // tapi atur tinggi minimal baris (minCellHeight: 35) agar foto muat di dalamnya.
+                { content: '', styles: { minCellHeight: 35 } } 
+            ]);
+        }
+
+        // Terapkan data ke autoTable
+        autoTable(doc, {
+            head: [tableColumn],
+            body: tableRows,
+            startY: 28, 
+            theme: 'grid',
+            styles: {
+                fontSize: 7.5,
+                cellPadding: 3,
+                valign: 'top',
+                overflow: 'linebreak'
+            },
+            headStyles: {
+                fillColor: [39, 39, 42],
+                textColor: [255, 255, 255],
+                fontSize: 8,
+                fontStyle: 'bold',
+                halign: 'center'
+            },
+            columnStyles: {
+                0: { cellWidth: 28 }, // Tgl & Shift
+                1: { cellWidth: 28 }, // Pimpinan
+                2: { cellWidth: 43 }, // Rincian WBP
+                3: { cellWidth: 43 }, // Keamanan
+                4: { cellWidth: 'auto' }, // Pembagian Tugas menyesuaikan sisa kertas
+                5: { cellWidth: 35, halign: 'center', valign: 'middle' } // Lebar kolom foto tetap 35
+            },
+            alternateRowStyles: {
+                fillColor: [250, 250, 250] 
+            },
+            // HOOK: Gambar ditempel manual ke dalam tabel saat baris sedang dirender
+            didDrawCell: function (data) {
+                // Pastikan berada di kolom ke-5 (indeks mulai dari 0) pada isi tabel (body)
+                if (data.column.index === 5 && data.cell.section === 'body') {
+                    const base64Img = base64Images[data.row.index];
+                    
+                    if (base64Img) {
+                        // doc.addImage(dataGambar, Format (kosong=otomatis), Titik X, Titik Y, Lebar, Tinggi)
+                        doc.addImage(base64Img, data.cell.x + 2.5, data.cell.y + 2.5, 30, 30);
+                    } else {
+                        // Jika tidak ada gambar/gagal dimuat
+                        doc.setFontSize(7);
+                        doc.text("Tidak Ada Foto", data.cell.x + 17.5, data.cell.y + 17.5, { align: 'center' });
+                    }
+                }
+            }
+        });
+
+        // Buat Nama File Dinamis
+        let fileName = 'Laporan_Lengkap_Astekpam';
+        if (filterRegu.value !== 'all') fileName += `_Regu_${filterRegu.value}`;
+        if (filterStartDate.value) fileName += `_Dari_${filterStartDate.value}`;
+        if (filterEndDate.value) fileName += `_Sampai_${filterEndDate.value}`;
+        fileName += '.pdf';
+
+        // Eksekusi Download
+        doc.save(fileName);
+
+    } catch (error) {
+        console.error("Terjadi kesalahan saat generate PDF: ", error);
+        alert("Gagal men-download PDF. Silakan coba lagi.");
+    } finally {
+        // Kembalikan bentuk kursor ke normal setelah selesai
+        document.body.style.cursor = 'default';
+    }
 };
 
 
@@ -357,7 +481,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                 <span>Filter Data:</span>
                             </div>
                             
-                            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                            <div class="flex flex-col sm:flex-row flex-wrap gap-2 w-full md:w-auto">
                                 <Select v-model="filterRegu">
                                     <SelectTrigger class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-36 text-[12px] font-bold">
                                         <SelectValue placeholder="Semua Regu" />
@@ -371,17 +495,34 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                     </SelectContent>
                                 </Select>
 
-                                <!-- Kalender / Date Picker dengan tombol Reset -->
+                                <!-- <-- PERBAIKAN: Input Tanggal Mulai -->
                                 <div class="flex items-center gap-1.5">
                                     <Input 
                                         type="date" 
-                                        v-model="filterTanggal" 
-                                        class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-40 text-[12px] font-bold px-3 shadow-none"
+                                        v-model="filterStartDate" 
+                                        class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-36 text-[12px] font-bold px-3 shadow-none"
+                                        title="Tanggal Mulai"
                                     />
-                                    <Button v-if="filterTanggal" @click="filterTanggal = ''" variant="ghost" class="h-10 md:h-9 px-2.5 text-zinc-400 hover:text-rose-500 rounded-lg hover:bg-rose-50" title="Hapus Tanggal">
+                                    <Button v-if="filterStartDate" @click="filterStartDate = ''" variant="ghost" class="h-10 md:h-9 px-2.5 text-zinc-400 hover:text-rose-500 rounded-lg hover:bg-rose-50" title="Hapus Tanggal Mulai">
                                         <X class="w-4 h-4" />
                                     </Button>
                                 </div>
+
+                                <span class="hidden sm:flex text-zinc-300 font-bold items-center">-</span>
+
+                                <!-- <-- PERBAIKAN: Input Tanggal Selesai -->
+                                <div class="flex items-center gap-1.5">
+                                    <Input 
+                                        type="date" 
+                                        v-model="filterEndDate" 
+                                        class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-36 text-[12px] font-bold px-3 shadow-none"
+                                        title="Tanggal Selesai"
+                                    />
+                                    <Button v-if="filterEndDate" @click="filterEndDate = ''" variant="ghost" class="h-10 md:h-9 px-2.5 text-zinc-400 hover:text-rose-500 rounded-lg hover:bg-rose-50" title="Hapus Tanggal Selesai">
+                                        <X class="w-4 h-4" />
+                                    </Button>
+                                </div>
+
                             </div>
                         </div>
 
