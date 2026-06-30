@@ -36,35 +36,40 @@ const submit = () => {
 
     <div class="min-h-screen flex flex-col md:flex-row bg-[#f8fafc] font-sans selection:bg-[#d97706] selection:text-white">
         
-        <div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-[#0f172a] to-[#1e293b] p-12 flex-col justify-between relative overflow-hidden text-white border-r border-[#d97706]/10">
-            <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:24px_24px]"></div>
-            <div class="absolute -top-40 -left-40 w-96 h-96 bg-[#f59e0b]/5 rounded-full blur-3xl"></div>
+        <div 
+            class="hidden md:flex md:w-1/2 p-12 flex-col justify-between relative overflow-hidden text-white border-r border-[#d97706]/10 bg-cover bg-center bg-no-repeat"
+            style="background-image: url('/Gemini_Generated_Image_.png');"
+        >
+            <div class="absolute inset-0 bg-[#0f172a]/80"></div>
+            
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#f59e0b_1px,transparent_1px)] [background-size:24px_24px]"></div>
+            <div class="absolute -top-40 -left-40 w-96 h-96 bg-[#f59e0b]/10 rounded-full blur-3xl"></div>
 
             <div class="flex items-center space-x-3 relative z-10">
-                <div class="w-10 h-10 bg-[#1e293b] rounded-lg flex items-center justify-center border border-[#f59e0b]/30 shadow-md">
+                <div class="w-10 h-10 bg-[#1e293b]/80 backdrop-blur-sm rounded-lg flex items-center justify-center border border-[#f59e0b]/30 shadow-md">
                     <span class="text-[#f59e0b] font-bold text-xl tracking-wider">A</span>
                 </div>
                 <div>
-                    <span class="font-bold text-lg tracking-wider uppercase block leading-none">Astekpam</span>
-                    <span class="text-xs text-[#94a3b8] font-medium mt-0.5 block">Lapas Kelas I Palembang</span>
+                    <span class="font-bold text-lg tracking-wider uppercase block leading-none text-white">Astekpam</span>
+                    <span class="text-xs text-[#cbd5e1] font-medium mt-0.5 block">Lapas Kelas I Palembang</span>
                 </div>
             </div>
 
             <div class="relative z-10 max-w-md my-auto">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f59e0b]/10 border border-[#f59e0b]/20 text-[#f59e0b] text-xs font-semibold uppercase tracking-wider mb-6">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#f59e0b]/20 backdrop-blur-sm border border-[#f59e0b]/30 text-[#fbbf24] text-xs font-semibold uppercase tracking-wider mb-6">
                     Sistem Laporan Serah Terima Jaga
                 </div>
                 <h2 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#f59e0b] via-[#fbbf24] to-[#d97706] mb-4 leading-tight">
                     SPARTA (Sistem Pelaporan Astekpam Responsif, Terpadu, dan Akuntabel)
                 </h2>
-                <p class="text-[#94a3b8] text-sm leading-relaxed">
+                <p class="text-[#e2e8f0] text-sm leading-relaxed drop-shadow-sm">
                     Silakan otentikasi akun Anda untuk memasukkan data serta melakukan validasi laporan Apel Serah Terima Kepala Regu Pengamanan secara terpusat dan akurat.
                 </p>
             </div>
 
-            <div class="text-xs text-[#475569] flex flex-col gap-1 relative z-10">
-                <span class="font-medium text-slate-400">Kementerian Imigrasi dan Pemasyarakatan Republik Indonesia</span>
-                <span class="text-amber-500 font-semibold uppercase tracking-wider text-[10px]">Smart Governance</span>
+            <div class="text-xs text-[#cbd5e1] flex flex-col gap-1 relative z-10">
+                <span class="font-medium drop-shadow-sm">Kementerian Imigrasi dan Pemasyarakatan Republik Indonesia</span>
+                <span class="text-amber-500 font-bold uppercase tracking-wider text-[10px]">Smart Governance</span>
             </div>
         </div>
 
