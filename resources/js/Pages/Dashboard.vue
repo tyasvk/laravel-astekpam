@@ -5,11 +5,12 @@ import { computed } from 'vue';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { 
-    Users, ShieldAlert, Zap, Clock, Calendar, ArrowRight, Activity, MapPin, ClipboardList, FileText, Image as ImageIcon, CheckCircle2
+    Users, ShieldAlert, Zap, Clock, Calendar, ArrowRight, Activity, MapPin, ClipboardList, FileText, Image as ImageIcon, CheckCircle2, ClipboardCheck
 } from 'lucide-vue-next';
 
 const props = defineProps({
-    latestAstekpam: Object
+    latestAstekpam: Object,
+    isKuisionerActive: Boolean // <-- Tambahkan prop ini untuk menerima status kuisioner dari controller
 });
 
 const formatVal = (val) => {
@@ -112,6 +113,7 @@ const getPercentage = (hadir, jumlah) => {
         <div class="py-6 sm:py-8 bg-[#f8fafc] min-h-screen">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
                 
+                <!-- CARD WELCOME -->
                 <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-lg shadow-indigo-500/20 relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
                     <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
@@ -127,6 +129,29 @@ const getPercentage = (hadir, jumlah) => {
                     <Link :href="route('astekpam.create')" class="w-full md:w-auto relative z-10">
                         <Button class="w-full md:w-auto rounded-xl bg-white text-indigo-700 hover:bg-blue-50 font-bold h-12 px-6 text-sm sm:text-base shadow-xl transition-all hover:scale-105 active:scale-95">
                             + Buat Laporan Baru
+                        </Button>
+                    </Link>
+                </div>
+
+                <!-- CARD KUISIONER (MUNCUL JIKA AKTIF/ON) -->
+                <div v-if="isKuisionerActive" class="bg-white border-2 border-indigo-100 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-md shadow-indigo-200/50 relative overflow-hidden group hover:border-indigo-200 transition-colors">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-700 ease-out pointer-events-none"></div>
+                    
+                    <div class="relative z-10 flex items-start sm:items-center gap-5">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center shrink-0 shadow-inner">
+                            <ClipboardCheck class="w-7 h-7" />
+                        </div>
+                        <div>
+                            <h3 class="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">Evaluasi & Kuisioner</h3>
+                            <p class="text-sm text-slate-500 mt-1 font-medium max-w-xl">
+                                Terdapat form evaluasi/kuisioner yang sedang aktif. Mohon kesediaannya untuk mengisi form tersebut.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <Link :href="route('kuisioner.fill')" class="w-full md:w-auto relative z-10 shrink-0">
+                        <Button class="w-full md:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-12 px-8 text-sm sm:text-base shadow-lg shadow-indigo-200 transition-all hover:scale-105 active:scale-95">
+                            Isi Kuisioner Sekarang
                         </Button>
                     </Link>
                 </div>

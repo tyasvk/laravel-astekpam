@@ -6,17 +6,19 @@ import { Button } from '@/Components/ui/button';
 import { ScrollArea } from '@/Components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/Components/ui/sheet';
 import { 
-    LayoutDashboard, Users, FilePlus, History, LogOut, Menu, ShieldCheck, Briefcase, User 
+    LayoutDashboard, Users, FilePlus, History, LogOut, Menu, ShieldCheck, Briefcase, User, ClipboardList, FileBarChart 
 } from 'lucide-vue-next';
 
 const { hasRole, hasPermission } = usePermission();
 const user = usePage().props.auth.user;
 
-// Menambahkan 'Master Pejabat' ke dalam navigasi
+// Menambahkan 'Kelola Kuisioner' & 'Hasil Kuisioner' untuk Admin ke dalam navigasi
 const navigation = [
     { name: 'Dashboard', href: route('dashboard'), icon: LayoutDashboard, show: true, activeRule: 'dashboard' },
     { name: 'Manajemen User', href: route('admin.users.index'), icon: Users, show: hasRole('admin'), activeRule: 'admin.users.*' },
     { name: 'Master Pejabat', href: route('pejabat.index'), icon: Briefcase, show: hasRole('admin'), activeRule: 'pejabat.*' },
+    { name: 'Kelola Kuisioner', href: route('admin.kuisioner.questions'), icon: ClipboardList, show: hasRole('admin'), activeRule: 'admin.kuisioner.questions' },
+    { name: 'Hasil Kuisioner', href: route('admin.kuisioner.results'), icon: FileBarChart, show: hasRole('admin'), activeRule: 'admin.kuisioner.results' },
     { name: 'Input Astekpam', href: route('astekpam.create'), icon: FilePlus, show: hasPermission('create reports'), activeRule: 'astekpam.create' },
     { name: 'Riwayat Laporan', href: route('astekpam.index'), icon: History, show: true, activeRule: 'astekpam.index' },
 ];
@@ -24,7 +26,6 @@ const navigation = [
 
 <template>
     <div class="flex min-h-screen bg-zinc-50/50">
-        <!-- SIDEBAR DESKTOP -->
         <aside class="hidden md:flex w-64 flex-col border-r bg-white sticky top-0 h-screen">
             <div class="p-6 flex items-center gap-2">
                 <div class="bg-blue-700 p-1.5 rounded-lg text-white">
@@ -59,7 +60,6 @@ const navigation = [
                     </div>
                 </div>
                 
-                <!-- TOMBOL EDIT PROFIL DESKTOP -->
                 <Link :href="route('profile.edit')" class="block w-full mb-1">
                     <Button variant="ghost" class="w-full justify-start text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 h-9 rounded-lg" :class="{ 'bg-zinc-100 text-zinc-900 font-semibold': route().current('profile.edit') }">
                         <User class="mr-2 h-4 w-4" /> Edit Profil
@@ -74,9 +74,7 @@ const navigation = [
             </div>
         </aside>
 
-        <!-- KONTEN UTAMA -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-            <!-- HEADER MOBILE -->
             <header class="md:hidden flex items-center justify-between h-16 px-4 border-b bg-white">
                 <div class="flex items-center gap-2">
                     <div class="bg-blue-700 p-1 rounded-md text-white">
@@ -88,7 +86,6 @@ const navigation = [
                     <SheetTrigger as-child>
                         <Button variant="ghost" size="icon" class="rounded-lg"><Menu class="h-5 w-5" /></Button>
                     </SheetTrigger>
-                    <!-- SIDEBAR MOBILE -->
                     <SheetContent side="left" class="w-72 p-0">
                         <div class="p-6 font-bold text-lg border-b bg-zinc-50">Navigasi Sistem</div>
                         <nav class="p-4 space-y-2">
@@ -100,7 +97,6 @@ const navigation = [
                             </template>
                         </nav>
                         <div class="absolute bottom-0 w-full p-4 border-t bg-zinc-50 space-y-2">
-                             <!-- TOMBOL EDIT PROFIL MOBILE -->
                              <Link :href="route('profile.edit')" class="block w-full">
                                 <Button variant="outline" class="w-full rounded-xl flex items-center justify-center text-zinc-700 border-zinc-200 bg-white hover:bg-zinc-100">
                                     <User class="mr-2 h-4 w-4" /> Edit Profil

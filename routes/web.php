@@ -28,6 +28,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // --- FITUR ASTEKPAM ---
     Route::get('/astekpam', [AstekpamController::class, 'index'])->name('astekpam.index');
     
+    // Rute Untuk Petugas Mengisi
+    Route::get('/kuisioner', [KuisionerController::class, 'fillForm'])->name('kuisioner.fill');
+    Route::post('/kuisioner', [KuisionerController::class, 'submitForm'])->name('kuisioner.submit');
+
+    // Rute Untuk Admin (Bisa Anda bungkus lagi dengan middleware Spatie role:admin jika perlu)
+    Route::get('/admin/kuisioner/pertanyaan', [KuisionerController::class, 'adminQuestions'])->name('admin.kuisioner.questions');
+    Route::post('/admin/kuisioner/pertanyaan', [KuisionerController::class, 'storeQuestion'])->name('admin.kuisioner.store');
+    Route::put('/admin/kuisioner/pertanyaan/{question}', [KuisionerController::class, 'updateQuestion'])->name('admin.kuisioner.update');
+    Route::delete('/admin/kuisioner/pertanyaan/{question}', [KuisionerController::class, 'destroyQuestion'])->name('admin.kuisioner.destroy');
+    
+    Route::get('/admin/kuisioner/hasil', [KuisionerController::class, 'adminResults'])->name('admin.kuisioner.results');
+    Route::get('/admin/kuisioner/hasil/export', [KuisionerController::class, 'exportCsv'])->name('admin.kuisioner.export');
     // ----------------------------------------------------------------------
     // TAMBAHKAN DISINI: Endpoint untuk Download Laporan
     // Pastikan di atas route /{astekpam}
@@ -54,6 +66,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        // Tambahkan di dalam group auth middleware Admin Kuisioner
+        Route::post('/admin/kuisioner/toggle-status', [KuisionerController::class, 'toggleStatus'])->name('admin.kuisioner.toggle');
 
         Route::get('/astekpam/{astekpam}/edit', [AstekpamController::class, 'edit'])->name('astekpam.edit');
         Route::put('/astekpam/{astekpam}', [AstekpamController::class, 'update'])->name('astekpam.update');
