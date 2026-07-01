@@ -54,6 +54,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
         
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+
+        Route::get('/astekpam/{astekpam}/edit', [AstekpamController::class, 'edit'])->name('astekpam.edit');
+        Route::put('/astekpam/{astekpam}', [AstekpamController::class, 'update'])->name('astekpam.update');
     });
 
     // --- PROFILE MANAGEMENT ---

@@ -3,7 +3,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Card } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
-import { ChevronLeft, Printer, Copy, Check, Image as ImageIcon } from 'lucide-vue-next';
+// [TAMBAHAN] Import ikon Edit
+import { ChevronLeft, Printer, Copy, Check, Image as ImageIcon, Edit } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 const props = defineProps({
@@ -153,11 +154,22 @@ const printPage = () => window.print();
                     </Button>
                 </Link>
                 <div class="flex gap-2">
+                    
+                    <!-- [FITUR BARU] Tombol Edit Khusus Admin -->
+                    <Link v-if="$page.props.auth.user.roles?.includes('admin')" :href="route('astekpam.edit', astekpam.id)">
+                        <Button class="bg-amber-500 hover:bg-amber-600 font-sans shadow-sm text-white">
+                            <Edit class="w-4 h-4 mr-2" /> Edit
+                        </Button>
+                    </Link>
+
+                    <!-- Tombol Salin Teks -->
                     <Button @click="copyToClipboard" :variant="isCopied ? 'default' : 'outline'" class="font-sans transition-all">
                         <component :is="isCopied ? Check : Copy" class="w-4 h-4 mr-2" />
                         {{ isCopied ? 'Berhasil Disalin' : 'Salin Teks' }}
                     </Button>
-                    <Button @click="printPage" class="bg-zinc-800 hover:bg-zinc-900 font-sans shadow-lg">
+                    
+                    <!-- Tombol Cetak -->
+                    <Button @click="printPage" class="bg-zinc-800 hover:bg-zinc-900 font-sans shadow-lg text-white">
                         <Printer class="w-4 h-4 mr-2" /> Cetak
                     </Button>
                 </div>

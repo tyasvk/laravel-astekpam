@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage; // [TAMBAHAN] Facade untuk hapus foto lama
 use Carbon\Carbon;
 
 class AstekpamController extends Controller
@@ -153,8 +154,91 @@ class AstekpamController extends Controller
     }
 
     /**
+     * [FITUR BARU] Menampilkan form edit untuk Admin
+     */
+    public function edit(Astekpam $astekpam)
+    {
+        $users = \App\Models\User::all();
+        $pejabats = Pejabat::all();
+
+        return Inertia::render('Astekpam/Edit', [
+            'astekpam' => $astekpam,
+            'users'    => $users,
+            'pejabats' => $pejabats,
+        ]);
+    }
+
+    /**
+     * [FITUR BARU] Memperbarui laporan (Khusus Admin)
+     */
+    public function update(Request $request, Astekpam $astekpam)
+    {
+        // 1. Validasi Input (Sama dengan Store)
+        $validated = $request->validate([
+            'tanggal' => 'required',
+            'pukul' => 'required',
+            'dari_rupam' => 'required',
+            'tugas' => 'required|array',
+            'foto_laporan' => 'nullable|image|mimes:jpeg,png,jpg|max:10240', 
+        ], [
+            'foto_laporan.image' => 'File harus berupa gambar.',
+            'foto_laporan.mimes' => 'Format gambar harus jpeg, png, atau jpg.',
+            'foto_laporan.max'   => 'Ukuran foto maksimal adalah 10MB.',
+            'dari_rupam.required' => 'Kolom "Dari Regu (Lama)" wajib dipilih.',
+        ]);
+
+        // 2. Ambil semua data input
+        $data = $request->all();
+
+        // 3. TANGANI KOLOM ANGKA: Ubah null/kosong menjadi 0
+        $kolomAngka = [
+            'kapasitas', 'narapidana', 'blok_a', 'blok_b', 'dapur', 'klinik', 
+            'dalam_lapas', 'luar_lapas', 'total_wbp', 
+            'rupam_jumlah', 'rupam_hadir', 'p2u_jumlah', 'p2u_hadir'
+        ];
+        foreach ($kolomAngka as $kolom) {
+            $data[$kolom] = $data[$kolom] ?? 0;
+        }
+
+        // 4. TANGANI KOLOM TEKS: Ubah null/kosong menjadi tanda strip '-'
+        $kolomTeks = [
+            'dari_shift', 'ke_rupam', 'ke_shift', 'pimpinan', 
+            'rupam_pilihan', 'rupam_keterangan', 'p2u_keterangan'
+        ];
+        foreach ($kolomTeks as $kolom) {
+            $data[$kolom] = $data[$kolom] ?? '-';
+        }
+
+        // 5. TANGANI KOLOM ARRAY
+        $data['rawat_inap_items'] = $data['rawat_inap_items'] ?? [];
+        $data['berobat_items']    = $data['berobat_items'] ?? [];
+        $data['bon_luar_items']   = $data['bon_luar_items'] ?? [];
+        $data['tugas']            = $data['tugas'] ?? [];
+
+        // 6. TANGANI UPLOAD FOTO (Jika ada perubahan foto)
+        if ($request->hasFile('foto_laporan')) {
+            // Hapus foto lama jika ada
+            if ($astekpam->foto_laporan) {
+                Storage::disk('public')->delete($astekpam->foto_laporan);
+            }
+            // Simpan foto baru
+            $path = $request->file('foto_laporan')->store('foto_laporan', 'public');
+            $data['foto_laporan'] = $path;
+        }
+
+        // 7. Simpan pembaruan ke database
+        $astekpam->update($data);
+
+        // Opsional: Log riwayat pengeditan
+        Log::info('Laporan Astekpam ID: ' . $astekpam->id . ' telah diedit oleh Admin: ' . auth()->user()->name);
+
+        // Tidak dikirim ulang ke Fonnte WA agar tidak double-spam di Grup
+        
+        return redirect()->route('astekpam.index')->with('success', 'Laporan berhasil diperbarui oleh Admin!');
+    }
+
+    /**
      * Endpoint untuk Download Laporan dari Backend (Server-Side)
-     * Digunakan jika PDF / Excel digenerate di sisi server, bukan oleh jsPDF.
      */
     public function download(Request $request)
     {
@@ -172,12 +256,6 @@ class AstekpamController extends Controller
 
         $laporanData = $query->get();
 
-        // 3. Proses Export
-        // Uncomment baris di bawah ini jika Anda menggunakan Laravel Excel (Maatwebsite) atau DomPDF.
-        // return Excel::download(new AstekpamExport($laporanData), 'laporan-astekpam.xlsx');
-        // return \PDF::loadView('pdf.laporan', compact('laporanData'))->download('laporan-astekpam.pdf');
-
-        // Output JSON sementara memastikan endpoint merespons dengan data yang terfilter.
         return response()->json([
             'message' => 'Data berhasil difilter',
             'rentang' => $request->start_date . ' s/d ' . $request->end_date,

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/Components/ui/input'; 
 import { 
     FileText, Plus, Eye, Filter, Calendar, Clock, ShieldCheck, User, Copy, MessageCircle, Image as ImageIcon,
-    ChevronLeft, ChevronRight, Download, X
+    ChevronLeft, ChevronRight, Download, X, Edit
 } from 'lucide-vue-next';
 import { usePermission } from '@/Composables/usePermission';
 
@@ -93,12 +93,6 @@ const getPetugasPelapor = (laporan) => {
 // =========================================================================
 // LOGIKA DOWNLOAD LAPORAN KE PDF
 // =========================================================================
-// =========================================================================
-// LOGIKA DOWNLOAD LAPORAN KE PDF (TAMPILKAN SELURUH ISI)
-// =========================================================================
-// =========================================================================
-// LOGIKA DOWNLOAD LAPORAN KE PDF (TAMPILKAN SELURUH ISI & FOTO)
-// =========================================================================
 const downloadPDF = async () => {
     const data = filteredAstekpams.value;
     
@@ -107,20 +101,15 @@ const downloadPDF = async () => {
         return;
     }
 
-    // Karena mengubah foto menjadi data Base64 butuh sedikit waktu,
-    // Kita bisa ubah kursor menjadi 'loading' (wait) 
     document.body.style.cursor = 'wait';
 
     try {
-        // Buat dokumen PDF baru (Orientasi Landscape, ukuran A4)
         const doc = new jsPDF('l', 'mm', 'a4');
 
-        // Tambahkan Judul
         doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
         doc.text('REKAPITULASI LAPORAN LENGKAP ASTEKPAM', 14, 15);
         
-        // Tambahkan Sub-Judul (Info Filter)
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
         const infoRegu = filterRegu.value === 'all' ? 'Semua Regu' : `Regu ${filterRegu.value}`;
@@ -136,20 +125,18 @@ const downloadPDF = async () => {
 
         doc.text(`Filter: ${infoRegu} | Waktu: ${infoWaktu} | Total: ${data.length} Laporan`, 14, 22);
 
-        // Siapkan Header Tabel (Ditambah Kolom Foto Laporan)
         const tableColumn = [
             "Waktu & Shift", 
             "Pimpinan & Pelapor", 
             "Rincian WBP", 
             "Kekuatan Pengamanan", 
             "Pembagian Tugas Lengkap",
-            "Foto Laporan" // <--- KOLOM BARU
+            "Foto Laporan"
         ];
 
         const tableRows = [];
-        const base64Images = []; // Array terpisah untuk menyimpan file gambar yang telah dikonversi
+        const base64Images = []; 
 
-        // Loop asinkron untuk menarik data gambar
         for (const item of data) {
             const col1 = `Tgl: ${item.tanggal || '-'}\nPk. ${item.pukul || '-'} WIB\n\nSerah Terima:\n${item.dari_rupam || '-'} (${item.dari_shift || '-'}) \nMenuju \n${item.ke_rupam || '-'} (${item.ke_shift || '-'})`;
             const col2 = `Pimpinan Apel:\n${item.pimpinan || '-'}\n\nPetugas Pelapor:\n${getPetugasPelapor(item)}`;
@@ -189,14 +176,12 @@ const downloadPDF = async () => {
                            `- Amanah: ${tugas.amanah || '-'}`;
             }
 
-            // PROSES GAMBAR: Download dari URL dan ubah ke format base64
             let base64Img = null;
             if (item.foto_laporan) {
                 try {
                     const response = await fetch(`/storage/${item.foto_laporan}`);
                     if (response.ok) {
                         const blob = await response.blob();
-                        // Pastikan yang ditarik benar-benar file gambar
                         if (blob.type.startsWith('image/')) {
                             base64Img = await new Promise(resolve => {
                                 const reader = new FileReader();
@@ -209,22 +194,18 @@ const downloadPDF = async () => {
                     console.error('Gagal load gambar untuk ID:', item.id, e);
                 }
             }
-            base64Images.push(base64Img); // Simpan ke array sesuai index baris
+            base64Images.push(base64Img); 
 
-            // Masukkan data ke baris PDF
             tableRows.push([
                 col1, 
                 col2, 
                 col3, 
                 col4, 
                 tugasStr, 
-                // Kolom ke-6 adalah tempat untuk foto. Kita beri string kosong, 
-                // tapi atur tinggi minimal baris (minCellHeight: 35) agar foto muat di dalamnya.
                 { content: '', styles: { minCellHeight: 35 } } 
             ]);
         }
 
-        // Terapkan data ke autoTable
         autoTable(doc, {
             head: [tableColumn],
             body: tableRows,
@@ -244,27 +225,23 @@ const downloadPDF = async () => {
                 halign: 'center'
             },
             columnStyles: {
-                0: { cellWidth: 28 }, // Tgl & Shift
-                1: { cellWidth: 28 }, // Pimpinan
-                2: { cellWidth: 43 }, // Rincian WBP
-                3: { cellWidth: 43 }, // Keamanan
-                4: { cellWidth: 'auto' }, // Pembagian Tugas menyesuaikan sisa kertas
-                5: { cellWidth: 35, halign: 'center', valign: 'middle' } // Lebar kolom foto tetap 35
+                0: { cellWidth: 28 }, 
+                1: { cellWidth: 28 }, 
+                2: { cellWidth: 43 }, 
+                3: { cellWidth: 43 }, 
+                4: { cellWidth: 'auto' }, 
+                5: { cellWidth: 35, halign: 'center', valign: 'middle' } 
             },
             alternateRowStyles: {
                 fillColor: [250, 250, 250] 
             },
-            // HOOK: Gambar ditempel manual ke dalam tabel saat baris sedang dirender
             didDrawCell: function (data) {
-                // Pastikan berada di kolom ke-5 (indeks mulai dari 0) pada isi tabel (body)
                 if (data.column.index === 5 && data.cell.section === 'body') {
                     const base64Img = base64Images[data.row.index];
                     
                     if (base64Img) {
-                        // doc.addImage(dataGambar, Format (kosong=otomatis), Titik X, Titik Y, Lebar, Tinggi)
                         doc.addImage(base64Img, data.cell.x + 2.5, data.cell.y + 2.5, 30, 30);
                     } else {
-                        // Jika tidak ada gambar/gagal dimuat
                         doc.setFontSize(7);
                         doc.text("Tidak Ada Foto", data.cell.x + 17.5, data.cell.y + 17.5, { align: 'center' });
                     }
@@ -272,25 +249,21 @@ const downloadPDF = async () => {
             }
         });
 
-        // Buat Nama File Dinamis
         let fileName = 'Laporan_Lengkap_Astekpam';
         if (filterRegu.value !== 'all') fileName += `_Regu_${filterRegu.value}`;
         if (filterStartDate.value) fileName += `_Dari_${filterStartDate.value}`;
         if (filterEndDate.value) fileName += `_Sampai_${filterEndDate.value}`;
         fileName += '.pdf';
 
-        // Eksekusi Download
         doc.save(fileName);
 
     } catch (error) {
         console.error("Terjadi kesalahan saat generate PDF: ", error);
         alert("Gagal men-download PDF. Silakan coba lagi.");
     } finally {
-        // Kembalikan bentuk kursor ke normal setelah selesai
         document.body.style.cursor = 'default';
     }
 };
-
 
 // =========================================================================
 // LOGIKA UNTUK COPY TEKS LAPORAN (WHATSAPP)
@@ -495,7 +468,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                     </SelectContent>
                                 </Select>
 
-                                <!-- <-- PERBAIKAN: Input Tanggal Mulai -->
                                 <div class="flex items-center gap-1.5">
                                     <Input 
                                         type="date" 
@@ -510,7 +482,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
 
                                 <span class="hidden sm:flex text-zinc-300 font-bold items-center">-</span>
 
-                                <!-- <-- PERBAIKAN: Input Tanggal Selesai -->
                                 <div class="flex items-center gap-1.5">
                                     <Input 
                                         type="date" 
@@ -522,11 +493,9 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                         <X class="w-4 h-4" />
                                     </Button>
                                 </div>
-
                             </div>
                         </div>
 
-                        <!-- Tombol Download Laporan Khusus Admin -->
                         <div v-if="hasRole('admin')" class="w-full md:w-auto">
                             <Button @click="downloadPDF" variant="outline" class="w-full md:w-auto text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-10 md:h-9 text-[12px] font-bold rounded-lg flex items-center justify-center transition-colors shadow-sm">
                                 <Download class="w-4 h-4 mr-1.5" /> Unduh Laporan (PDF)
@@ -538,7 +507,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                 <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white overflow-hidden">
                     <CardContent class="p-0">
                         
-                        <!-- VIEW MOBILE -->
                         <div class="block lg:hidden divide-y divide-zinc-100">
                             <div v-for="laporan in paginatedAstekpams" :key="laporan.id" class="p-4 space-y-4 hover:bg-zinc-50 transition-colors">
                                 
@@ -590,7 +558,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                         </span>
                                     </div>
 
-                                    <!-- FOTO DI VIEW MOBILE -->
                                     <div v-if="laporan.foto_laporan" class="border-t border-zinc-200/60 pt-2.5">
                                         <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Foto Laporan</span>
                                         <a :href="`/storage/${laporan.foto_laporan}`" target="_blank" class="block w-full">
@@ -599,19 +566,31 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3 w-full pt-1">
-                                    <Link :href="route('astekpam.show', laporan.id)" class="w-full block">
-                                        <Button variant="outline" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
-                                            <Eye class="w-4 h-4 mr-1.5 shrink-0" /> Detail
+                                <div class="flex flex-col gap-2 w-full pt-1">
+                                    <div class="grid grid-cols-2 gap-3 w-full">
+                                        <Link :href="route('astekpam.show', laporan.id)" class="w-full block">
+                                            <Button variant="outline" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
+                                                <Eye class="w-4 h-4 mr-1.5 shrink-0" /> Detail
+                                            </Button>
+                                        </Link>
+                                        
+                                        <!-- PERBAIKAN PADA route admin.astekpam.edit DI SINI -->
+                                        <Link v-if="hasRole('admin')" :href="route('admin.astekpam.edit', laporan.id)" class="w-full block">
+                                            <Button variant="outline" class="w-full text-amber-600 border-amber-200 hover:bg-amber-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
+                                                <Edit class="w-4 h-4 mr-1.5 shrink-0" /> Edit
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-2 gap-3 w-full">
+                                        <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-zinc-600 border-zinc-200 hover:bg-zinc-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
+                                            <Copy class="w-4 h-4 mr-1.5 shrink-0" /> Copy Teks
                                         </Button>
-                                    </Link>
-                                    <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-zinc-600 border-zinc-200 hover:bg-zinc-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
-                                        <Copy class="w-4 h-4 mr-1.5 shrink-0" /> Copy Teks
-                                    </Button>
 
-                                    <Button @click="shareKeWhatsAppGroup(laporan)" variant="outline" class="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center col-span-2">
-                                        <MessageCircle class="w-4 h-4 mr-1.5 shrink-0" /> Copy & Buka Grup WA
-                                    </Button>
+                                        <Button @click="shareKeWhatsAppGroup(laporan)" variant="outline" class="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
+                                            <MessageCircle class="w-4 h-4 mr-1.5 shrink-0" /> Copy & Grup WA
+                                        </Button>
+                                    </div>
                                 </div>
 
                             </div>
@@ -622,7 +601,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                             </div>
                         </div>
 
-                        <!-- VIEW DESKTOP -->
                         <div class="hidden lg:block w-full">
                             <table class="w-full text-left border-collapse table-fixed">
                                 <thead>
@@ -690,7 +668,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                             </div>
                                         </td>
 
-                                        <!-- FOTO DI VIEW DESKTOP -->
                                         <td class="py-4 px-4 text-center align-middle">
                                             <div v-if="laporan.foto_laporan" class="flex justify-center">
                                                 <a :href="`/storage/${laporan.foto_laporan}`" target="_blank" title="Klik untuk memperbesar">
@@ -703,19 +680,33 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                         </td>
                                         
                                         <td class="py-4 px-4 text-center align-middle">
-                                            <div class="flex items-center justify-center gap-2 flex-wrap">
-                                                <Link :href="route('astekpam.show', laporan.id)">
-                                                    <Button variant="outline" class="text-blue-600 border-blue-200 hover:bg-blue-50 font-bold text-[11px] h-8 px-2.5 rounded-lg flex items-center">
-                                                        <Eye class="w-3.5 h-3.5 mr-1 shrink-0" /> Detail
-                                                    </Button>
-                                                </Link>
-                                                <Button @click="copyTeksLaporan(laporan)" variant="outline" class="text-zinc-600 border-zinc-200 hover:bg-zinc-50 font-bold text-[11px] h-8 px-2.5 rounded-lg flex items-center">
-                                                    <Copy class="w-3.5 h-3.5 mr-1 shrink-0" /> Copy
-                                                </Button>
+                                            <div class="flex flex-col gap-2 w-full max-w-[200px] mx-auto">
+                                                
+                                                <div class="grid grid-cols-2 gap-2">
+                                                    <Link :href="route('astekpam.show', laporan.id)">
+                                                        <Button variant="outline" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50 font-bold text-[11px] h-8 px-2 rounded-lg flex items-center justify-center">
+                                                            <Eye class="w-3.5 h-3.5 mr-1 shrink-0" /> Detail
+                                                        </Button>
+                                                    </Link>
+                                                    
+                                                    <!-- PERBAIKAN PADA route admin.astekpam.edit DI SINI -->
+                                                    <Link v-if="hasRole('admin')" :href="route('admin.astekpam.edit', laporan.id)">
+                                                        <Button variant="outline" class="w-full text-amber-600 border-amber-200 hover:bg-amber-50 font-bold text-[11px] h-8 px-2 rounded-lg flex items-center justify-center">
+                                                            <Edit class="w-3.5 h-3.5 mr-1 shrink-0" /> Edit
+                                                        </Button>
+                                                    </Link>
+                                                </div>
 
-                                                <Button @click="shareKeWhatsAppGroup(laporan)" variant="outline" class="text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[11px] h-8 px-2.5 rounded-lg flex items-center">
-                                                    <MessageCircle class="w-3.5 h-3.5 mr-1 shrink-0" /> Buka WA
-                                                </Button>
+                                                <div class="grid grid-cols-2 gap-2">
+                                                    <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-zinc-600 border-zinc-200 hover:bg-zinc-50 font-bold text-[11px] h-8 px-2 rounded-lg flex items-center justify-center">
+                                                        <Copy class="w-3.5 h-3.5 mr-1 shrink-0" /> Copy
+                                                    </Button>
+
+                                                    <Button @click="shareKeWhatsAppGroup(laporan)" variant="outline" class="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[11px] h-8 px-2 rounded-lg flex items-center justify-center">
+                                                        <MessageCircle class="w-3.5 h-3.5 mr-1 shrink-0" /> Buka WA
+                                                    </Button>
+                                                </div>
+
                                             </div>
                                         </td>
                                     </tr>
@@ -729,7 +720,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                             </table>
                         </div>
 
-                        <!-- KONTROL PAGINATION -->
                         <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-zinc-100 bg-zinc-50/50">
                             <span class="text-xs text-zinc-500 font-medium">
                                 Menampilkan {{ ((currentPage - 1) * itemsPerPage) + 1 }} - 
