@@ -50,7 +50,7 @@ const formatNamaTugas = (dataTugas) => {
     return dataTugas;
 };
 
-// Palet warna pastel untuk icon tugas agar lebih hidup
+// Palet warna pastel untuk icon tugas
 const colorClasses = [
     'bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700', 
     'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 
@@ -112,9 +112,7 @@ const getPercentage = (hadir, jumlah) => {
         <div class="py-6 sm:py-8 bg-[#f8fafc] min-h-screen">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
                 
-                <!-- Welcome Banner (Vibrant & Eye-Catching) -->
                 <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-lg shadow-indigo-500/20 relative overflow-hidden">
-                    <!-- Decorative background elements -->
                     <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
                     <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
                     
@@ -134,7 +132,6 @@ const getPercentage = (hadir, jumlah) => {
                 </div>
 
                 <div v-if="props.latestAstekpam" class="space-y-6 sm:space-y-8">
-                    <!-- Title Section -->
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
                         <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2.5">
                             <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
@@ -149,7 +146,6 @@ const getPercentage = (hadir, jumlah) => {
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         
-                        <!-- Col Kiri: Info Shift -->
                         <div class="lg:col-span-4 space-y-6">
                             <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden h-full">
                                 <div class="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-5 flex justify-between items-center border-b border-slate-100">
@@ -165,47 +161,42 @@ const getPercentage = (hadir, jumlah) => {
                                 </div>
                                 
                                 <CardContent class="p-6 space-y-7">
-                                    <!-- Timeline Serah Terima -->
-                                    <div class="relative space-y-6 before:absolute before:inset-0 before:ml-[17px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-200 before:via-indigo-200 before:to-transparent">
+                                    <div class="relative space-y-6 before:absolute before:inset-0 before:ml-[17px] before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-slate-200 before:via-indigo-200 before:to-transparent">
                                         
-                                        <!-- Dari (Lama) -->
-                                        <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                                            <div class="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-slate-200 text-slate-500 shadow-sm shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">
+                                        <div class="relative flex items-center gap-4 group">
+                                            <div class="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-slate-200 text-slate-500 shadow-sm shrink-0 z-10">
                                                 <Clock class="w-4 h-4" />
                                             </div>
-                                            <div class="w-[calc(100%-3.5rem)] md:w-[calc(50%-2.5rem)] bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+                                            <div class="flex-1 min-w-0 bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Shift Sebelumnya</p>
-                                                <p class="font-bold text-slate-700 text-base">Regu {{ formatVal(props.latestAstekpam.dari_rupam) }}</p>
-                                                <p class="text-slate-500 text-xs mt-1 font-medium">{{ formatVal(props.latestAstekpam.dari_shift) }}</p>
+                                                <p class="font-bold text-slate-700 text-base truncate">Regu {{ formatVal(props.latestAstekpam.dari_rupam) }}</p>
+                                                <p class="text-slate-500 text-xs mt-1 font-medium truncate">{{ formatVal(props.latestAstekpam.dari_shift) }}</p>
                                             </div>
                                         </div>
                                         
-                                        <!-- Ke (Baru) -->
-                                        <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-                                            <div class="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-indigo-500 text-white shadow-md shadow-indigo-200 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10 animate-pulse">
+                                        <div class="relative flex items-center gap-4 group">
+                                            <div class="flex items-center justify-center w-9 h-9 rounded-full border-4 border-white bg-indigo-500 text-white shadow-md shadow-indigo-200 shrink-0 z-10 animate-pulse">
                                                 <CheckCircle2 class="w-5 h-5" />
                                             </div>
-                                            <div class="w-[calc(100%-3.5rem)] md:w-[calc(50%-2.5rem)] bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
-                                                <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-500 opacity-5 rounded-bl-full"></div>
+                                            <div class="flex-1 min-w-0 bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                                                <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-500 opacity-5 rounded-bl-full pointer-events-none"></div>
                                                 <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-1">Shift Saat Ini</p>
-                                                <p class="font-bold text-indigo-900 text-base">Regu {{ formatVal(props.latestAstekpam.ke_rupam) }}</p>
-                                                <p class="text-indigo-700 text-xs mt-1 font-medium">{{ formatVal(props.latestAstekpam.ke_shift) }}</p>
+                                                <p class="font-bold text-indigo-900 text-base truncate">Regu {{ formatVal(props.latestAstekpam.ke_rupam) }}</p>
+                                                <p class="text-indigo-700 text-xs mt-1 font-medium truncate">{{ formatVal(props.latestAstekpam.ke_shift) }}</p>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <!-- Dipimpin Oleh -->
                                     <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4 hover:bg-slate-100 transition-colors">
                                         <div class="w-12 h-12 rounded-xl bg-white border border-slate-200 text-indigo-600 flex items-center justify-center shadow-sm">
                                             <Users class="w-6 h-6" />
                                         </div>
-                                        <div>
+                                        <div class="flex-1 min-w-0">
                                             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pimpinan Regu</p>
-                                            <p class="font-bold text-slate-800 text-sm mt-0.5">{{ formatVal(props.latestAstekpam.pimpinan) }}</p>
+                                            <p class="font-bold text-slate-800 text-sm mt-0.5 truncate">{{ formatVal(props.latestAstekpam.pimpinan) }}</p>
                                         </div>
                                     </div>
 
-                                    <!-- Foto Laporan -->
                                     <div v-if="props.latestAstekpam.foto_laporan" class="space-y-3 pt-2">
                                         <p class="text-xs font-bold text-slate-500 flex items-center gap-2 uppercase tracking-wider">
                                             <ImageIcon class="w-4 h-4 text-slate-400" /> Bukti Foto Laporan
@@ -227,12 +218,9 @@ const getPercentage = (hadir, jumlah) => {
                             </Card>
                         </div>
 
-                        <!-- Col Kanan: Data Summary -->
                         <div class="lg:col-span-8 flex flex-col gap-6">
                             
-                            <!-- Top Stats Row -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                <!-- Card WBP -->
                                 <div class="bg-white border-0 rounded-3xl p-6 shadow-md shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                                     <div class="relative flex items-center gap-5">
@@ -246,7 +234,6 @@ const getPercentage = (hadir, jumlah) => {
                                     </div>
                                 </div>
 
-                                <!-- Card Narapidana -->
                                 <div class="bg-white border-0 rounded-3xl p-6 shadow-md shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                                     <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                                     <div class="relative flex items-center gap-5">
@@ -266,7 +253,6 @@ const getPercentage = (hadir, jumlah) => {
                                 </div>
                             </div>
 
-                            <!-- Distribusi Blok -->
                             <div class="bg-white border-0 shadow-md shadow-slate-200/50 rounded-3xl p-6">
                                 <p class="text-sm font-bold text-slate-700 mb-5 flex items-center gap-2 uppercase tracking-wide">
                                     <div class="p-1.5 bg-orange-100 text-orange-600 rounded-md"><MapPin class="w-4 h-4"/></div> 
@@ -281,10 +267,8 @@ const getPercentage = (hadir, jumlah) => {
                                 </div>
                             </div>
 
-                            <!-- Bottom Row: Kondisi & Kehadiran -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                 
-                                <!-- Kondisi Luar Lapas -->
                                 <div class="bg-white border-0 rounded-3xl p-6 shadow-md shadow-slate-200/50">
                                     <p class="text-sm font-bold text-slate-700 mb-5 flex items-center gap-2 uppercase tracking-wide">
                                         <div class="p-1.5 bg-rose-100 text-rose-600 rounded-md"><ShieldAlert class="w-4 h-4"/></div> 
@@ -306,7 +290,6 @@ const getPercentage = (hadir, jumlah) => {
                                     </div>
                                 </div>
 
-                                <!-- Kehadiran Personil -->
                                 <div class="bg-white border-0 rounded-3xl p-6 shadow-md shadow-slate-200/50">
                                     <p class="text-sm font-bold text-slate-700 mb-5 flex items-center gap-2 uppercase tracking-wide">
                                         <div class="p-1.5 bg-emerald-100 text-emerald-600 rounded-md"><Zap class="w-4 h-4"/></div> 
@@ -337,7 +320,6 @@ const getPercentage = (hadir, jumlah) => {
                         </div>
                     </div>
 
-                    <!-- Tabel Pembagian Tugas -->
                     <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden mt-2">
                         <div class="px-6 py-5 border-b border-slate-100 flex items-center gap-3 bg-white">
                             <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
@@ -349,18 +331,15 @@ const getPercentage = (hadir, jumlah) => {
                             <div class="space-y-5">
                                 <div v-for="(row, rowIndex) in taskRows" :key="rowIndex" :class="['grid gap-4 sm:gap-5', row.cols]">
                                     
-                                    <!-- Kotak Tugas per Item -->
                                     <div 
                                         v-for="(task, itemIndex) in row.items" 
                                         :key="task.letter" 
                                         class="group flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-100 hover:-translate-y-1 transition-all duration-300 cursor-default"
                                     >
-                                        <!-- Bulatan Abjad -->
-                                        <div :class="['w-10 h-10 rounded-xl text-sm font-black flex items-center justify-center uppercase shrink-0 transition-colors', getBadgeColor(rowIndex * 4 + itemIndex)]">
+                                        <div :class="['w-10 h-10 rounded-xl text-sm font-black flex items-center justify-center uppercase shrink-0 transition-colors', getBadgeColor(rowIndex)]">
                                             {{ task.letter }}
                                         </div>
                                         
-                                        <!-- Nama Tugas & Petugas -->
                                         <div class="min-w-0 flex-1">
                                             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
                                                 {{ task.label }}
@@ -377,7 +356,6 @@ const getPercentage = (hadir, jumlah) => {
                     </Card>
                 </div>
 
-                <!-- Empty State -->
                 <div v-else class="bg-white border-0 shadow-md shadow-slate-200/50 rounded-3xl p-10 sm:p-16 text-center mt-6">
                     <div class="bg-gradient-to-br from-indigo-50 to-blue-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                         <FileText class="w-10 h-10 text-indigo-400" />

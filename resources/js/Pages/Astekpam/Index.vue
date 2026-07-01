@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/Components/ui/input'; 
 import { 
     FileText, Plus, Eye, Filter, Calendar, Clock, ShieldCheck, User, Copy, MessageCircle, Image as ImageIcon,
-    ChevronLeft, ChevronRight, Download, X, Edit
+    ChevronLeft, ChevronRight, Download, X, Edit, ArrowRight
 } from 'lucide-vue-next';
 import { usePermission } from '@/Composables/usePermission';
 
@@ -25,8 +25,8 @@ const { hasRole } = usePermission();
 
 // State untuk Filter & Pagination
 const filterRegu = ref('all');
-const filterStartDate = ref(''); // <-- PERBAIKAN: State Tanggal Mulai
-const filterEndDate = ref('');   // <-- PERBAIKAN: State Tanggal Selesai
+const filterStartDate = ref(''); 
+const filterEndDate = ref('');  
 const currentPage = ref(1);
 const itemsPerPage = 10; 
 
@@ -47,7 +47,7 @@ const filteredAstekpams = computed(() => {
         });
     }
 
-    // <-- PERBAIKAN: Filter Rentang Tanggal
+    // Filter Rentang Tanggal
     if (filterStartDate.value || filterEndDate.value) {
         result = result.filter(item => {
             const itemDate = new Date(item.tanggal);
@@ -88,6 +88,14 @@ const getPetugasPelapor = (laporan) => {
     if (laporan.tugas && laporan.tugas.petugas_laporan) return laporan.tugas.petugas_laporan;
     if (laporan.tugas && laporan.tugas.amanah) return laporan.tugas.amanah;
     return 'Belum Diisi';
+};
+
+// Fungsi aman untuk memanggil path Foto (Mencegah double slash)
+const getImageUrl = (path) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.replace(/^\/?(storage\/)?/, '');
+    return `/storage/${cleanPath}`;
 };
 
 // =========================================================================
@@ -218,7 +226,7 @@ const downloadPDF = async () => {
                 overflow: 'linebreak'
             },
             headStyles: {
-                fillColor: [39, 39, 42],
+                fillColor: [30, 41, 59],
                 textColor: [255, 255, 255],
                 fontSize: 8,
                 fontStyle: 'bold',
@@ -233,7 +241,7 @@ const downloadPDF = async () => {
                 5: { cellWidth: 35, halign: 'center', valign: 'middle' } 
             },
             alternateRowStyles: {
-                fillColor: [250, 250, 250] 
+                fillColor: [248, 250, 252]
             },
             didDrawCell: function (data) {
                 if (data.column.index === 5 && data.cell.section === 'body') {
@@ -429,34 +437,43 @@ const shareKeWhatsAppGroup = async (laporan) => {
     <Head title="Riwayat Astekpam" />
 
     <AuthenticatedLayout>
-        <div class="py-6 bg-zinc-50/30 min-h-screen">
-            <div class="w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div class="py-6 sm:py-10 bg-slate-50 min-h-screen relative">
+            
+            <!-- Dekorasi Latar Belakang -->
+            <div class="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-indigo-100/50 to-transparent pointer-events-none"></div>
+
+            <!-- LEBAR PENUH: px-2 memberi gap kecil ke sidebar dan kanan -->
+            <div class="w-full mx-auto px-2 lg:px-2 space-y-6 relative z-10">
                 
-                <div class="bg-white rounded-xl p-5 border border-zinc-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <!-- HEADER & CREATE BUTTON -->
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2 px-2">
                     <div>
-                        <h1 class="text-xl font-extrabold text-zinc-900 tracking-tight flex items-center gap-2">
-                            <FileText class="w-5 h-5 text-blue-600" /> Riwayat Astekpam
-                        </h1>
-                        <p class="text-zinc-500 text-[13px] mt-0.5">Daftar laporan Apel Serah Terima Kepala Regu Pengamanan.</p>
+                        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-100 text-indigo-700 text-xs font-bold mb-3 uppercase tracking-widest">
+                            <FileText class="w-3.5 h-3.5" /> Arsip Laporan
+                        </div>
+                        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Riwayat Astekpam</h1>
+                        <p class="text-slate-500 text-sm font-medium mt-2">Kelola dan pantau seluruh riwayat serah terima regu pengamanan.</p>
                     </div>
                     <Link :href="route('astekpam.create')" class="w-full sm:w-auto shrink-0">
-                        <Button class="rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md shadow-blue-200 h-10 px-5 w-full text-[13px] transition-all">
-                            <Plus class="w-4 h-4 mr-1.5" /> Buat Laporan Baru
+                        <Button class="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-lg shadow-indigo-200 h-12 px-6 transition-all hover:scale-105 active:scale-95">
+                            <Plus class="w-5 h-5 mr-2" /> Buat Laporan Baru
                         </Button>
                     </Link>
                 </div>
 
-                <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white p-3">
-                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-                        <div class="flex flex-col md:flex-row items-start md:items-center gap-3 w-full md:w-auto">
-                            <div class="flex items-center gap-2 text-[11px] font-bold text-zinc-400 uppercase tracking-wider shrink-0 mb-1 md:mb-0">
-                                <Filter class="w-4 h-4 text-zinc-400" />
-                                <span>Filter Data:</span>
+                <!-- FILTER CARD -->
+                <Card class="rounded-2xl sm:rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white p-4 sm:p-6 w-full">
+                    <div class="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
+                        
+                        <div class="flex flex-col md:flex-row items-start md:items-center gap-4 w-full xl:w-auto">
+                            <div class="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
+                                <Filter class="w-4 h-4 text-indigo-500" />
+                                <span>Filter Data</span>
                             </div>
                             
-                            <div class="flex flex-col sm:flex-row flex-wrap gap-2 w-full md:w-auto">
+                            <div class="flex flex-col sm:flex-row flex-wrap gap-3 w-full xl:w-auto">
                                 <Select v-model="filterRegu">
-                                    <SelectTrigger class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-36 text-[12px] font-bold">
+                                    <SelectTrigger class="h-11 rounded-xl bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500 w-full sm:w-40 text-sm font-bold text-slate-700">
                                         <SelectValue placeholder="Semua Regu" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -468,275 +485,281 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                     </SelectContent>
                                 </Select>
 
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-2 w-full sm:w-auto relative group">
                                     <Input 
                                         type="date" 
                                         v-model="filterStartDate" 
-                                        class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-36 text-[12px] font-bold px-3 shadow-none"
+                                        class="h-11 rounded-xl bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500 w-full sm:w-40 text-sm font-bold px-3 text-slate-700 pr-10"
                                         title="Tanggal Mulai"
                                     />
-                                    <Button v-if="filterStartDate" @click="filterStartDate = ''" variant="ghost" class="h-10 md:h-9 px-2.5 text-zinc-400 hover:text-rose-500 rounded-lg hover:bg-rose-50" title="Hapus Tanggal Mulai">
+                                    <Button v-if="filterStartDate" @click="filterStartDate = ''" variant="ghost" size="icon" class="absolute right-1 w-8 h-8 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50" title="Hapus Tanggal Mulai">
                                         <X class="w-4 h-4" />
                                     </Button>
                                 </div>
 
-                                <span class="hidden sm:flex text-zinc-300 font-bold items-center">-</span>
+                                <span class="hidden sm:flex text-slate-300 font-bold items-center">
+                                    <ArrowRight class="w-4 h-4" />
+                                </span>
 
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-2 w-full sm:w-auto relative group">
                                     <Input 
                                         type="date" 
                                         v-model="filterEndDate" 
-                                        class="h-10 md:h-9 rounded-lg bg-zinc-50 border-0 focus:ring-1 focus:ring-blue-500 w-full md:w-36 text-[12px] font-bold px-3 shadow-none"
+                                        class="h-11 rounded-xl bg-slate-50 border-slate-200 focus:ring-2 focus:ring-indigo-500 w-full sm:w-40 text-sm font-bold px-3 text-slate-700 pr-10"
                                         title="Tanggal Selesai"
                                     />
-                                    <Button v-if="filterEndDate" @click="filterEndDate = ''" variant="ghost" class="h-10 md:h-9 px-2.5 text-zinc-400 hover:text-rose-500 rounded-lg hover:bg-rose-50" title="Hapus Tanggal Selesai">
+                                    <Button v-if="filterEndDate" @click="filterEndDate = ''" variant="ghost" size="icon" class="absolute right-1 w-8 h-8 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50" title="Hapus Tanggal Selesai">
                                         <X class="w-4 h-4" />
                                     </Button>
                                 </div>
                             </div>
                         </div>
 
-                        <div v-if="hasRole('admin')" class="w-full md:w-auto">
-                            <Button @click="downloadPDF" variant="outline" class="w-full md:w-auto text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-10 md:h-9 text-[12px] font-bold rounded-lg flex items-center justify-center transition-colors shadow-sm">
-                                <Download class="w-4 h-4 mr-1.5" /> Unduh Laporan (PDF)
+                        <div v-if="hasRole('admin')" class="w-full xl:w-auto mt-2 xl:mt-0 pt-4 xl:pt-0 border-t xl:border-t-0 border-slate-100 flex flex-col sm:flex-row gap-2">                            
+                            <Button @click="downloadPDF" variant="outline" class="w-full sm:w-auto text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-11 text-sm font-bold rounded-xl flex items-center justify-center transition-all shadow-sm active:scale-95">
+                                <Download class="w-4 h-4 mr-2" /> Cetak PDF
                             </Button>
                         </div>
                     </div>
                 </Card>
 
-                <Card class="rounded-xl border border-zinc-200 shadow-sm bg-white overflow-hidden">
-                    <CardContent class="p-0">
+                <!-- DATA TABLE & MOBILE LIST -->
+                <Card class="rounded-2xl sm:rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden w-full">
+                    <CardContent class="p-0 w-full">
                         
-                        <div class="block lg:hidden divide-y divide-zinc-100">
-                            <div v-for="laporan in paginatedAstekpams" :key="laporan.id" class="p-4 space-y-4 hover:bg-zinc-50 transition-colors">
+                        <!-- VIEW MOBILE (Tumpukan Kartu) -->
+                        <div class="block lg:hidden divide-y divide-slate-100">
+                            <div v-for="laporan in paginatedAstekpams" :key="laporan.id" class="p-5 space-y-4 hover:bg-slate-50 transition-colors">
                                 
                                 <div class="flex flex-col">
-                                    <span class="font-bold text-zinc-900 flex items-center gap-1.5 text-[13px]">
-                                        <Calendar class="w-4 h-4 text-zinc-400 shrink-0"/> {{ formatVal(laporan.tanggal) }}
+                                    <span class="font-bold text-slate-900 flex items-center gap-2 text-sm whitespace-normal break-words">
+                                        <div class="p-1.5 bg-indigo-50 text-indigo-500 rounded-lg shrink-0"><Calendar class="w-4 h-4" /></div>
+                                        {{ formatVal(laporan.tanggal) }}
                                     </span>
-                                    <span class="text-[12px] font-medium text-zinc-500 flex items-center gap-1.5 mt-1">
-                                        <Clock class="w-3.5 h-3.5 text-zinc-400 shrink-0"/> Pukul {{ formatVal(laporan.pukul) }}
+                                    <span class="text-xs font-semibold text-slate-500 flex items-center gap-2 mt-2 whitespace-normal break-words">
+                                        <div class="p-1.5 bg-slate-100 text-slate-500 rounded-lg shrink-0"><Clock class="w-3.5 h-3.5" /></div>
+                                        Pukul {{ formatVal(laporan.pukul) }}
                                     </span>
                                 </div>
 
-                                <div class="bg-zinc-50 p-3.5 rounded-xl border border-zinc-100 space-y-3">
+                                <div class="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 space-y-4 w-full">
                                     
-                                    <div class="flex flex-col gap-1.5 w-full">
-                                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider shrink-0 mb-0.5">Serah Terima</span>
+                                    <!-- Flow Serah Terima Mobile -->
+                                    <div class="flex flex-col gap-2 w-full">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Serah Terima Regu</span>
                                         <div class="grid grid-cols-[1fr_auto_1fr] gap-2 items-center">
-                                            <span class="px-2 py-1.5 bg-white text-zinc-600 text-[11px] font-bold rounded-md border border-zinc-200 uppercase text-center truncate shadow-sm">
-                                                {{ formatVal(laporan.dari_rupam) }}
-                                            </span>
-                                            <span class="text-zinc-400 text-sm font-medium text-center flex-shrink-0">→</span>
-                                            <span class="px-2 py-1.5 bg-blue-50 text-blue-700 text-[11px] font-bold rounded-md border border-blue-200 uppercase text-center truncate shadow-sm">
-                                                {{ formatVal(laporan.ke_rupam) }}
-                                            </span>
-                                            
-                                            <span class="px-2 py-1.5 bg-white text-zinc-600 text-[11px] font-bold rounded-md border border-zinc-200 uppercase text-center truncate shadow-sm">
-                                                {{ formatVal(laporan.dari_shift) }}
-                                            </span>
-                                            <span class="text-zinc-400 text-sm font-medium text-center flex-shrink-0">→</span>
-                                            <span class="px-2 py-1.5 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded-md border border-emerald-200 uppercase text-center truncate shadow-sm">
-                                                {{ formatVal(laporan.ke_shift) }}
-                                            </span>
+                                            <div class="flex flex-col items-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm text-center w-full">
+                                                <span class="text-xs font-bold text-slate-700 uppercase break-words whitespace-normal">{{ formatVal(laporan.dari_rupam) }}</span>
+                                                <span class="text-[10px] font-semibold text-slate-500 break-words whitespace-normal">{{ formatVal(laporan.dari_shift) }}</span>
+                                            </div>
+                                            <div class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-500 flex items-center justify-center shrink-0">
+                                                <ArrowRight class="w-3.5 h-3.5" />
+                                            </div>
+                                            <div class="flex flex-col items-center bg-indigo-50 p-2 rounded-xl border border-indigo-100 shadow-sm text-center w-full">
+                                                <span class="text-xs font-bold text-indigo-700 uppercase break-words whitespace-normal">{{ formatVal(laporan.ke_rupam) }}</span>
+                                                <span class="text-[10px] font-semibold text-indigo-500 break-words whitespace-normal">{{ formatVal(laporan.ke_shift) }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                     
-                                    <div class="border-t border-zinc-200/60 pt-2.5">
-                                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Pimpinan Apel</span>
-                                        <span class="font-semibold text-zinc-800 flex items-start gap-2 text-[12px] whitespace-normal leading-snug">
-                                            <ShieldCheck class="w-4 h-4 text-zinc-400 shrink-0 mt-0.5"/> 
-                                            <span class="break-words">{{ formatVal(laporan.pimpinan) }}</span>
-                                        </span>
+                                    <div class="grid grid-cols-2 gap-4 border-t border-slate-200/60 pt-4 w-full">
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Pimpinan Apel</span>
+                                            <span class="font-bold text-slate-800 flex items-start gap-1.5 text-xs whitespace-normal break-words leading-snug">
+                                                <ShieldCheck class="w-3.5 h-3.5 text-indigo-400 shrink-0 mt-0.5"/> 
+                                                <span>{{ formatVal(laporan.pimpinan) }}</span>
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-1">Pelapor</span>
+                                            <span class="font-bold text-slate-800 flex items-start gap-1.5 text-xs whitespace-normal break-words leading-snug">
+                                                <User class="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5"/> 
+                                                <span>{{ getPetugasPelapor(laporan) }}</span>
+                                            </span>
+                                        </div>
                                     </div>
 
-                                    <div class="border-t border-zinc-200/60 pt-2.5">
-                                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Pelapor</span>
-                                        <span class="font-bold text-zinc-800 flex items-start gap-2 text-[12px] whitespace-normal leading-snug">
-                                            <User class="w-4 h-4 text-amber-500 shrink-0 mt-0.5"/> 
-                                            <span class="break-words">{{ getPetugasPelapor(laporan) }}</span>
+                                    <div v-if="laporan.foto_laporan" class="border-t border-slate-200/60 pt-4 w-full">
+                                        <span class="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                                            <ImageIcon class="w-3.5 h-3.5" /> Foto Lampiran
                                         </span>
-                                    </div>
-
-                                    <div v-if="laporan.foto_laporan" class="border-t border-zinc-200/60 pt-2.5">
-                                        <span class="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block mb-1">Foto Laporan</span>
-                                        <a :href="`/storage/${laporan.foto_laporan}`" target="_blank" class="block w-full">
-                                            <img :src="`/storage/${laporan.foto_laporan}`" class="w-full h-auto object-cover rounded-lg border border-zinc-200 hover:opacity-90 transition-opacity" alt="Foto Laporan" />
+                                        <a :href="getImageUrl(laporan.foto_laporan)" target="_blank" class="block w-full rounded-xl overflow-hidden shadow-sm border border-slate-200">
+                                            <img :src="getImageUrl(laporan.foto_laporan)" class="w-full h-32 object-cover hover:opacity-90 hover:scale-105 transition-all duration-500" alt="Foto Laporan" />
                                         </a>
                                     </div>
                                 </div>
 
-                                <div class="flex flex-col gap-2 w-full pt-1">
-                                    <div class="grid grid-cols-2 gap-3 w-full">
-                                        <Link :href="route('astekpam.show', laporan.id)" class="w-full block">
-                                            <Button variant="outline" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
-                                                <Eye class="w-4 h-4 mr-1.5 shrink-0" /> Detail
-                                            </Button>
-                                        </Link>
-                                        
-                                        <!-- PERBAIKAN PADA route admin.astekpam.edit DI SINI -->
-                                        <Link v-if="hasRole('admin')" :href="route('admin.astekpam.edit', laporan.id)" class="w-full block">
-                                            <Button variant="outline" class="w-full text-amber-600 border-amber-200 hover:bg-amber-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
-                                                <Edit class="w-4 h-4 mr-1.5 shrink-0" /> Edit
-                                            </Button>
-                                        </Link>
-                                    </div>
+                                <!-- Action Buttons Mobile -->
+                                <div class="grid grid-cols-2 gap-2 w-full pt-1">
+                                    <Link :href="route('astekpam.show', laporan.id)" class="w-full block">
+                                        <Button variant="outline" class="w-full text-indigo-600 bg-white border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 font-bold text-xs h-11 rounded-xl shadow-sm">
+                                            <Eye class="w-4 h-4 mr-1.5 shrink-0" /> Detail
+                                        </Button>
+                                    </Link>
                                     
-                                    <div class="grid grid-cols-2 gap-3 w-full">
-                                        <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-zinc-600 border-zinc-200 hover:bg-zinc-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
-                                            <Copy class="w-4 h-4 mr-1.5 shrink-0" /> Copy Teks
+                                    <Link v-if="hasRole('admin')" :href="route('admin.astekpam.edit', laporan.id)" class="w-full block">
+                                        <Button variant="outline" class="w-full text-amber-600 bg-white border-slate-200 hover:bg-amber-50 hover:border-amber-200 font-bold text-xs h-11 rounded-xl shadow-sm">
+                                            <Edit class="w-4 h-4 mr-1.5 shrink-0" /> Edit
                                         </Button>
+                                    </Link>
+                                    
+                                    <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-slate-600 bg-white border-slate-200 hover:bg-slate-50 font-bold text-xs h-11 rounded-xl shadow-sm">
+                                        <Copy class="w-4 h-4 mr-1.5 shrink-0" /> Copy Teks
+                                    </Button>
 
-                                        <Button @click="shareKeWhatsAppGroup(laporan)" variant="outline" class="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[12px] h-10 rounded-xl flex items-center justify-center">
-                                            <MessageCircle class="w-4 h-4 mr-1.5 shrink-0" /> Copy & Grup WA
-                                        </Button>
-                                    </div>
+                                    <Button @click="shareKeWhatsAppGroup(laporan)" class="w-full text-white bg-emerald-500 border-0 hover:bg-emerald-600 font-bold text-xs h-11 rounded-xl shadow-md shadow-emerald-500/20 active:scale-95 transition-all">
+                                        <MessageCircle class="w-4 h-4 mr-1.5 shrink-0" /> Share WA
+                                    </Button>
                                 </div>
 
                             </div>
                             
-                            <div v-if="paginatedAstekpams.length === 0" class="text-center py-10 px-4">
-                                <FileText class="w-10 h-10 text-zinc-300 mx-auto mb-3" />
-                                <p class="text-sm font-semibold text-zinc-500">Tidak ada data laporan ditemukan.</p>
+                            <!-- Empty State Mobile -->
+                            <div v-if="paginatedAstekpams.length === 0" class="text-center py-16 px-4">
+                                <div class="bg-indigo-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <FileText class="w-10 h-10 text-indigo-300" />
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800">Tidak ada laporan</h3>
+                                <p class="text-sm font-medium text-slate-500 mt-1">Coba sesuaikan filter atau rentang tanggal.</p>
                             </div>
                         </div>
 
-                        <div class="hidden lg:block w-full">
+                        <!-- VIEW DESKTOP (Tabel table-fixed) -->
+                        <div class="hidden lg:block w-full overflow-hidden">
                             <table class="w-full text-left border-collapse table-fixed">
                                 <thead>
-                                    <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[11px] tracking-wider uppercase">
-                                        <th class="py-3.5 px-4 w-[15%]">Tanggal & Waktu</th>
-                                        <th class="py-3.5 px-4 w-[20%]">Serah Terima</th>
-                                        <th class="py-3.5 px-4 w-[15%]">Pimpinan Apel</th>
-                                        <th class="py-3.5 px-4 w-[15%]">Petugas Pelapor</th>
-                                        <th class="py-3.5 px-4 w-[10%] text-center">Foto</th>
-                                        <th class="py-3.5 px-4 w-[25%] text-center">Aksi</th>
+                                    <!-- Menyesuaikan lebar kolom Tanggal agar teks dijamin tidak terpotong -->
+                                    <tr class="bg-slate-50/80 border-b border-slate-100 text-slate-400 font-extrabold text-[11px] tracking-widest uppercase">
+                                        <th class="py-4 px-3 w-[20%]">Tanggal & Waktu</th>
+                                        <th class="py-4 px-3 text-center w-[22%]">Serah Terima</th>
+                                        <th class="py-4 px-3 w-[16%]">Pimpinan Apel</th>
+                                        <th class="py-4 px-3 w-[16%]">Pelapor</th>
+                                        <th class="py-4 px-3 text-center w-[8%]">Foto</th>
+                                        <th class="py-4 px-3 text-center w-[18%]">Aksi</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-zinc-100 text-[13px] font-medium text-zinc-800">
-                                    <tr v-for="laporan in paginatedAstekpams" :key="laporan.id" class="hover:bg-zinc-50/50 transition-colors align-top">
+                                <tbody class="divide-y divide-slate-100 text-sm font-semibold text-slate-800">
+                                    <tr v-for="laporan in paginatedAstekpams" :key="laporan.id" class="hover:bg-indigo-50/30 transition-colors align-top group">
                                         
-                                        <td class="py-4 px-4 align-middle">
-                                            <div class="flex flex-col">
-                                                <span class="font-bold text-zinc-900 flex items-center gap-1.5 leading-snug">
-                                                    <Calendar class="w-4 h-4 text-zinc-400 shrink-0"/> {{ formatVal(laporan.tanggal) }}
+                                        <!-- Kolom 1: Tanggal & Waktu (Tanpa break-words, agar tidak memotong kata di tengah-tengah) -->
+                                        <td class="py-5 px-3 align-middle">
+                                            <div class="flex flex-col gap-1.5">
+                                                <span class="text-slate-900 flex items-start gap-2 whitespace-normal leading-snug">
+                                                    <Calendar class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"/> 
+                                                    <span class="font-bold">{{ formatVal(laporan.tanggal) }}</span>
                                                 </span>
-                                                <span class="text-[12px] text-zinc-500 flex items-center gap-1.5 mt-1 leading-snug">
-                                                    <Clock class="w-3.5 h-3.5 text-zinc-400 shrink-0"/> Pukul {{ formatVal(laporan.pukul) }}
+                                                <span class="text-xs text-slate-500 flex items-start gap-2 whitespace-normal leading-snug">
+                                                    <Clock class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5"/> 
+                                                    <span class="font-medium">Pk. {{ formatVal(laporan.pukul) }}</span>
                                                 </span>
                                             </div>
                                         </td>
                                         
-                                        <td class="py-4 px-4 align-middle">
-                                            <div class="flex flex-col gap-2 w-full">
-                                                <div class="flex items-center gap-1.5 w-full">
-                                                    <span class="flex-1 px-1.5 py-1 bg-zinc-100 text-zinc-600 text-[11px] font-bold rounded border border-zinc-200 uppercase tracking-wide text-center truncate">
-                                                        {{ formatVal(laporan.dari_rupam) }}
-                                                    </span>
-                                                    <span class="text-zinc-400 text-xs font-bold shrink-0">→</span>
-                                                    <span class="flex-1 px-1.5 py-1 bg-blue-50 text-blue-700 text-[11px] font-bold rounded border border-blue-100 uppercase tracking-wide text-center truncate">
-                                                        {{ formatVal(laporan.ke_rupam) }}
-                                                    </span>
+                                        <!-- Kolom 2: Serah Terima -->
+                                        <td class="py-5 px-3 align-middle">
+                                            <div class="flex items-center justify-center gap-1.5 w-full">
+                                                <div class="flex flex-col items-center bg-white px-2 py-2 rounded-xl border border-slate-200 shadow-sm flex-1 text-center w-full min-w-0">
+                                                    <span class="text-[11px] font-bold text-slate-700 uppercase break-words w-full">{{ formatVal(laporan.dari_rupam) }}</span>
+                                                    <span class="text-[9px] font-bold text-slate-500 break-words w-full">{{ formatVal(laporan.dari_shift) }}</span>
                                                 </div>
-                                                <div class="flex items-center gap-1.5 w-full">
-                                                    <span class="flex-1 px-1.5 py-1 bg-zinc-100 text-zinc-600 text-[11px] font-bold rounded border border-zinc-200 uppercase tracking-wide text-center truncate">
-                                                        {{ formatVal(laporan.dari_shift) }}
-                                                    </span>
-                                                    <span class="text-zinc-400 text-xs font-bold shrink-0">→</span>
-                                                    <span class="flex-1 px-1.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-bold rounded border border-emerald-100 uppercase tracking-wide text-center truncate">
-                                                        {{ formatVal(laporan.ke_shift) }}
-                                                    </span>
+                                                <div class="w-5 h-5 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center shrink-0">
+                                                    <ArrowRight class="w-3 h-3" />
+                                                </div>
+                                                <div class="flex flex-col items-center bg-indigo-50 px-2 py-2 rounded-xl border border-indigo-100 shadow-sm flex-1 text-center w-full min-w-0">
+                                                    <span class="text-[11px] font-bold text-indigo-700 uppercase break-words w-full">{{ formatVal(laporan.ke_rupam) }}</span>
+                                                    <span class="text-[9px] font-bold text-indigo-500 break-words w-full">{{ formatVal(laporan.ke_shift) }}</span>
                                                 </div>
                                             </div>
                                         </td>
                                         
-                                        <td class="py-4 px-4 align-middle">
+                                        <!-- Kolom 3: Pimpinan -->
+                                        <td class="py-5 px-3 align-middle">
                                             <div class="flex items-start gap-1.5">
-                                                <ShieldCheck class="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
-                                                <span class="text-zinc-700 font-semibold whitespace-normal break-words leading-snug">
-                                                    {{ formatVal(laporan.pimpinan) }}
-                                                </span>
+                                                <ShieldCheck class="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
+                                                <span class="whitespace-normal leading-snug">{{ formatVal(laporan.pimpinan) }}</span>
                                             </div>
                                         </td>
                                         
-                                        <td class="py-4 px-4 align-middle">
+                                        <!-- Kolom 4: Pelapor -->
+                                        <td class="py-5 px-3 align-middle">
                                             <div class="flex items-start gap-1.5">
-                                                <User class="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                                                <span class="text-zinc-800 font-bold whitespace-normal break-words leading-snug">
-                                                    {{ getPetugasPelapor(laporan) }}
-                                                </span>
+                                                <User class="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                                                <span class="whitespace-normal leading-snug">{{ getPetugasPelapor(laporan) }}</span>
                                             </div>
                                         </td>
 
-                                        <td class="py-4 px-4 text-center align-middle">
+                                        <!-- Kolom 5: Foto -->
+                                        <td class="py-5 px-3 text-center align-middle">
                                             <div v-if="laporan.foto_laporan" class="flex justify-center">
-                                                <a :href="`/storage/${laporan.foto_laporan}`" target="_blank" title="Klik untuk memperbesar">
-                                                    <img :src="`/storage/${laporan.foto_laporan}`" alt="Foto Laporan" class="w-12 h-12 object-cover rounded border border-zinc-200 shadow-sm hover:opacity-80 transition-all cursor-pointer hover:scale-110" />
+                                                <a :href="getImageUrl(laporan.foto_laporan)" target="_blank" title="Klik untuk memperbesar">
+                                                    <img :src="getImageUrl(laporan.foto_laporan)" alt="Foto Laporan" class="w-10 h-10 object-cover rounded-lg border border-slate-200 shadow-sm hover:opacity-80 transition-all cursor-pointer hover:scale-110" />
                                                 </a>
                                             </div>
-                                            <div v-else class="text-zinc-400 text-[11px] italic">
-                                                -
+                                            <div v-else class="text-slate-300 text-[11px] italic font-medium whitespace-normal break-words">
+                                                Tidak Ada
                                             </div>
                                         </td>
                                         
-                                        <td class="py-4 px-4 text-center align-middle">
-                                            <div class="flex flex-col gap-2 w-full max-w-[200px] mx-auto">
+                                        <!-- Kolom 6: Aksi -->
+                                        <td class="py-5 px-3 align-middle">
+                                            <div class="grid grid-cols-2 gap-2 w-full mx-auto opacity-80 group-hover:opacity-100 transition-opacity">
+                                                <Link :href="route('astekpam.show', laporan.id)" class="w-full">
+                                                    <Button variant="outline" class="w-full text-indigo-600 bg-white border-slate-200 hover:bg-indigo-50 hover:border-indigo-200 font-bold text-[10px] h-8 px-1 rounded-lg shadow-sm">
+                                                        <Eye class="w-3.5 h-3.5 mr-1 shrink-0" /> Detail
+                                                    </Button>
+                                                </Link>
                                                 
-                                                <div class="grid grid-cols-2 gap-2">
-                                                    <Link :href="route('astekpam.show', laporan.id)">
-                                                        <Button variant="outline" class="w-full text-blue-600 border-blue-200 hover:bg-blue-50 font-bold text-[11px] h-8 px-2 rounded-lg flex items-center justify-center">
-                                                            <Eye class="w-3.5 h-3.5 mr-1 shrink-0" /> Detail
-                                                        </Button>
-                                                    </Link>
-                                                    
-                                                    <!-- PERBAIKAN PADA route admin.astekpam.edit DI SINI -->
-                                                    <Link v-if="hasRole('admin')" :href="route('admin.astekpam.edit', laporan.id)">
-                                                        <Button variant="outline" class="w-full text-amber-600 border-amber-200 hover:bg-amber-50 font-bold text-[11px] h-8 px-2 rounded-lg flex items-center justify-center">
-                                                            <Edit class="w-3.5 h-3.5 mr-1 shrink-0" /> Edit
-                                                        </Button>
-                                                    </Link>
-                                                </div>
-
-                                                <div class="grid grid-cols-2 gap-2">
-                                                    <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-zinc-600 border-zinc-200 hover:bg-zinc-50 font-bold text-[11px] h-8 px-2 rounded-lg flex items-center justify-center">
-                                                        <Copy class="w-3.5 h-3.5 mr-1 shrink-0" /> Copy
+                                                <Link v-if="hasRole('admin')" :href="route('admin.astekpam.edit', laporan.id)" class="w-full">
+                                                    <Button variant="outline" class="w-full text-amber-600 bg-white border-slate-200 hover:bg-amber-50 hover:border-amber-200 font-bold text-[10px] h-8 px-1 rounded-lg shadow-sm">
+                                                        <Edit class="w-3.5 h-3.5 mr-1 shrink-0" /> Edit
                                                     </Button>
+                                                </Link>
 
-                                                    <Button @click="shareKeWhatsAppGroup(laporan)" variant="outline" class="w-full text-emerald-600 border-emerald-200 hover:bg-emerald-50 font-bold text-[11px] h-8 px-2 rounded-lg flex items-center justify-center">
-                                                        <MessageCircle class="w-3.5 h-3.5 mr-1 shrink-0" /> Buka WA
-                                                    </Button>
-                                                </div>
+                                                <Button @click="copyTeksLaporan(laporan)" variant="outline" class="w-full text-slate-600 bg-white border-slate-200 hover:bg-slate-50 font-bold text-[10px] h-8 px-1 rounded-lg shadow-sm">
+                                                    <Copy class="w-3.5 h-3.5 mr-1 shrink-0" /> Copy
+                                                </Button>
 
+                                                <Button @click="shareKeWhatsAppGroup(laporan)" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] h-8 px-1 rounded-lg shadow-sm active:scale-95 transition-transform border-0">
+                                                    <MessageCircle class="w-3.5 h-3.5 mr-1 shrink-0" /> WA
+                                                </Button>
                                             </div>
                                         </td>
                                     </tr>
                                     
+                                    <!-- Empty State Desktop -->
                                     <tr v-if="paginatedAstekpams.length === 0">
-                                        <td colspan="6" class="text-center py-10 text-zinc-400 italic text-[13px]">
-                                            Tidak ada data laporan ditemukan.
+                                        <td colspan="6" class="text-center py-20">
+                                            <div class="flex flex-col items-center justify-center">
+                                                <div class="bg-indigo-50 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                                                    <FileText class="w-8 h-8 text-indigo-300" />
+                                                </div>
+                                                <h3 class="text-base font-bold text-slate-800">Laporan Tidak Ditemukan</h3>
+                                                <p class="text-sm font-medium text-slate-500 mt-1">Coba sesuaikan filter atau rentang tanggal.</p>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
-                        <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-zinc-100 bg-zinc-50/50">
-                            <span class="text-xs text-zinc-500 font-medium">
+                        <!-- PAGINATION -->
+                        <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border-t border-slate-100 bg-slate-50/50">
+                            <span class="text-xs text-slate-500 font-bold tracking-wide">
                                 Menampilkan {{ ((currentPage - 1) * itemsPerPage) + 1 }} - 
                                 {{ Math.min(currentPage * itemsPerPage, filteredAstekpams.length) }} 
-                                dari {{ filteredAstekpams.length }} data
+                                dari {{ filteredAstekpams.length }} Laporan
                             </span>
                             
                             <div class="flex items-center gap-2">
-                                <Button @click="prevPage" :disabled="currentPage === 1" variant="outline" class="h-9 px-3 rounded-lg border-zinc-200 text-zinc-600 text-xs font-bold flex items-center hover:bg-zinc-100">
+                                <Button @click="prevPage" :disabled="currentPage === 1" variant="outline" class="h-10 px-4 rounded-xl border-slate-200 text-slate-600 text-xs font-bold flex items-center hover:bg-slate-100 bg-white shadow-sm">
                                     <ChevronLeft class="w-4 h-4 mr-1" /> Prev
                                 </Button>
                                 
-                                <div class="flex items-center px-3 text-xs font-bold text-zinc-700 bg-white h-9 rounded-lg border border-zinc-200 shadow-sm">
+                                <div class="flex items-center px-4 text-xs font-extrabold text-slate-700 bg-white h-10 rounded-xl border border-slate-200 shadow-sm">
                                     Hal {{ currentPage }} / {{ totalPages }}
                                 </div>
 
-                                <Button @click="nextPage" :disabled="currentPage === totalPages" variant="outline" class="h-9 px-3 rounded-lg border-zinc-200 text-zinc-600 text-xs font-bold flex items-center hover:bg-zinc-100">
+                                <Button @click="nextPage" :disabled="currentPage === totalPages" variant="outline" class="h-10 px-4 rounded-xl border-slate-200 text-slate-600 text-xs font-bold flex items-center hover:bg-slate-100 bg-white shadow-sm">
                                     Next <ChevronRight class="w-4 h-4 ml-1" />
                                 </Button>
                             </div>
