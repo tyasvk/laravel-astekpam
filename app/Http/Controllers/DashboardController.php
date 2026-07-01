@@ -13,9 +13,12 @@ class DashboardController extends Controller
     {
        // Ambil 1 data laporan Astekpam paling terakhir/terbaru
         $latestAstekpam = Astekpam::latest()->first();
+        // Ambil status kuisioner dari database
+        $isKuisionerActive = Setting::where('key', 'kuisioner_active')->first()?->value === '1';
 
         return Inertia::render('Dashboard', [
-            'latestAstekpam' => $latestAstekpam
+            'latestAstekpam' => $latestAstekpam,
+            'isKuisionerActive' => $isKuisionerActive, // Kirim ke Vue
         ]);
     }
     public function __invoke()

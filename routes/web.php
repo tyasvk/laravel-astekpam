@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AstekpamController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KuisionerController; // <-- Ini baris yang ditambahkan
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -40,6 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     Route::get('/admin/kuisioner/hasil', [KuisionerController::class, 'adminResults'])->name('admin.kuisioner.results');
     Route::get('/admin/kuisioner/hasil/export', [KuisionerController::class, 'exportCsv'])->name('admin.kuisioner.export');
+    
     // ----------------------------------------------------------------------
     // TAMBAHKAN DISINI: Endpoint untuk Download Laporan
     // Pastikan di atas route /{astekpam}
