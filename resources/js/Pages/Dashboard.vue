@@ -10,7 +10,8 @@ import {
 
 const props = defineProps({
     latestAstekpam: Object,
-    isKuisionerActive: Boolean // <-- Tambahkan prop ini untuk menerima status kuisioner dari controller
+    isKuisionerActive: Boolean,
+    hasFilledKuisioner: Boolean,
 });
 
 const formatVal = (val) => {
@@ -143,13 +144,21 @@ const getPercentage = (hadir, jumlah) => {
                         </div>
                         <div>
                             <h3 class="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">Evaluasi & Kuisioner</h3>
-                            <p class="text-sm text-slate-500 mt-1 font-medium max-w-xl">
+                            
+                            <!-- Muncul jika BELUM mengisi -->
+                            <p v-if="!hasFilledKuisioner" class="text-sm text-slate-500 mt-1 font-medium max-w-xl">
                                 Terdapat form evaluasi/kuisioner yang sedang aktif. Mohon kesediaannya untuk mengisi form tersebut.
+                            </p>
+                            
+                            <!-- Muncul jika SUDAH mengisi -->
+                            <p v-else class="text-sm text-emerald-600 mt-1 font-bold max-w-xl flex items-center gap-1.5">
+                                <CheckCircle2 class="w-4 h-4" /> Terima kasih sudah mengisi kuisioner.
                             </p>
                         </div>
                     </div>
                     
-                    <Link :href="route('kuisioner.fill')" class="w-full md:w-auto relative z-10 shrink-0">
+                    <!-- Tombol hanya muncul jika BELUM mengisi -->
+                    <Link v-if="!hasFilledKuisioner" :href="route('kuisioner.fill')" class="w-full md:w-auto relative z-10 shrink-0">
                         <Button class="w-full md:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-12 px-8 text-sm sm:text-base shadow-lg shadow-indigo-200 transition-all hover:scale-105 active:scale-95">
                             Isi Kuisioner Sekarang
                         </Button>

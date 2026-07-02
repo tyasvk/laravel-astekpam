@@ -28,8 +28,8 @@ const props = defineProps({
 const previousReportData = computed(() => props.latestReport || props.lastReport);
 const isPreviewActive = ref(false);
 
-// State untuk Preview Foto
 const previewUrl = ref(null);
+const showSuccessModal = ref(false); 
 
 const anggotaReguOptions = ref([]);
 
@@ -42,6 +42,11 @@ const pengawasPiketOptions = computed(() => {
 });
 const staffKplpOptions = computed(() => {
     return props.pejabats.filter(p => p.kategori === 'Staff KPLP');
+});
+
+// ---- TAMBAHAN: Mengambil Daftar Petugas yang Menjabat P2U ----
+const p2uUsersOptions = computed(() => {
+    return props.users.filter(u => u.jabatan && u.jabatan.toUpperCase().includes('P2U'));
 });
 
 const dropdownTugas = {
@@ -90,7 +95,6 @@ const form = useForm({
     ke_shift: '',
     pimpinan: 'STAF KPLP',
     
-    // Field Foto Laporan
     foto_laporan: null,
     
     kapasitas: previousReportData.value?.kapasitas ?? 813,
@@ -117,7 +121,9 @@ const form = useForm({
     p2u_keterangan: '',
 
     tugas: {
-        ka_rupam: '', wakarupam: '', kasatgas_p2u: '', wakasatgas_p2u: '',
+        ka_rupam: '', wakarupam: '', 
+        kasatgas_p2u: '', wakasatgas_p2u: '',
+        anggota_p2u_3: '', anggota_p2u_4: '', // Slot tambahan jika P2U ada 4 orang
         
         blok_a: { jam_1: '', jam_2: '', jam_3: '' },
         blok_b: { jam_1: '', jam_2: '', jam_3: '' },
@@ -141,7 +147,7 @@ const handleFileUpload = (e) => {
     if (file) {
         if (file.size > 10 * 1024 * 1024) {
             alert('Ukuran file tidak boleh lebih dari 10MB!');
-            e.target.value = ''; // Kosongkan input
+            e.target.value = ''; 
             form.foto_laporan = null;
             previewUrl.value = null;
             return;
@@ -237,13 +243,18 @@ watch(() => form.rupam_pilihan, (newRupam) => {
 
         form.tugas.ka_rupam = cariJabatan('karupam');
         form.tugas.wakarupam = cariJabatan('wakarupam');
-        form.tugas.kasatgas_p2u = cariJabatan('kasatgas'); 
-        form.tugas.wakasatgas_p2u = cariJabatan('wakasatgas');
+        
+        // P2U Autofill (Akan membaca kata kunci P2U I, P2U II, dst.)
+        form.tugas.kasatgas_p2u = cariJabatan('p2ui') || cariJabatan('p2u1') || cariJabatan('kasatgas') || ''; 
+        form.tugas.wakasatgas_p2u = cariJabatan('p2uii') || cariJabatan('p2u2') || cariJabatan('wakasatgas') || '';
+        form.tugas.anggota_p2u_3 = cariJabatan('p2uiii') || cariJabatan('p2u3') || '';
+        form.tugas.anggota_p2u_4 = cariJabatan('p2uiv') || cariJabatan('p2u4') || '';
 
     } else {
         anggotaReguOptions.value = [];
         form.tugas.ka_rupam = ''; form.tugas.wakarupam = '';
         form.tugas.kasatgas_p2u = ''; form.tugas.wakasatgas_p2u = '';
+        form.tugas.anggota_p2u_3 = ''; form.tugas.anggota_p2u_4 = '';
     }
 });
 
@@ -260,13 +271,18 @@ const togglePreview = () => {
 // ==========================================
 const submitLaporan = () => {
     form.post(route('astekpam.store'), {
-        forceFormData: true, // SANGAT PENTING untuk mengirim file foto
+        forceFormData: true,
         preserveScroll: true,
+        onSuccess: () => {
+            showSuccessModal.value = true;
+            setTimeout(() => {
+                showSuccessModal.value = false;
+            }, 1500);
+        },
         onError: (errors) => {
             console.error(errors);
             alert("GAGAL MENYIMPAN! Terdapat field wajib yang belum diisi. Silakan cek kembali form berwarna merah.");
             
-            // Otomatis kembalikan layar ke Form agar user bisa melihat errornya
             if (isPreviewActive.value) {
                 isPreviewActive.value = false;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -282,7 +298,6 @@ const submitLaporan = () => {
         
         <div class="px-4 py-6 sm:py-10 bg-slate-50 min-h-screen relative">
             
-            <!-- Dekorasi Latar Belakang -->
             <div class="absolute top-0 inset-x-0 h-64 bg-gradient-to-b from-indigo-100/50 to-transparent pointer-events-none"></div>
 
             <div class="max-w-4xl mx-auto w-full relative z-10">
@@ -308,7 +323,6 @@ const submitLaporan = () => {
                     </Button>
                 </div>
 
-                <!-- Alert Error -->
                 <div v-if="Object.keys(form.errors).length > 0 && !isPreviewActive" class="mb-8 p-5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 shadow-sm animate-in fade-in slide-in-from-top-4">
                     <div class="flex items-center gap-2 mb-3 font-bold text-sm">
                         <ShieldAlert class="w-5 h-5 text-rose-500" /> Gagal Menyimpan. Ada field yang belum diisi:
@@ -318,10 +332,8 @@ const submitLaporan = () => {
                     </ul>
                 </div>
 
-                <!-- FORM UTAMA -->
                 <form @submit.prevent class="space-y-6 sm:space-y-8" v-if="!isPreviewActive">
                     
-                    <!-- 1. BUKTI FOTO -->
                     <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden transition-all hover:shadow-lg hover:shadow-slate-200">
                         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 flex items-center gap-3 border-b border-indigo-100/50">
                             <div class="p-2 bg-white rounded-lg shadow-sm text-indigo-600"><ImageIcon class="w-5 h-5"/></div>
@@ -333,7 +345,6 @@ const submitLaporan = () => {
                                     <Label class="text-xs font-bold text-slate-400 tracking-wider mb-3 block">UPLOAD FOTO (MAKS. 10MB)</Label>
                                     
                                     <div class="relative group mt-2">
-                                        <!-- Custom File Input UI -->
                                         <div class="absolute inset-0 w-full h-full border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50 group-hover:bg-indigo-50/50 group-hover:border-indigo-300 transition-colors pointer-events-none flex flex-col items-center justify-center gap-2">
                                             <UploadCloud class="w-8 h-8 text-slate-400 group-hover:text-indigo-500 transition-colors" />
                                             <span v-if="!form.foto_laporan" class="text-sm text-slate-500 font-medium group-hover:text-indigo-600">Klik atau seret gambar ke sini</span>
@@ -358,7 +369,6 @@ const submitLaporan = () => {
                         </CardContent>
                     </Card>
 
-                    <!-- INFO WAKTU & SHIFT -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                         <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white p-2">
                             <div class="p-4 bg-slate-50 rounded-2xl h-full space-y-2">
@@ -383,7 +393,6 @@ const submitLaporan = () => {
                         </Card>
                     </div>
 
-                    <!-- 2. SERAH TERIMA -->
                     <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden transition-all hover:shadow-lg hover:shadow-slate-200">
                         <div class="bg-gradient-to-r from-amber-50 to-orange-50 px-6 py-4 flex items-center gap-3 border-b border-orange-100/50">
                             <div class="p-2 bg-white rounded-lg shadow-sm text-orange-500"><ClipboardList class="w-5 h-5"/></div>
@@ -438,7 +447,6 @@ const submitLaporan = () => {
                         </CardContent>
                     </Card>
 
-                    <!-- 3. JUMLAH PENGHUNI -->
                     <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden transition-all hover:shadow-lg hover:shadow-slate-200">
                         <div class="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 flex items-center gap-3 border-b border-emerald-100/50">
                             <div class="p-2 bg-white rounded-lg shadow-sm text-emerald-600"><Users class="w-5 h-5"/></div>
@@ -446,7 +454,6 @@ const submitLaporan = () => {
                         </div>
                         <CardContent class="p-6 sm:p-8 space-y-8">
                             
-                            <!-- Kapasitas & Total -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
                                 <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3">
                                     <Label class="text-xs font-bold text-slate-500 flex justify-between items-center uppercase tracking-wider">
@@ -464,7 +471,6 @@ const submitLaporan = () => {
                                 </div>
                             </div>
                             
-                            <!-- Distribusi Blok -->
                             <div class="space-y-4">
                                 <Label class="text-xs font-bold text-slate-400 tracking-wider">DISTRIBUSI BLOK & AREA</Label>
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -478,7 +484,6 @@ const submitLaporan = () => {
                                 </div>
                             </div>
                             
-                            <!-- Posisi Lapas -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
                                 <div class="space-y-2 p-4 bg-blue-50/50 rounded-2xl border border-blue-100">
                                     <Label class="text-xs font-bold text-blue-700 flex justify-between items-center uppercase tracking-wider">
@@ -496,7 +501,6 @@ const submitLaporan = () => {
                                 </div>
                             </div>
                             
-                            <!-- List Luar Lapas -->
                             <div class="space-y-6 pt-4">
                                 <div v-for="(items, key) in { rawat_inap_items: 'Rawat Inap RS', berobat_items: 'Berobat RS', bon_luar_items: 'Lain-lain (Bon Luar)' }" :key="key" class="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100 space-y-4">
                                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
@@ -524,7 +528,6 @@ const submitLaporan = () => {
                         </CardContent>
                     </Card>
 
-                    <!-- 4. PERSONIL & TUGAS -->
                     <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden transition-all hover:shadow-lg hover:shadow-slate-200 mb-20">
                         <div class="bg-gradient-to-r from-purple-50 to-fuchsia-50 px-6 py-4 flex items-center gap-3 border-b border-purple-100/50">
                             <div class="p-2 bg-white rounded-lg shadow-sm text-purple-600"><ShieldAlert class="w-5 h-5"/></div>
@@ -532,7 +535,6 @@ const submitLaporan = () => {
                         </div>
                         <CardContent class="p-6 sm:p-8 space-y-8">
                             
-                            <!-- Rupam -->
                             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-700">1</span>
@@ -562,7 +564,6 @@ const submitLaporan = () => {
                                 </div>
                             </div>
 
-                            <!-- P2U -->
                             <div class="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-700">2</span>
@@ -586,7 +587,6 @@ const submitLaporan = () => {
                                 </div>
                             </div>
 
-                            <!-- Pembagian Tugas Spesifik -->
                             <div class="pt-2 space-y-6">
                                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
                                     <span class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-slate-700">3</span>
@@ -596,14 +596,53 @@ const submitLaporan = () => {
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
                                     <div class="space-y-2"><Label class="text-xs font-bold text-slate-600">Ka. Rupam</Label><Input v-model="form.tugas.ka_rupam" class="h-12 text-sm rounded-xl font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500" /></div>
                                     <div class="space-y-2"><Label class="text-xs font-bold text-slate-600">Wakarupam</Label><Input v-model="form.tugas.wakarupam" class="h-12 text-sm rounded-xl font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500" /></div>
-                                    <div class="space-y-2"><Label class="text-xs font-bold text-slate-600">Kasatgas P2U</Label><Input v-model="form.tugas.kasatgas_p2u" class="h-12 text-sm rounded-xl font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500" /></div>
-                                    <div class="space-y-2"><Label class="text-xs font-bold text-slate-600">Wakasatgas P2U</Label><Input v-model="form.tugas.wakasatgas_p2u" class="h-12 text-sm rounded-xl font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500" /></div>
+                                    
+                                    <div class="space-y-2">
+                                        <Label class="text-xs font-bold text-slate-600">Petugas P2U 1 (Kasatgas)</Label>
+                                        <Select v-model="form.tugas.kasatgas_p2u">
+                                            <SelectTrigger class="h-12 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih P2U..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="-">(Kosong)</SelectItem>
+                                                <SelectItem v-for="p in p2uUsersOptions" :key="p.id" :value="p.name">{{ p.name }} ({{ p.jabatan }})</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <Label class="text-xs font-bold text-slate-600">Petugas P2U 2 (Wakasatgas)</Label>
+                                        <Select v-model="form.tugas.wakasatgas_p2u">
+                                            <SelectTrigger class="h-12 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih P2U..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="-">(Kosong)</SelectItem>
+                                                <SelectItem v-for="p in p2uUsersOptions" :key="p.id" :value="p.name">{{ p.name }} ({{ p.jabatan }})</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <Label class="text-xs font-bold text-slate-600">Petugas P2U 3 (Opsional)</Label>
+                                        <Select v-model="form.tugas.anggota_p2u_3">
+                                            <SelectTrigger class="h-12 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih P2U..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="-">(Kosong)</SelectItem>
+                                                <SelectItem v-for="p in p2uUsersOptions" :key="p.id" :value="p.name">{{ p.name }} ({{ p.jabatan }})</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <Label class="text-xs font-bold text-slate-600">Petugas P2U 4 (Opsional)</Label>
+                                        <Select v-model="form.tugas.anggota_p2u_4">
+                                            <SelectTrigger class="h-12 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih P2U..." /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="-">(Kosong)</SelectItem>
+                                                <SelectItem v-for="p in p2uUsersOptions" :key="p.id" :value="p.name">{{ p.name }} ({{ p.jabatan }})</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <div v-for="(label, key) in dropdownTugas" :key="key" class="p-5 bg-white border border-slate-200 rounded-2xl shadow-sm space-y-4 hover:border-purple-200 transition-colors">
                                         <Label class="text-xs text-slate-800 font-black tracking-widest uppercase border-b border-slate-100 pb-2 block">{{label}}</Label>
-                                        <div class="grid gap-3" :class="jumlahJam === 3 ? 'grid-cols-1' : 'grid-cols-1'">
+                                        <div class="grid gap-3 grid-cols-1">
                                             <div v-for="jam in jumlahJam" :key="jam" class="space-y-1.5 flex flex-col">
                                                 <Label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Jam Ke-{{ jam }}</Label>
                                                 <Select v-model="form.tugas[key]['jam_' + jam]">
@@ -661,7 +700,6 @@ const submitLaporan = () => {
                         </CardContent>
                     </Card>
 
-                    <!-- Tombol Lanjut Floating (Hanya muncul jika bukan preview) -->
                     <div class="fixed bottom-6 left-0 right-0 px-4 z-40 pointer-events-none flex justify-center">
                         <Button type="button" @click="togglePreview" class="pointer-events-auto h-14 rounded-full bg-slate-900 text-white px-8 font-bold text-sm hover:bg-slate-800 shadow-2xl shadow-slate-900/40 transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
                             <FileSearch class="w-5 h-5" /> LIHAT PRATINJAU DOKUMEN
@@ -669,9 +707,6 @@ const submitLaporan = () => {
                     </div>
                 </form>
 
-                <!-- ============================================== -->
-                <!-- TAMPILAN PREVIEW (KEMBALI KE DESAIN ASLI GRID) -->
-                <!-- ============================================== -->
                 <div v-if="isPreviewActive" class="animate-in fade-in slide-in-from-bottom-8 duration-500 font-sans w-full pb-32">
                      
                     <Card class="border-none shadow-xl bg-white p-6 sm:p-8 md:p-12 rounded-2xl sm:rounded-xl text-slate-900 font-sans text-[13px] sm:text-[14px] md:text-[15px] leading-relaxed mb-6 overflow-x-auto custom-scrollbar max-w-4xl mx-auto">
@@ -680,7 +715,6 @@ const submitLaporan = () => {
                             ASTEKPAM LAPAS KELAS I PALEMBANG
                         </div>
 
-                        <!-- Foto Laporan Diletakkan Paling Atas di Preview -->
                         <div v-if="previewUrl" class="mb-8 flex flex-col items-center bg-slate-50 p-4 rounded-xl border border-slate-200">
                             <span class="text-xs font-bold text-slate-500 mb-3 w-full text-center sm:text-left uppercase tracking-wider flex items-center justify-center sm:justify-start gap-2">
                                 <ImageIcon class="w-4 h-4" /> Lampiran Foto Bukti
@@ -748,8 +782,14 @@ const submitLaporan = () => {
                             <div class="pl-4 sm:pl-5 align-top">Wakarupam</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.wakarupam || '-' }}</div>
                             
                             <div class="col-span-3 font-semibold mt-2">b. Petugas P2U :</div>
-                            <div class="pl-4 sm:pl-5 align-top">Kasatgas</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.kasatgas_p2u || '-' }}</div>
-                            <div class="pl-4 sm:pl-5 align-top">Wakasatgas</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.wakasatgas_p2u || '-' }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Petugas 1</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.kasatgas_p2u || '-' }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Petugas 2</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.wakasatgas_p2u || '-' }}</div>
+                            <div v-if="form.tugas.anggota_p2u_3 && form.tugas.anggota_p2u_3 !== '-'" class="pl-4 sm:pl-5 align-top">Petugas 3</div>
+                            <div v-if="form.tugas.anggota_p2u_3 && form.tugas.anggota_p2u_3 !== '-'" class="align-top">:</div>
+                            <div v-if="form.tugas.anggota_p2u_3 && form.tugas.anggota_p2u_3 !== '-'" class="align-top break-words">{{ form.tugas.anggota_p2u_3 }}</div>
+                            <div v-if="form.tugas.anggota_p2u_4 && form.tugas.anggota_p2u_4 !== '-'" class="pl-4 sm:pl-5 align-top">Petugas 4</div>
+                            <div v-if="form.tugas.anggota_p2u_4 && form.tugas.anggota_p2u_4 !== '-'" class="align-top">:</div>
+                            <div v-if="form.tugas.anggota_p2u_4 && form.tugas.anggota_p2u_4 !== '-'" class="align-top break-words">{{ form.tugas.anggota_p2u_4 }}</div>
                             
                             <div class="col-span-3 font-semibold mt-2">c. Petugas Blok :</div>
                             <div class="pl-4 sm:pl-5 align-top">Blok A</div><div class="align-top">:</div><div class="align-top break-words">{{ formatJam(form.tugas.blok_a) }}</div>
@@ -780,7 +820,6 @@ const submitLaporan = () => {
 
                     </Card>
 
-                    <!-- Sticky Bottom Action Bar (Preview Mode) -->
                     <div class="fixed bottom-6 left-0 right-0 px-4 z-40 flex justify-center w-full">
                         <div class="flex items-center gap-3 bg-white/90 backdrop-blur-md p-3 rounded-full border border-slate-200 shadow-2xl max-w-2xl w-full mx-auto">
                             <Button @click="togglePreview" type="button" variant="ghost" class="h-12 rounded-full font-bold text-sm text-slate-600 hover:bg-slate-100 px-6">
@@ -804,11 +843,29 @@ const submitLaporan = () => {
 
             </div>
         </div>
+
+        <div v-if="showSuccessModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/70 backdrop-blur-sm transition-opacity">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all p-8 text-center animate-bounce-short">
+                <div class="w-20 h-20 rounded-full bg-green-100 text-green-500 flex items-center justify-center mx-auto mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-black text-gray-900 mb-2">Berhasil!</h3>
+                <p class="text-gray-500 font-medium">
+                    Laporan sudah terkirim.
+                </p>
+                <div class="mt-6 flex justify-center">
+                    <div class="w-8 h-1 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="w-full h-full bg-green-500 animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </AuthenticatedLayout>
 </template>
 
 <style scoped>
-/* Scrollbar Kustom untuk tabel/container yang meluap jika ada */
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -824,13 +881,21 @@ const submitLaporan = () => {
     background: #94a3b8;
 }
 
-/* Hilangkan panah up/down pada input type="number" */
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 
   -webkit-appearance: none; 
   margin: 0; 
 }
 input[type=number] {
-    -moz-appearance: textfield; /* Firefox */
+    -moz-appearance: textfield; 
+}
+
+.animate-bounce-short {
+    animation: bounce-short 0.4s ease-out forwards;
+}
+@keyframes bounce-short {
+    0% { transform: scale(0.9); opacity: 0; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
 }
 </style>

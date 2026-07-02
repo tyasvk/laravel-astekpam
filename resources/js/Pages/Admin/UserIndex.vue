@@ -19,7 +19,6 @@ const isModalOpen = ref(false);
 const isEditMode = ref(false);
 const currentUserId = ref(null);
 
-// State Filter Frontend
 const filterRegu = ref('all');
 const filterJabatanGroup = ref('all');
 
@@ -29,14 +28,13 @@ const form = useForm({
     nip: '',
     password: '',
     regu: '',
-    jabatan: ''
+    jabatan: '',
+    role: 'user'
 });
 
-// Sistem Penyaringan & Pengurutan otomatis (Regu I-IV -> Karupam -> Wakarupam -> Anggota)
 const filteredAndSortedUsers = computed(() => {
     let result = [...props.users];
 
-    // 1. FILTER DATA
     if (filterRegu.value !== 'all') {
         result = result.filter(user => user.regu === filterRegu.value);
     }
@@ -49,9 +47,7 @@ const filteredAndSortedUsers = computed(() => {
         });
     }
 
-    // 2. URUT DATA BERDASARKAN REGU & HIERARKI JABATAN
     return result.sort((a, b) => {
-        // Urutan Bobot Regu (I sampai IV)
         const reguOrder = { 'I': 1, 'II': 2, 'III': 3, 'IV': 4 };
         const weightA = reguOrder[a.regu] || 99;
         const weightB = reguOrder[b.regu] || 99;
@@ -60,14 +56,14 @@ const filteredAndSortedUsers = computed(() => {
             return weightA - weightB;
         }
 
-        // Urutan Bobot Jabatan jika berada di dalam regu yang sama
         const getJabatanWeight = (jabatanText) => {
-            if (!jabatanText) return 4;
+            if (!jabatanText) return 5;
             const j = jabatanText.toLowerCase();
-            if (j.includes('wakarupam')) return 2; // Cek wakarupam dulu agar tidak terdeteksi karupam
+            if (j.includes('wakarupam')) return 2; 
             if (j.includes('karupam')) return 1;
-            if (j.includes('anggota')) return 3;
-            return 4;
+            if (j.includes('p2u')) return 3; // P2U di urutan ke-3
+            if (j.includes('anggota')) return 4;
+            return 5;
         };
 
         return getJabatanWeight(a.jabatan) - getJabatanWeight(b.jabatan);
@@ -79,6 +75,7 @@ const openAddModal = () => {
     isEditMode.value = false;
     currentUserId.value = null;
     form.reset();
+    form.role = 'user'; 
     isModalOpen.value = true;
 };
 
@@ -92,6 +89,15 @@ const openEditModal = (user) => {
     form.regu = user.regu || ''; 
     form.jabatan = user.jabatan || ''; 
     form.password = ''; 
+    
+    if (user.roles && user.roles.some(r => r.name === 'admin')) {
+        form.role = 'admin';
+    } else if (user.roles && user.roles.some(r => r.name === 'pejabat')) {
+        form.role = 'pejabat';
+    } else {
+        form.role = 'user';
+    }
+    
     isModalOpen.value = true;
 };
 
@@ -172,6 +178,7 @@ const deleteUser = (id) => {
                                     <SelectItem value="all">Semua Jabatan</SelectItem>
                                     <SelectItem value="karupam">Karupam</SelectItem>
                                     <SelectItem value="wakarupam">Wakarupam</SelectItem>
+                                    <SelectItem value="p2u">Satgas P2U</SelectItem>
                                     <SelectItem value="anggota">Anggota</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -181,11 +188,12 @@ const deleteUser = (id) => {
 
                 <Card class="rounded-2xl border border-zinc-200 shadow-sm bg-white overflow-hidden">
                     <CardContent class="p-0 overflow-x-auto custom-scrollbar">
-                        <table class="w-full text-left border-collapse min-w-[700px]">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
                             <thead>
                                 <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[10px] sm:text-[11px] tracking-wider uppercase">
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6">Nama / NIP</th>
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6">Email</th>
+                                    <th class="py-3.5 sm:py-4 px-4 sm:px-6">Hak Akses</th>
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6">Regu</th>
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6">Jabatan</th>
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6 text-right">Aksi</th>
@@ -198,6 +206,19 @@ const deleteUser = (id) => {
                                         <p class="text-[10px] sm:text-xs text-zinc-400 font-normal mt-0.5">NIP. {{ user.nip || '-' }}</p>
                                     </td>
                                     <td class="py-3 sm:py-4 px-4 sm:px-6 text-zinc-600">{{ user.email }}</td>
+                                    
+                                    <td class="py-3 sm:py-4 px-4 sm:px-6">
+                                        <span v-if="user.roles && user.roles.some(r => r.name === 'admin')" class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                                            Admin
+                                        </span>
+                                        <span v-else-if="user.roles && user.roles.some(r => r.name === 'pejabat')" class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                            Pejabat
+                                        </span>
+                                        <span v-else class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-zinc-100 text-zinc-700 border border-zinc-200">
+                                            Petugas
+                                        </span>
+                                    </td>
+
                                     <td class="py-3 sm:py-4 px-4 sm:px-6">
                                         <span class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-zinc-100 text-zinc-800 border border-zinc-200">
                                             Regu {{ user.regu || '-' }}
@@ -218,7 +239,7 @@ const deleteUser = (id) => {
                                     </td>
                                 </tr>
                                 <tr v-if="filteredAndSortedUsers.length === 0">
-                                    <td colspan="5" class="text-center py-12 text-xs sm:text-sm text-zinc-400 italic">Tidak ada data petugas yang cocok dengan filter.</td>
+                                    <td colspan="6" class="text-center py-12 text-xs sm:text-sm text-zinc-400 italic">Tidak ada data petugas yang cocok dengan filter.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -291,6 +312,10 @@ const deleteUser = (id) => {
                                             <SelectItem value="Wakarupam II">Wakarupam II</SelectItem>
                                             <SelectItem value="Wakarupam III">Wakarupam III</SelectItem>
                                             <SelectItem value="Wakarupam IV">Wakarupam IV</SelectItem>
+                                            <SelectItem value="P2U I">P2U I</SelectItem>
+                                            <SelectItem value="P2U II">P2U II</SelectItem>
+                                            <SelectItem value="P2U III">P2U III</SelectItem>
+                                            <SelectItem value="P2U IV">P2U IV</SelectItem>
                                             <SelectItem value="Anggota I">Anggota I</SelectItem>
                                             <SelectItem value="Anggota II">Anggota II</SelectItem>
                                             <SelectItem value="Anggota III">Anggota III</SelectItem>
@@ -301,12 +326,29 @@ const deleteUser = (id) => {
                                 </div>
                             </div>
 
-                            <div class="space-y-1.5">
-                                <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">
-                                    PASSWORD {{ isEditMode ? '(Kosongkan jika tak diubah)' : '' }}
-                                </Label>
-                                <Input type="password" v-model="form.password" placeholder="••••••••" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl" />
-                                <p v-if="form.errors.password" class="text-xs text-rose-500 mt-1">{{ form.errors.password }}</p>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                                <div class="space-y-1.5">
+                                    <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">HAK AKSES (ROLE)</Label>
+                                    <Select v-model="form.role">
+                                        <SelectTrigger class="h-12 sm:h-11 text-base sm:text-sm rounded-xl bg-white border-zinc-200 shadow-sm w-full">
+                                            <SelectValue placeholder="Pilih Role" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="user">Petugas Biasa</SelectItem>
+                                            <SelectItem value="admin">Administrator</SelectItem>
+                                            <SelectItem value="pejabat">Pejabat Lapas</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <p v-if="form.errors.role" class="text-xs text-rose-500 mt-1">{{ form.errors.role }}</p>
+                                </div>
+
+                                <div class="space-y-1.5">
+                                    <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">
+                                        PASSWORD {{ isEditMode ? '(Isi jika diubah)' : '' }}
+                                    </Label>
+                                    <Input type="password" v-model="form.password" placeholder="••••••••" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl" />
+                                    <p v-if="form.errors.password" class="text-xs text-rose-500 mt-1">{{ form.errors.password }}</p>
+                                </div>
                             </div>
 
                             <div class="flex gap-3 pt-5 sm:pt-4 border-t border-zinc-100 mt-6 shrink-0">
@@ -325,20 +367,8 @@ const deleteUser = (id) => {
 </template>
 
 <style scoped>
-/* Opsional: Membuat scrollbar horizontal pada tabel terlihat lebih rapi di HP */
-.custom-scrollbar::-webkit-scrollbar {
-    height: 6px;
-    width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f5f9; 
-    border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #cbd5e1; 
-    border-radius: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8; 
-}
+.custom-scrollbar::-webkit-scrollbar { height: 6px; width: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 </style>

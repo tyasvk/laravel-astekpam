@@ -101,7 +101,7 @@ class KuisionerController extends Controller
     {
         $questions = Question::latest()->get();
         // Ambil status kuisioner saat ini dari tabel settings
-        $isKuisionerActive = Setting::where('key', 'kuisioner_status')->value('value') === '1';
+        $isKuisionerActive = Setting::where('key', 'kuisioner_status')->value('value') == '1';
         
         return Inertia::render('Admin/Kuisioner/Questions', compact('questions', 'isKuisionerActive'));
     }
@@ -109,7 +109,7 @@ class KuisionerController extends Controller
     // Fungsi baru untuk Toggle ON/OFF
     public function toggleStatus(Request $request)
     {
-        $status = $request->status ? '1' : '0';
+        $status = $request->boolean('status') ? '1' : '0';
         Setting::updateOrCreate(
             ['key' => 'kuisioner_status'],
             ['value' => $status]
@@ -121,7 +121,7 @@ class KuisionerController extends Controller
     public function fillForm()
     {
         // Proteksi jika petugas memaksa masuk via URL saat kuisioner OFF
-        $isActive = Setting::where('key', 'kuisioner_status')->value('value') === '1';
+        $isActive = Setting::where('key', 'kuisioner_status')->value('value') == '1';
         if (!$isActive) {
             return redirect()->route('dashboard')->with('error', 'Kuisioner sedang ditutup.');
         }
