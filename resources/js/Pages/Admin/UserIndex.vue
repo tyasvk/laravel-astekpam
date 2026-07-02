@@ -57,13 +57,14 @@ const filteredAndSortedUsers = computed(() => {
         }
 
         const getJabatanWeight = (jabatanText) => {
-            if (!jabatanText) return 5;
+            if (!jabatanText) return 6;
             const j = jabatanText.toLowerCase();
             if (j.includes('wakarupam')) return 2; 
             if (j.includes('karupam')) return 1;
-            if (j.includes('p2u')) return 3; // P2U di urutan ke-3
-            if (j.includes('anggota')) return 4;
-            return 5;
+            if (j.includes('wakasatgas')) return 4;
+            if (j.includes('kasatgas')) return 3;
+            if (j.includes('anggota')) return 5;
+            return 6;
         };
 
         return getJabatanWeight(a.jabatan) - getJabatanWeight(b.jabatan);
@@ -178,7 +179,8 @@ const deleteUser = (id) => {
                                     <SelectItem value="all">Semua Jabatan</SelectItem>
                                     <SelectItem value="karupam">Karupam</SelectItem>
                                     <SelectItem value="wakarupam">Wakarupam</SelectItem>
-                                    <SelectItem value="p2u">Satgas P2U</SelectItem>
+                                    <SelectItem value="kasatgas">Kasatgas P2U</SelectItem>
+                                    <SelectItem value="wakasatgas">Wakasatgas P2U</SelectItem>
                                     <SelectItem value="anggota">Anggota</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -312,10 +314,14 @@ const deleteUser = (id) => {
                                             <SelectItem value="Wakarupam II">Wakarupam II</SelectItem>
                                             <SelectItem value="Wakarupam III">Wakarupam III</SelectItem>
                                             <SelectItem value="Wakarupam IV">Wakarupam IV</SelectItem>
-                                            <SelectItem value="P2U I">P2U I</SelectItem>
-                                            <SelectItem value="P2U II">P2U II</SelectItem>
-                                            <SelectItem value="P2U III">P2U III</SelectItem>
-                                            <SelectItem value="P2U IV">P2U IV</SelectItem>
+                                            <SelectItem value="Kasatgas I">Kasatgas I</SelectItem>
+                                            <SelectItem value="Kasatgas II">Kasatgas II</SelectItem>
+                                            <SelectItem value="Kasatgas III">Kasatgas III</SelectItem>
+                                            <SelectItem value="Kasatgas IV">Kasatgas IV</SelectItem>
+                                            <SelectItem value="Wakasatgas I">Wakasatgas I</SelectItem>
+                                            <SelectItem value="Wakasatgas II">Wakasatgas II</SelectItem>
+                                            <SelectItem value="Wakasatgas III">Wakasatgas III</SelectItem>
+                                            <SelectItem value="Wakasatgas IV">Wakasatgas IV</SelectItem>
                                             <SelectItem value="Anggota I">Anggota I</SelectItem>
                                             <SelectItem value="Anggota II">Anggota II</SelectItem>
                                             <SelectItem value="Anggota III">Anggota III</SelectItem>

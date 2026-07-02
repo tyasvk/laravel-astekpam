@@ -28,7 +28,8 @@ class UserController extends Controller
             'jabatan' => ['nullable', Rule::in([
                 'Karupam I', 'Karupam II', 'Karupam III', 'Karupam IV',
                 'Wakarupam I', 'Wakarupam II', 'Wakarupam III', 'Wakarupam IV',
-                'P2U I', 'P2U II', 'P2U III', 'P2U IV', // <-- Jabatan P2U ditambahkan
+                'Kasatgas I', 'Kasatgas II', 'Kasatgas III', 'Kasatgas IV',
+                'Wakasatgas I', 'Wakasatgas II', 'Wakasatgas III', 'Wakasatgas IV',
                 'Anggota I', 'Anggota II', 'Anggota III', 'Anggota IV'
             ])],
         ]);
@@ -56,7 +57,8 @@ class UserController extends Controller
             'jabatan' => ['nullable', Rule::in([
                 'Karupam I', 'Karupam II', 'Karupam III', 'Karupam IV',
                 'Wakarupam I', 'Wakarupam II', 'Wakarupam III', 'Wakarupam IV',
-                'P2U I', 'P2U II', 'P2U III', 'P2U IV', // <-- Jabatan P2U ditambahkan
+                'Kasatgas I', 'Kasatgas II', 'Kasatgas III', 'Kasatgas IV',
+                'Wakasatgas I', 'Wakasatgas II', 'Wakasatgas III', 'Wakasatgas IV',
                 'Anggota I', 'Anggota II', 'Anggota III', 'Anggota IV'
             ])],
         ]);

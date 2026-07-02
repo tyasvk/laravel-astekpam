@@ -44,11 +44,6 @@ const staffKplpOptions = computed(() => {
     return props.pejabats.filter(p => p.kategori === 'Staff KPLP');
 });
 
-// ---- TAMBAHAN: Mengambil Daftar Petugas yang Menjabat P2U ----
-const p2uUsersOptions = computed(() => {
-    return props.users.filter(u => u.jabatan && u.jabatan.toUpperCase().includes('P2U'));
-});
-
 const dropdownTugas = {
     blok_a: 'Blok A', blok_b: 'Blok B', 
     menara_1: 'Menara 1', menara_2: 'Menara 2', 
@@ -123,7 +118,6 @@ const form = useForm({
     tugas: {
         ka_rupam: '', wakarupam: '', 
         kasatgas_p2u: '', wakasatgas_p2u: '',
-        anggota_p2u_3: '', anggota_p2u_4: '', // Slot tambahan jika P2U ada 4 orang
         
         blok_a: { jam_1: '', jam_2: '', jam_3: '' },
         blok_b: { jam_1: '', jam_2: '', jam_3: '' },
@@ -236,25 +230,26 @@ watch(() => form.rupam_pilihan, (newRupam) => {
 
         anggotaReguOptions.value = anggotaRegu;
 
-        const cariJabatan = (kataKunci) => {
-            const user = anggotaRegu.find(u => bersihkanTeks(u.jabatan).includes(kataKunci));
+        // Logika cerdas untuk membedakan jabatan
+        const cariJabatan = (kataKunci, hindariKata = null) => {
+            const user = anggotaRegu.find(u => {
+                const jab = bersihkanTeks(u.jabatan);
+                if (hindariKata && jab.includes(hindariKata)) return false;
+                return jab.includes(kataKunci);
+            });
             return user ? user.name : '';
         };
 
-        form.tugas.ka_rupam = cariJabatan('karupam');
+        // AUTOFILL
+        form.tugas.ka_rupam = cariJabatan('karupam', 'wakarupam');
         form.tugas.wakarupam = cariJabatan('wakarupam');
-        
-        // P2U Autofill (Akan membaca kata kunci P2U I, P2U II, dst.)
-        form.tugas.kasatgas_p2u = cariJabatan('p2ui') || cariJabatan('p2u1') || cariJabatan('kasatgas') || ''; 
-        form.tugas.wakasatgas_p2u = cariJabatan('p2uii') || cariJabatan('p2u2') || cariJabatan('wakasatgas') || '';
-        form.tugas.anggota_p2u_3 = cariJabatan('p2uiii') || cariJabatan('p2u3') || '';
-        form.tugas.anggota_p2u_4 = cariJabatan('p2uiv') || cariJabatan('p2u4') || '';
+        form.tugas.kasatgas_p2u = cariJabatan('kasatgas', 'wakasatgas'); 
+        form.tugas.wakasatgas_p2u = cariJabatan('wakasatgas');
 
     } else {
         anggotaReguOptions.value = [];
         form.tugas.ka_rupam = ''; form.tugas.wakarupam = '';
         form.tugas.kasatgas_p2u = ''; form.tugas.wakasatgas_p2u = '';
-        form.tugas.anggota_p2u_3 = ''; form.tugas.anggota_p2u_4 = '';
     }
 });
 
@@ -267,7 +262,7 @@ const togglePreview = () => {
 };
 
 // ==========================================
-// FUNGSI SUBMIT DIPERBAIKI 
+// FUNGSI SUBMIT
 // ==========================================
 const submitLaporan = () => {
     form.post(route('astekpam.store'), {
@@ -596,47 +591,8 @@ const submitLaporan = () => {
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 bg-white border border-slate-200 rounded-2xl shadow-sm">
                                     <div class="space-y-2"><Label class="text-xs font-bold text-slate-600">Ka. Rupam</Label><Input v-model="form.tugas.ka_rupam" class="h-12 text-sm rounded-xl font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500" /></div>
                                     <div class="space-y-2"><Label class="text-xs font-bold text-slate-600">Wakarupam</Label><Input v-model="form.tugas.wakarupam" class="h-12 text-sm rounded-xl font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500" /></div>
-                                    
-                                    <div class="space-y-2">
-                                        <Label class="text-xs font-bold text-slate-600">Petugas P2U 1 (Kasatgas)</Label>
-                                        <Select v-model="form.tugas.kasatgas_p2u">
-                                            <SelectTrigger class="h-12 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih P2U..." /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="-">(Kosong)</SelectItem>
-                                                <SelectItem v-for="p in p2uUsersOptions" :key="p.id" :value="p.name">{{ p.name }} ({{ p.jabatan }})</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <Label class="text-xs font-bold text-slate-600">Petugas P2U 2 (Wakasatgas)</Label>
-                                        <Select v-model="form.tugas.wakasatgas_p2u">
-                                            <SelectTrigger class="h-12 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih P2U..." /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="-">(Kosong)</SelectItem>
-                                                <SelectItem v-for="p in p2uUsersOptions" :key="p.id" :value="p.name">{{ p.name }} ({{ p.jabatan }})</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <Label class="text-xs font-bold text-slate-600">Petugas P2U 3 (Opsional)</Label>
-                                        <Select v-model="form.tugas.anggota_p2u_3">
-                                            <SelectTrigger class="h-12 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih P2U..." /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="-">(Kosong)</SelectItem>
-                                                <SelectItem v-for="p in p2uUsersOptions" :key="p.id" :value="p.name">{{ p.name }} ({{ p.jabatan }})</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <Label class="text-xs font-bold text-slate-600">Petugas P2U 4 (Opsional)</Label>
-                                        <Select v-model="form.tugas.anggota_p2u_4">
-                                            <SelectTrigger class="h-12 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih P2U..." /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="-">(Kosong)</SelectItem>
-                                                <SelectItem v-for="p in p2uUsersOptions" :key="p.id" :value="p.name">{{ p.name }} ({{ p.jabatan }})</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                    <div class="space-y-2"><Label class="text-xs font-bold text-slate-600">Kasatgas</Label><Input v-model="form.tugas.kasatgas_p2u" class="h-12 text-sm rounded-xl font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500" /></div>
+                                    <div class="space-y-2"><Label class="text-xs font-bold text-slate-600">Wakasatgas</Label><Input v-model="form.tugas.wakasatgas_p2u" class="h-12 text-sm rounded-xl font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500" /></div>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -782,14 +738,8 @@ const submitLaporan = () => {
                             <div class="pl-4 sm:pl-5 align-top">Wakarupam</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.wakarupam || '-' }}</div>
                             
                             <div class="col-span-3 font-semibold mt-2">b. Petugas P2U :</div>
-                            <div class="pl-4 sm:pl-5 align-top">Petugas 1</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.kasatgas_p2u || '-' }}</div>
-                            <div class="pl-4 sm:pl-5 align-top">Petugas 2</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.wakasatgas_p2u || '-' }}</div>
-                            <div v-if="form.tugas.anggota_p2u_3 && form.tugas.anggota_p2u_3 !== '-'" class="pl-4 sm:pl-5 align-top">Petugas 3</div>
-                            <div v-if="form.tugas.anggota_p2u_3 && form.tugas.anggota_p2u_3 !== '-'" class="align-top">:</div>
-                            <div v-if="form.tugas.anggota_p2u_3 && form.tugas.anggota_p2u_3 !== '-'" class="align-top break-words">{{ form.tugas.anggota_p2u_3 }}</div>
-                            <div v-if="form.tugas.anggota_p2u_4 && form.tugas.anggota_p2u_4 !== '-'" class="pl-4 sm:pl-5 align-top">Petugas 4</div>
-                            <div v-if="form.tugas.anggota_p2u_4 && form.tugas.anggota_p2u_4 !== '-'" class="align-top">:</div>
-                            <div v-if="form.tugas.anggota_p2u_4 && form.tugas.anggota_p2u_4 !== '-'" class="align-top break-words">{{ form.tugas.anggota_p2u_4 }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Kasatgas</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.kasatgas_p2u || '-' }}</div>
+                            <div class="pl-4 sm:pl-5 align-top">Wakasatgas</div><div class="align-top">:</div><div class="align-top break-words">{{ form.tugas.wakasatgas_p2u || '-' }}</div>
                             
                             <div class="col-span-3 font-semibold mt-2">c. Petugas Blok :</div>
                             <div class="pl-4 sm:pl-5 align-top">Blok A</div><div class="align-top">:</div><div class="align-top break-words">{{ formatJam(form.tugas.blok_a) }}</div>
