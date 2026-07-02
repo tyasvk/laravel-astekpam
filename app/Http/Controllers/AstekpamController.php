@@ -340,7 +340,7 @@ class AstekpamController extends Controller
             $pesan .= "i. Banjaga         : " . ($tugas['banjaga'] ?? '-') . "\n\n";
             $pesan .= "j. Staff KPLP      : " . ($tugas['staff_kplp'] ?? '-') . "\n\n";
             $pesan .= "k. Amanah          : " . ($tugas['amanah'] ?? '-') . "\n\n";
-            $pesan .= "*l. Petugas Laporan : " . strtoupper($tugas['petugas_laporan'] ?? '-') . "*\n";
+            $pesan .= "l. Petugas Laporan : " . strtoupper($tugas['petugas_laporan'] ?? '-') . "\n";
         }
 
         $pesan .= "\nDemikian Laporan ini, kami sampaikan dan diucapkan terima kasih.\n\n";
