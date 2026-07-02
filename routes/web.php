@@ -71,13 +71,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('/astekpam/{astekpam}/edit', [AstekpamController::class, 'edit'])->name('astekpam.edit');
             Route::put('/astekpam/{astekpam}', [AstekpamController::class, 'update'])->name('astekpam.update');
+
+            // --- TAMBAHKAN BARIS INI UNTUK FITUR HAPUS ---
+            Route::delete('/astekpam/{astekpam}', [AstekpamController::class, 'destroy'])->name('astekpam.destroy');
         });
     });
 
     // --- PROFILE MANAGEMENT ---
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';

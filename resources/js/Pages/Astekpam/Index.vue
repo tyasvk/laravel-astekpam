@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
@@ -59,6 +59,14 @@ const filteredAstekpams = computed(() => {
 
     return result.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 });
+
+const hapusLaporan = (id) => {
+    if (confirm('⚠️ PERINGATAN: Apakah Anda yakin ingin menghapus laporan ini secara permanen? Data dan foto tidak dapat dikembalikan.')) {
+        router.delete(route('admin.astekpam.destroy', id), {
+            preserveScroll: true,
+        });
+    }
+};
 
 const paginatedAstekpams = computed(() => {
     const start = (currentPage.value - 1) * itemsPerPage;
@@ -239,7 +247,7 @@ const downloadPDF = async () => {
 };
 
 // =========================================================================
-// LOGIKA UNTUK COPY TEKS LAPORAN (WHATSAPP)
+// LOGIKA UNTUK COPY TEKS LAPORAN (WHATSAPP) - FORMAT BARU
 // =========================================================================
 const formatJsonArray = (data) => {
     if (!data) return null;
@@ -262,12 +270,12 @@ const formatJamTugas = (jamArray) => {
 };
 
 const getGreeting = (timeStr) => {
-    if (!timeStr) return 'Selamat Bertugas....';
+    if (!timeStr) return 'Bertugas';
     const hour = parseInt(timeStr.replace('.', ':').split(':')[0]);
-    if (hour >= 4 && hour < 11) return 'Selamat Pagi....';
-    if (hour >= 11 && hour < 15) return 'Selamat Siang....';
-    if (hour >= 15 && hour < 18) return 'Selamat Sore....';
-    return 'Selamat Malam....';
+    if (hour >= 4 && hour < 11) return 'Pagi';
+    if (hour >= 11 && hour < 15) return 'Siang';
+    if (hour >= 15 && hour < 18) return 'Sore';
+    return 'Malam';
 };
 
 const generatePesanLaporan = (data) => {
@@ -278,52 +286,107 @@ const generatePesanLaporan = (data) => {
     const tglNum = dateObj.getDate();
     const tanggalIndo = `${days[dateObj.getDay()]}, ${tglNum} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
     const salamWaktu = getGreeting(data.pukul);
+
     const formatOrg = (val) => (val && val !== '0' && val !== 0) ? `${val} Org` : '0 Org';
     const formatStr = (val) => (val && val !== '-') ? val : '-';
 
     let pesan = "";
-    if (data.foto_laporan) pesan += `${window.location.origin}/storage/${data.foto_laporan}\n\n`;
+
+    // 1. Link Foto di Paling Atas
+    if (data.foto_laporan) {
+        pesan += `${window.location.origin}/storage/${data.foto_laporan}\n\n`;
+    }
+
+    pesan += "*ASTEKPAM LAPAS KELAS I PALEMBANG*\n\n";
+    pesan += "Assalamu’alaikum Warahmatullahi Wabarakatuh\n";
+    pesan += `Selamat ${data.ke_shift ? data.ke_shift : '-'}....\n\n`;
     
-    pesan += "ASTEKPAM LAPAS KELAS I PALEMBANG\nAssalamu’alaikum Warahmatullahi Wabarakatuh\n" + `${salamWaktu}\n\n`;
-    pesan += `Hari/Tgl : ${tanggalIndo}\nPukul : ${formatStr(data.pukul)} WIB\n\n`;
-    pesan += `Berikut, ASTEKPAM dari ${formatStr(data.dari_rupam)} (Shift ${formatStr(data.dari_shift)}) ke ${formatStr(data.ke_rupam)} (Shift ${formatStr(data.ke_shift)}) Dipimpin oleh ${formatStr(data.pimpinan)} berjalan aman dan tertib.\n\n`;
-    pesan += "Dengan rincian sebagai berikut :\nA. JUMLAH PENGHUNI\n";
-    pesan += `1. Kapasitas : ${formatOrg(data.kapasitas)}\n2. Narapidana : ${formatOrg(data.narapidana)}\n3. Isi Blok Hunian :\n* Blok A : ${formatOrg(data.blok_a)}\n* Blok B : ${formatOrg(data.blok_b)}\n* Dapur : ${formatOrg(data.dapur)}\n* Klinik : ${formatOrg(data.klinik)}\nJumlah :\n* Didalam Lapas : ${formatOrg(data.dalam_lapas)}\n* Diluar Lapas : ${formatOrg(data.luar_lapas)}\n`;
+    pesan += `Hari/Tgl : *${tanggalIndo}*\n`;
+    pesan += `Pukul    : *${formatStr(data.pukul)} WIB*\n\n`;
+    
+    pesan += `Berikut, ASTEKPAM dari *${formatStr(data.dari_rupam)}* (Shift ${formatStr(data.dari_shift)}) ke *${formatStr(data.ke_rupam)}* (Shift ${formatStr(data.ke_shift)}) Dipimpin oleh *${formatStr(data.pimpinan)}* berjalan aman dan tertib.\n\n`;
+    
+    pesan += "Dengan rincian sebagai berikut :\n\n";
+    
+    // 2. A. Jumlah Penghuni (Blok A-B Dapur Klinik Lurus)
+    pesan += "*A. JUMLAH PENGHUNI*\n";
+    pesan += `1. Kapasitas : ${formatOrg(data.kapasitas)}\n`;
+    pesan += `2. Narapidana : ${formatOrg(data.narapidana)}\n`;
+    pesan += "3. Isi Blok Hunian :\n";
+    pesan += `   - Blok A         : ${formatOrg(data.blok_a)}\n`;
+    pesan += `   - Blok B         : ${formatOrg(data.blok_b)}\n`;
+    pesan += `   - Dapur          : ${formatOrg(data.dapur)}\n`;
+    pesan += `   - Klinik         : ${formatOrg(data.klinik)}\n`;
+    pesan += `   - Dalam Lapas : ${formatOrg(data.dalam_lapas)}\n`;
+    pesan += `   - Luar Lapas    : ${formatOrg(data.luar_lapas)}\n\n`;
 
     const rawatInap = formatJsonArray(data.rawat_inap_items);
     const berobat = formatJsonArray(data.berobat_items);
     const bonLuar = formatJsonArray(data.bon_luar_items);
 
     pesan += "4. Keterangan di luar Lapas :\n";
-    pesan += `* Rawat Inap RS : ${rawatInap ? rawatInap : '-'}\n* Berobat RS : ${berobat ? berobat : '-'}\n* Lain-lain (bon luar) : ${bonLuar ? bonLuar : '-'}\n`;
-    pesan += `5. Total Jumlah WBP : ${formatOrg(data.total_wbp)}\n\n`;
+    pesan += `   - Rawat Inap RS : ${rawatInap ? rawatInap : '-'}\n`;
+    pesan += `   - Berobat RS      : ${berobat ? berobat : '-'}\n`;
+    pesan += `   - Lain-lain (Bon): ${bonLuar ? bonLuar : '-'}\n\n`;
+    
+    pesan += `*5. Total Jumlah WBP : ${formatOrg(data.total_wbp)}*\n\n`;
 
-    pesan += "B. PERSONIL PENGAMANAN\n";
-    pesan += `1. ${data.rupam_pilihan ? data.rupam_pilihan : '-'}\nJumlah : ${formatOrg(data.rupam_jumlah)}\nHadir : ${formatOrg(data.rupam_hadir)}\n`;
+    // 3. B. Personil (Rupam lurus, P2U Lurus)
+    pesan += "*B. PERSONIL PENGAMANAN*\n";
+    pesan += `1. *${data.rupam_pilihan ? data.rupam_pilihan : '-'}*\n`;
+    pesan += `   - Jumlah          : ${formatOrg(data.rupam_jumlah)}\n`;
+    pesan += `   - Hadir             : ${formatOrg(data.rupam_hadir)}\n`;
     const tHadir = (parseInt(data.rupam_jumlah) || 0) - (parseInt(data.rupam_hadir) || 0);
-    pesan += `Tidak Hadir : ${tHadir > 0 ? tHadir + ' Org' : '-'}\nKeterangan : ${formatStr(data.rupam_keterangan)}\n`;
-    pesan += `2. SATGAS P2U\nJumlah : ${formatOrg(data.p2u_jumlah)}\nHadir : ${formatOrg(data.p2u_hadir)}\nKeterangan : ${formatStr(data.p2u_keterangan)}\n\n`;
+    pesan += `   - Tidak Hadir  : ${tHadir > 0 ? tHadir + ' Org' : '-'}\n`;
+    pesan += `   - Keterangan   : ${formatStr(data.rupam_keterangan)}\n\n`;
 
- let tugas = typeof data.tugas === 'string' ? JSON.parse(data.tugas) : data.tugas;
+    pesan += "2. *SATGAS P2U*\n";
+    pesan += `   - Jumlah         : ${formatOrg(data.p2u_jumlah)}\n`;
+    pesan += `   - Hadir            : ${formatOrg(data.p2u_hadir)}\n`;
+    pesan += `   - Keterangan  : ${formatStr(data.p2u_keterangan)}\n\n`;
+
+    let tugas = typeof data.tugas === 'string' ? JSON.parse(data.tugas) : data.tugas;
+    
     if (tugas && typeof tugas === 'object') {
-        pesan += "3. Pembagian Tugas :\n" +
-                 `a. Ka. Rupam : ${formatStr(tugas.ka_rupam)}\n   Wakarupam : ${formatStr(tugas.wakarupam)}\n\n` +
-                 `b. Petugas P2U :\n   Kasatgas : ${formatStr(tugas.kasatgas_p2u)}\n   Wakasatgas : ${formatStr(tugas.wakasatgas_p2u)}\n\n` +
-                 `c. Petugas Blok :\n   Blok A : ${formatJamTugas(tugas.blok_a)}\n   Blok B : ${formatJamTugas(tugas.blok_b)}\n\n` +
-                 `d. Petugas Pos Atas :\n   * Menara 1 : ${formatJamTugas(tugas.menara_1)}\n\n   * Menara 2 : ${formatJamTugas(tugas.menara_2)}\n\n   * Menara 3 : ${formatJamTugas(tugas.menara_3)}\n\n   * Menara 4 : ${formatJamTugas(tugas.menara_4)}\n\n` +
-                 `e. Petugas Jaga RS : ${formatStr(tugas.jaga_rs)}\n\n` +
-                 `f. Piket Dapur : ${formatStr(tugas.piket_dapur)}\n\n` +
-                 `g. Pengawas Piket : ${formatStr(tugas.perwira_piket)}\n\n` +
-                 `h. Perwira Piket : ${formatStr(tugas.perwira_kontrol)}\n\n` +
-                 `i. Banja : ${formatStr(tugas.banjaga)}\n\n` +
-                 `j. Staff KPLP : ${formatStr(tugas.staff_kplp)}\n\n` +
-                 `k. Amanah : ${formatStr(tugas.amanah)}\n\n` +
-                 `l. Petugas Laporan : ${formatStr(tugas.petugas_laporan)}\n\n`;
+        pesan += "*3. Pembagian Tugas :*\n";
+        pesan += `a. Ka. Rupam : ${formatStr(tugas.ka_rupam)}\n`;
+        pesan += `   Wakarupam : ${formatStr(tugas.wakarupam)}\n\n`;
+        
+        pesan += `b. Petugas P2U :\n`;
+        pesan += `   - Kasatgas    : ${formatStr(tugas.kasatgas_p2u)}\n`;
+        pesan += `   - Wakasatgas : ${formatStr(tugas.wakasatgas_p2u)}\n\n`;
+        
+        pesan += `c. Petugas Blok :\n`;
+        pesan += `   - Blok A : ${formatJamTugas(tugas.blok_a)}\n`;
+        pesan += `   - Blok B : ${formatJamTugas(tugas.blok_b)}\n\n`;
+        
+        pesan += `d. Petugas Pos Atas :\n`;
+        pesan += `   - Menara 1 : ${formatJamTugas(tugas.menara_1)}\n`;
+        pesan += `   - Menara 2 : ${formatJamTugas(tugas.menara_2)}\n`;
+        pesan += `   - Menara 3 : ${formatJamTugas(tugas.menara_3)}\n`;
+        pesan += `   - Menara 4 : ${formatJamTugas(tugas.menara_4)}\n\n`;
+        
+        pesan += `e. Jaga RS         : ${formatStr(tugas.jaga_rs)}\n\n`;
+        pesan += `f. Piket Dapur     : ${formatStr(tugas.piket_dapur)}\n\n`;
+        pesan += `g. Pengawas Piket  : ${formatStr(tugas.perwira_piket)}\n\n`;
+        pesan += `h. Perwira Piket   : ${formatStr(tugas.perwira_kontrol)}\n\n`;
+        pesan += `i. Banjaga         : ${formatStr(tugas.banjaga)}\n\n`;
+        pesan += `j. Staff KPLP      : ${formatStr(tugas.staff_kplp)}\n\n`;
+        pesan += `k. Amanah          : ${formatStr(tugas.amanah)}\n\n`;
+        pesan += `*l. Petugas Laporan : ${formatStr(tugas.petugas_laporan).toUpperCase()}*\n`;
     } else {
-        pesan += "3. Pembagian Tugas :\n(Data belum diisi)\n\n";
+        pesan += "*3. Pembagian Tugas :*\n(Data belum diisi)\n\n";
     }
 
-    pesan += "Demikian Laporan ini, kami sampaikan dan diucapkan terima kasih.\n\nWassalamu'alaikum Warahmatullaahi wabarakaatuh\nSalam Sejahtera\nSalam Sehat Selalu…🙏\n";
+    pesan += "\nDemikian Laporan ini, kami sampaikan dan diucapkan terima kasih.\n\n";
+    pesan += "Wassalamu'alaikum Warahmatullaahi wabarakaatuh\n";
+    pesan += "Salam Sejahtera\n";
+    pesan += "Salam Sehat Selalu…🙏\n\n";
+
+    // 4. Link detail laporan
+    pesan += "*Link Detail Laporan (Website):*\n";
+    pesan += `${window.location.origin}/astekpam/${data.id}\n`;
+
     return pesan;
 };
 
@@ -343,7 +406,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
     try {
         await navigator.clipboard.writeText(teks);
         alert('Teks berhasil disalin! Silakan "Paste/Tempel" pesan tersebut di Grup WhatsApp.');
-        const linkGrupWA = 'https://chat.whatsapp.com/CehSunQDnfiFmrNOVJy3CK'; 
+        const linkGrupWA = '[https://chat.whatsapp.com/CehSunQDnfiFmrNOVJy3CK](https://chat.whatsapp.com/CehSunQDnfiFmrNOVJy3CK)'; 
         window.open(linkGrupWA, '_blank');
     } catch (err) {
         alert('Gagal menyalin teks. Silakan coba lagi.');
@@ -362,7 +425,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
 
             <div class="w-full max-w-3xl mx-auto px-4 sm:px-6 space-y-4 sm:space-y-6 relative z-10">
                 
-                <!-- HEADER & TOMBOL BUAT LAPORAN -->
                 <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                     <div>
                         <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-700 text-[10px] font-bold mb-1.5 uppercase tracking-widest">
@@ -378,7 +440,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                     </Link>
                 </div>
 
-                <!-- KARTU FILTER & EXPORT -->
                 <Card class="rounded-2xl border border-slate-200 shadow-sm bg-white p-3 sm:p-4 w-full relative z-20">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                         
@@ -436,14 +497,10 @@ const shareKeWhatsAppGroup = async (laporan) => {
                     </div>
                 </Card>
 
-                <!-- ============================================== -->
-                <!-- DAFTAR KARTU COMPACT (ATAS BAWAH / FEED STYLE) -->
-                <!-- ============================================== -->
                 <div v-if="paginatedAstekpams.length > 0" class="flex flex-col gap-4 sm:gap-5 pt-1">
                     
                     <div v-for="laporan in paginatedAstekpams" :key="laporan.id" class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-300 overflow-hidden flex flex-col group relative">
                         
-                        <!-- Header Kartu -->
                         <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-2">
                             <span class="font-bold text-slate-800 flex items-center gap-1.5 text-xs sm:text-sm">
                                 <Calendar class="w-4 h-4 text-indigo-500 shrink-0" />
@@ -454,13 +511,10 @@ const shareKeWhatsAppGroup = async (laporan) => {
                             </span>
                         </div>
 
-                        <!-- Body Kartu (Lebih Pendek) -->
                         <div class="p-4 flex-1 space-y-3.5 sm:space-y-4">
                             
-                            <!-- Visual Serah Terima Shift + Info Pimpinan sejajar (Lebih padat) -->
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 
-                                <!-- Serah Terima Shift -->
                                 <div class="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col justify-center">
                                     <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1 text-center">Serah Terima Regu</span>
                                     <div class="flex items-center justify-between gap-2">
@@ -478,7 +532,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                     </div>
                                 </div>
 
-                                <!-- Pimpinan & Pelapor Bertumpuk -->
                                 <div class="flex flex-col justify-center space-y-2.5">
                                     <div class="flex items-start gap-2">
                                         <ShieldCheck class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"/> 
@@ -497,12 +550,10 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                 </div>
                             </div>
 
-                            <!-- Foto Lampiran (Dibuat Full tapi Diperkecil dengan object-contain) -->
                             <div v-if="laporan.foto_laporan" class="w-full relative group/foto rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-slate-100">
                                 <span class="absolute top-2 left-2 z-10 bg-black/60 text-white text-[9px] font-bold px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1">
                                     <ImageIcon class="w-3 h-3" /> Lampiran
                                 </span>
-                                <!-- Padding p-2 membuat foto terlihat lebih kecil, object-contain mencegah foto terpotong -->
                                 <a :href="getImageUrl(laporan.foto_laporan)" target="_blank" class="block w-full h-24 sm:h-32 flex items-center justify-center p-2">
                                     <img :src="getImageUrl(laporan.foto_laporan)" class="max-w-full max-h-full object-contain rounded-md group-hover/foto:scale-105 transition-transform duration-500" alt="Foto Laporan" />
                                 </a>
@@ -510,7 +561,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
 
                         </div>
 
-                        <!-- Footer Kartu: Action Buttons (Mendatar) -->
                         <div class="p-3 border-t border-slate-100 bg-slate-50/30">
                             <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                 
@@ -533,6 +583,22 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                 <Button @click="shareKeWhatsAppGroup(laporan)" class="flex-1 min-w-[70px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] sm:text-xs h-9 rounded-lg shadow-sm border-0">
                                     <MessageCircle class="w-3.5 h-3.5 sm:mr-1.5 shrink-0" /> <span class="hidden sm:inline">WA</span>
                                 </Button>
+                                
+                                <!-- Tombol Hapus Khusus Admin -->
+<button 
+    v-if="hasRole('admin')"
+    @click="hapusLaporan(laporan.id)" 
+    title="Hapus Laporan"
+    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition-colors"
+>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 6h18"></path>
+        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+        <line x1="10" y1="11" x2="10" y2="17"></line>
+        <line x1="14" y1="11" x2="14" y2="17"></line>
+    </svg>
+</button>
                             </div>
                         </div>
 
@@ -549,7 +615,6 @@ const shareKeWhatsAppGroup = async (laporan) => {
                     </p>
                 </div>
 
-                <!-- PAGINATION -->
                 <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white border border-slate-200 shadow-sm rounded-2xl mt-6 w-full">
                     <span class="text-[10px] sm:text-xs text-slate-500 font-bold tracking-wide text-center sm:text-left">
                         Menampilkan <span class="text-indigo-600">{{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredAstekpams.length) }}</span> 
@@ -575,3 +640,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
         </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+/* CSS styles (Kosong atau sesuai kebutuhan Anda) */
+</style>

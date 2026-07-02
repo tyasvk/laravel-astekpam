@@ -9,7 +9,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage; // [TAMBAHAN] Facade untuk hapus foto lama
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class AstekpamController extends Controller
@@ -19,10 +19,8 @@ class AstekpamController extends Controller
      */
     public function index(Request $request)
     {
-        // Menyiapkan query dasar
         $query = Astekpam::with('user')->latest();
 
-        // (Opsional) Filter Server-Side jika parameter tanggal dikirim via Inertia
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->whereBetween('tanggal', [$request->start_date, $request->end_date]);
         } elseif ($request->filled('start_date')) {
@@ -35,7 +33,6 @@ class AstekpamController extends Controller
 
         return Inertia::render('Astekpam/Index', [
             'astekpams' => $astekpams,
-            // Mengirim kembali filter ke frontend agar state kalender tetap terisi (opsional)
             'filters' => $request->only(['start_date', 'end_date']) 
         ]);
     }
@@ -71,7 +68,6 @@ class AstekpamController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validasi Input + Foto Maksimal 10MB
         $validated = $request->validate([
             'tanggal' => 'required',
             'pukul' => 'required',
@@ -85,10 +81,8 @@ class AstekpamController extends Controller
             'dari_rupam.required' => 'Kolom "Dari Regu (Lama)" wajib dipilih.',
         ]);
 
-        // 2. Ambil semua data input
         $data = $request->all();
 
-        // 3. TANGANI KOLOM ANGKA: Ubah null/kosong menjadi 0
         $kolomAngka = [
             'kapasitas', 'narapidana', 'blok_a', 'blok_b', 'dapur', 'klinik', 
             'dalam_lapas', 'luar_lapas', 'total_wbp', 
@@ -98,7 +92,6 @@ class AstekpamController extends Controller
             $data[$kolom] = $data[$kolom] ?? 0;
         }
 
-        // 4. TANGANI KOLOM TEKS: Ubah null/kosong menjadi tanda strip '-'
         $kolomTeks = [
             'dari_shift', 'ke_rupam', 'ke_shift', 'pimpinan', 
             'rupam_pilihan', 'rupam_keterangan', 'p2u_keterangan'
@@ -107,39 +100,45 @@ class AstekpamController extends Controller
             $data[$kolom] = $data[$kolom] ?? '-';
         }
 
-        // 5. TANGANI KOLOM ARRAY (Tanpa json_encode karena sudah di-cast oleh Model)
         $data['rawat_inap_items'] = $data['rawat_inap_items'] ?? [];
         $data['berobat_items']    = $data['berobat_items'] ?? [];
         $data['bon_luar_items']   = $data['bon_luar_items'] ?? [];
         $data['tugas']            = $data['tugas'] ?? [];
 
-        // 6. TANGANI UPLOAD FOTO
         if ($request->hasFile('foto_laporan')) {
             $path = $request->file('foto_laporan')->store('foto_laporan', 'public');
             $data['foto_laporan'] = $path;
         }
 
-        // 7. Simpan ke database
         $data['user_id'] = auth()->id(); 
         $astekpam = Astekpam::create($data);
 
-        // 8. Format Teks Laporan Lengkap
         $pesanWA = $this->generatePesanLaporan($astekpam);
 
-        // 9. Proses Pengiriman via HTTP Request Fonnte
+        // =====================================================================
+        // PROSES PENGIRIMAN DENGAN FITUR ANTI-GAGAL (RETRY & TIMEOUT)
+        // =====================================================================
         try {
-            Http::withHeaders([
-                'Authorization' => env('FONNTE_TOKEN')
-            ])->post('https://api.fonnte.com/send', [
-                'target' => env('WA_GROUP_TARGET'), 
-                'message' => $pesanWA,
-                'delay' => '2', 
-            ]);
+            $response = Http::withoutVerifying()
+                ->timeout(15)        // Berikan batas waktu tunggu respon hingga 15 detik
+                ->retry(3, 2000)     // Otomatis coba ulang hingga 3 kali dengan jeda 2 detik jika gagal
+                ->withHeaders([
+                    'Authorization' => env('FONNTE_TOKEN')
+                ])->post('https://api.fonnte.com/send', [
+                    'target' => env('WA_GROUP_TARGET'), 
+                    'message' => $pesanWA,
+                    'delay' => '2', 
+                ]);
+
+            if ($response->failed()) {
+                Log::error('Fonnte API menolak pengiriman laporan: ' . $response->body());
+            } else {
+                Log::info('Notif WA Astekpam Berhasil Dikirim Otomatis: ' . $response->body());
+            }
         } catch (\Exception $e) {
-            Log::error('Gagal kirim Notif WA Astekpam: ' . $e->getMessage());
+            Log::error('Gagal total menghubungi API Fonnte Astekpam: ' . $e->getMessage());
         }
 
-        // 10. Redirect kembali ke halaman index
         return redirect()->route('astekpam.index')->with('success', 'Laporan berhasil disimpan dan diteruskan ke WhatsApp Grup!');
     }
 
@@ -153,9 +152,6 @@ class AstekpamController extends Controller
         ]);
     }
 
-    /**
-     * [FITUR BARU] Menampilkan form edit untuk Admin
-     */
     public function edit(Astekpam $astekpam)
     {
         $users = \App\Models\User::all();
@@ -168,12 +164,8 @@ class AstekpamController extends Controller
         ]);
     }
 
-    /**
-     * [FITUR BARU] Memperbarui laporan (Khusus Admin)
-     */
     public function update(Request $request, Astekpam $astekpam)
     {
-        // 1. Validasi Input (Sama dengan Store)
         $validated = $request->validate([
             'tanggal' => 'required',
             'pukul' => 'required',
@@ -187,10 +179,8 @@ class AstekpamController extends Controller
             'dari_rupam.required' => 'Kolom "Dari Regu (Lama)" wajib dipilih.',
         ]);
 
-        // 2. Ambil semua data input
         $data = $request->all();
 
-        // 3. TANGANI KOLOM ANGKA: Ubah null/kosong menjadi 0
         $kolomAngka = [
             'kapasitas', 'narapidana', 'blok_a', 'blok_b', 'dapur', 'klinik', 
             'dalam_lapas', 'luar_lapas', 'total_wbp', 
@@ -200,7 +190,6 @@ class AstekpamController extends Controller
             $data[$kolom] = $data[$kolom] ?? 0;
         }
 
-        // 4. TANGANI KOLOM TEKS: Ubah null/kosong menjadi tanda strip '-'
         $kolomTeks = [
             'dari_shift', 'ke_rupam', 'ke_shift', 'pimpinan', 
             'rupam_pilihan', 'rupam_keterangan', 'p2u_keterangan'
@@ -209,43 +198,46 @@ class AstekpamController extends Controller
             $data[$kolom] = $data[$kolom] ?? '-';
         }
 
-        // 5. TANGANI KOLOM ARRAY
         $data['rawat_inap_items'] = $data['rawat_inap_items'] ?? [];
         $data['berobat_items']    = $data['berobat_items'] ?? [];
         $data['bon_luar_items']   = $data['bon_luar_items'] ?? [];
         $data['tugas']            = $data['tugas'] ?? [];
 
-        // 6. TANGANI UPLOAD FOTO (Jika ada perubahan foto)
         if ($request->hasFile('foto_laporan')) {
-            // Hapus foto lama jika ada
             if ($astekpam->foto_laporan) {
                 Storage::disk('public')->delete($astekpam->foto_laporan);
             }
-            // Simpan foto baru
             $path = $request->file('foto_laporan')->store('foto_laporan', 'public');
             $data['foto_laporan'] = $path;
         }
 
-        // 7. Simpan pembaruan ke database
         $astekpam->update($data);
 
-        // Opsional: Log riwayat pengeditan
         Log::info('Laporan Astekpam ID: ' . $astekpam->id . ' telah diedit oleh Admin: ' . auth()->user()->name);
 
-        // Tidak dikirim ulang ke Fonnte WA agar tidak double-spam di Grup
-        
         return redirect()->route('astekpam.index')->with('success', 'Laporan berhasil diperbarui oleh Admin!');
     }
 
     /**
-     * Endpoint untuk Download Laporan dari Backend (Server-Side)
+     * Menghapus laporan (Khusus Admin)
      */
+    public function destroy(Astekpam $astekpam)
+    {
+        if ($astekpam->foto_laporan) {
+            Storage::disk('public')->delete($astekpam->foto_laporan);
+        }
+
+        $astekpam->delete();
+
+        Log::info('Laporan Astekpam ID: ' . $astekpam->id . ' telah dihapus oleh Admin: ' . auth()->user()->name);
+
+        return redirect()->back()->with('success', 'Laporan berhasil dihapus secara permanen!');
+    }
+
     public function download(Request $request)
     {
-        // 1. Ambil Data Dasar
         $query = Astekpam::with('user')->latest();
 
-        // 2. Filter berdasarkan Tanggal Mulai & Selesai jika tersedia
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->whereBetween('tanggal', [$request->start_date, $request->end_date]);
         } elseif ($request->filled('start_date')) {
@@ -265,82 +257,89 @@ class AstekpamController extends Controller
     }
 
     // =========================================================================
-    // FUNGSI BANTUAN UNTUK MEMBENTUK TEKS WHATSAPP
+    // FUNGSI BANTUAN UNTUK MEMBENTUK TEKS WHATSAPP & API FONNTE
     // =========================================================================
     private function generatePesanLaporan($data)
     {
         Carbon::setLocale('id');
         $tanggalIndo = Carbon::parse($data->tanggal)->translatedFormat('l, d F Y');
         
-        $pesan = "*ASTEKPAM LAPAS KELAS I PALEMBANG*\n\n";
+        $pesan = "";
+
+        if (!empty($data->foto_laporan)) {
+            $pesan .= asset('storage/' . $data->foto_laporan) . "\n\n";
+        }
+        
+        $pesan .= "*ASTEKPAM LAPAS KELAS I PALEMBANG*\n\n";
         $pesan .= "Assalamu’alaikum Warahmatullahi Wabarakatuh\n";
-        $pesan .= "Selamat Bertugas....\n\n";
+        $pesan .= "Selamat " . ($data->ke_shift ?? '-') . "....\n\n";
         
         $pesan .= "Hari/Tgl : *" . $tanggalIndo . "*\n";
-        $pesan .= "Pukul : *" . $data->pukul . " WIB*\n\n";
+        $pesan .= "Pukul    : *" . $data->pukul . " WIB*\n\n";
         
         $pesan .= "Berikut, ASTEKPAM dari *" . ($data->dari_rupam ?? '-') . "* (Shift " . ($data->dari_shift ?? '-') . ") ke *" . ($data->ke_rupam ?? '-') . "* (Shift " . ($data->ke_shift ?? '-') . ") Dipimpin oleh *" . ($data->pimpinan ?? '-') . "* berjalan aman dan tertib.\n\n";
         
         $pesan .= "Dengan rincian sebagai berikut :\n\n";
+        
         $pesan .= "*A. JUMLAH PENGHUNI*\n";
-        $pesan .= "1. Kapasitas : " . ($data->kapasitas ?? 0) . " Org\n";
+        $pesan .= "1. Kapasitas  : " . ($data->kapasitas ?? 0) . " Org\n";
         $pesan .= "2. Narapidana : " . ($data->narapidana ?? 0) . " Org\n";
         $pesan .= "3. Isi Blok Hunian :\n";
-        $pesan .= "  - Blok A : " . ($data->blok_a ?? 0) . " Org\n";
-        $pesan .= "  - Blok B : " . ($data->blok_b ?? 0) . " Org\n";
-        $pesan .= "  - Dapur : " . ($data->dapur ?? 0) . " Org\n";
-        $pesan .= "  - Klinik : " . ($data->klinik ?? 0) . " Org\n";
-        $pesan .= "  - Dalam Lapas : " . ($data->dalam_lapas ?? 0) . " Org\n";
-        $pesan .= "  - Luar Lapas : " . ($data->luar_lapas ?? 0) . " Org\n\n";
+        $pesan .= "   - Blok A         : " . ($data->blok_a ?? 0) . " Org\n";
+        $pesan .= "   - Blok B         : " . ($data->blok_b ?? 0) . " Org\n";
+        $pesan .= "   - Dapur          : " . ($data->dapur ?? 0) . " Org\n";
+        $pesan .= "   - Klinik         : " . ($data->klinik ?? 0) . " Org\n";
+        $pesan .= "   - Di Dalam Lapas : " . ($data->dalam_lapas ?? 0) . " Org\n";
+        $pesan .= "   - Di Luar Lapas  : " . ($data->luar_lapas ?? 0) . " Org\n\n";
 
-        $pesan .= "4. Keterangan di luar Lapas :\n";
-        $pesan .= "  - Rawat Inap RS : " . $this->formatJsonArray($data->rawat_inap_items) . "\n";
-        $pesan .= "  - Berobat RS : " . $this->formatJsonArray($data->berobat_items) . "\n";
-        $pesan .= "  - Bon luar : " . $this->formatJsonArray($data->bon_luar_items) . "\n\n";
+        $pesan .= "4. Keterangan Luar :\n";
+        $pesan .= "   - Rawat Inap RS : " . $this->formatJsonArray($data->rawat_inap_items) . "\n";
+        $pesan .= "   - Berobat RS      : " . $this->formatJsonArray($data->berobat_items) . "\n";
+        $pesan .= "   - Lain-lain (Bon): " . $this->formatJsonArray($data->bon_luar_items) . "\n\n";
         
         $pesan .= "*5. Total Jumlah WBP : " . ($data->total_wbp ?? 0) . " Org*\n\n";
 
         $pesan .= "*B. PERSONIL PENGAMANAN*\n";
         $pesan .= "1. *" . ($data->rupam_pilihan ?? 'Rupam -') . "*\n";
-        $pesan .= "  - Jumlah : " . ($data->rupam_jumlah ?? 0) . " Org\n";
-        $pesan .= "  - Hadir : " . ($data->rupam_hadir ?? 0) . " Org\n";
+        $pesan .= "   - Jumlah          : " . ($data->rupam_jumlah ?? 0) . " Org\n";
+        $pesan .= "   - Hadir             : " . ($data->rupam_hadir ?? 0) . " Org\n";
         $kurangRupam = (int)($data->rupam_jumlah ?? 0) - (int)($data->rupam_hadir ?? 0);
-        $pesan .= "  - Kurang : " . ($kurangRupam > 0 ? $kurangRupam . " Org" : "-") . "\n";
-        $pesan .= "  - Ket : " . ($data->rupam_keterangan ?: '-') . "\n\n";
+        $pesan .= "   - Tidak Hadir  : " . ($kurangRupam > 0 ? $kurangRupam . " Org" : "-") . "\n";
+        $pesan .= "   - Keterangan   : " . ($data->rupam_keterangan ?: '-') . "\n\n";
 
         $pesan .= "2. *SATGAS P2U*\n";
-        $pesan .= "  - Jumlah : " . ($data->p2u_jumlah ?? 0) . " Org\n";
-        $pesan .= "  - Hadir : " . ($data->p2u_hadir ?? 0) . " Org\n";
-        $pesan .= "  - Ket : " . ($data->p2u_keterangan ?: '-') . "\n\n";
+        $pesan .= "   - Jumlah         : " . ($data->p2u_jumlah ?? 0) . " Org\n";
+        $pesan .= "   - Hadir            : " . ($data->p2u_hadir ?? 0) . " Org\n";
+        $pesan .= "   - Keterangan  : " . ($data->p2u_keterangan ?: '-') . "\n\n";
 
-        // Parsing data Pembagian Tugas
         $tugas = is_string($data->tugas) ? json_decode($data->tugas, true) : $data->tugas;
         
         if ($tugas && is_array($tugas)) {
             $pesan .= "*3. Pembagian Tugas :*\n";
             $pesan .= "a. Ka. Rupam : " . ($tugas['ka_rupam'] ?? '-') . "\n";
-            $pesan .= "   Wakarupam : " . ($tugas['wakarupam'] ?? '-') . "\n";
+            $pesan .= "   Wakarupam : " . ($tugas['wakarupam'] ?? '-') . "\n\n";
+
             $pesan .= "b. Petugas P2U :\n";
-            $pesan .= "   - Kasatgas : " . ($tugas['kasatgas_p2u'] ?? '-') . "\n";
-            $pesan .= "   - Wakasatgas : " . ($tugas['wakasatgas_p2u'] ?? '-') . "\n";
+            $pesan .= "   - Kasatgas    : " . ($tugas['kasatgas_p2u'] ?? '-') . "\n";
+            $pesan .= "   - Wakasatgas : " . ($tugas['wakasatgas_p2u'] ?? '-') . "\n\n";
             
             $pesan .= "c. Petugas Blok :\n";
             $pesan .= "   - Blok A : " . $this->formatJamTugas($tugas['blok_a'] ?? []) . "\n";
-            $pesan .= "   - Blok B : " . $this->formatJamTugas($tugas['blok_b'] ?? []) . "\n";
+            $pesan .= "   - Blok B : " . $this->formatJamTugas($tugas['blok_b'] ?? []) . "\n\n";
             
             $pesan .= "d. Petugas Pos Atas :\n";
             $pesan .= "   - Menara 1 : " . $this->formatJamTugas($tugas['menara_1'] ?? []) . "\n";
             $pesan .= "   - Menara 2 : " . $this->formatJamTugas($tugas['menara_2'] ?? []) . "\n";
             $pesan .= "   - Menara 3 : " . $this->formatJamTugas($tugas['menara_3'] ?? []) . "\n";
-            $pesan .= "   - Menara 4 : " . $this->formatJamTugas($tugas['menara_4'] ?? []) . "\n";
+            $pesan .= "   - Menara 4 : " . $this->formatJamTugas($tugas['menara_4'] ?? []) . "\n\n";
 
-            $pesan .= "e. Jaga RS : " . ($tugas['jaga_rs'] ?? '-') . "\n";
-            $pesan .= "f. Piket Dapur : " . ($tugas['piket_dapur'] ?? '-') . "\n";
-            $pesan .= "g. Pengawas Piket : " . ($tugas['perwira_piket'] ?? '-') . "\n";
-            $pesan .= "h. Perwira Piket : " . ($tugas['perwira_kontrol'] ?? '-') . "\n";
-            $pesan .= "i. Banjaga : " . ($tugas['banjaga'] ?? '-') . "\n";
-            $pesan .= "j. Staff KPLP : " . ($tugas['staff_kplp'] ?? '-') . "\n";
-            $pesan .= "k. Amanah : " . ($tugas['amanah'] ?? '-') . "\n";
+            $pesan .= "e. Jaga RS         : " . ($tugas['jaga_rs'] ?? '-') . "\n\n";
+            $pesan .= "f. Piket Dapur     : " . ($tugas['piket_dapur'] ?? '-') . "\n\n";
+            $pesan .= "g. Pengawas Piket  : " . ($tugas['perwira_piket'] ?? '-') . "\n\n";
+            $pesan .= "h. Perwira Piket   : " . ($tugas['perwira_kontrol'] ?? '-') . "\n\n";
+            $pesan .= "i. Banjaga         : " . ($tugas['banjaga'] ?? '-') . "\n\n";
+            $pesan .= "j. Staff KPLP      : " . ($tugas['staff_kplp'] ?? '-') . "\n\n";
+            $pesan .= "k. Amanah          : " . ($tugas['amanah'] ?? '-') . "\n\n";
             $pesan .= "*l. Petugas Laporan : " . strtoupper($tugas['petugas_laporan'] ?? '-') . "*\n";
         }
 
@@ -349,14 +348,9 @@ class AstekpamController extends Controller
         $pesan .= "Salam Sejahtera\n";
         $pesan .= "Salam Sehat Selalu…🙏\n\n";
 
-        // =======================================================
-        // TAMBAHAN: MENGAMBIL NAMA & NOMOR HP USER YANG LOGIN
-        // =======================================================
         $user = auth()->user();
         if ($user) {
             $namaPetugas = $user->name;
-            
-            // NOTE: Sesuaikan 'no_hp' dengan nama kolom tabel database users Anda
             $nomorHp = $user->no_hp ?? ''; 
             
             if (str_starts_with($nomorHp, '0')) {
@@ -365,9 +359,12 @@ class AstekpamController extends Controller
 
             $pesan .= "-----------------------------------\n";
             $pesan .= "*Dikirim Oleh:*\n";
-            $pesan .= "Nama : " . $namaPetugas . "\n";
-            $pesan .= "No. WA : @" . $nomorHp; 
+            $pesan .= "Nama   : " . $namaPetugas . "\n";
+            $pesan .= "No. WA : @" . $nomorHp . "\n\n";
         }
+
+        $pesan .= "*Link Detail Laporan (Website):*\n";
+        $pesan .= route('astekpam.show', $data->id) . "\n";
 
         return $pesan;
     }

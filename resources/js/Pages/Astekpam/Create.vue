@@ -230,7 +230,6 @@ watch(() => form.rupam_pilihan, (newRupam) => {
 
         anggotaReguOptions.value = anggotaRegu;
 
-        // Logika cerdas untuk membedakan jabatan
         const cariJabatan = (kataKunci, hindariKata = null) => {
             const user = anggotaRegu.find(u => {
                 const jab = bersihkanTeks(u.jabatan);
@@ -240,7 +239,6 @@ watch(() => form.rupam_pilihan, (newRupam) => {
             return user ? user.name : '';
         };
 
-        // AUTOFILL
         form.tugas.ka_rupam = cariJabatan('karupam', 'wakarupam');
         form.tugas.wakarupam = cariJabatan('wakarupam');
         form.tugas.kasatgas_p2u = cariJabatan('kasatgas', 'wakasatgas'); 
