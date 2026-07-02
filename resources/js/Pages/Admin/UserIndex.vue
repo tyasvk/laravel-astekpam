@@ -26,6 +26,7 @@ const form = useForm({
     name: '',
     email: '',
     nip: '',
+    no_hp: '', 
     password: '',
     regu: '',
     jabatan: '',
@@ -87,6 +88,7 @@ const openEditModal = (user) => {
     form.name = user.name;
     form.email = user.email;
     form.nip = user.nip;
+    form.no_hp = user.no_hp || ''; 
     form.regu = user.regu || ''; 
     form.jabatan = user.jabatan || ''; 
     form.password = ''; 
@@ -194,7 +196,8 @@ const deleteUser = (id) => {
                             <thead>
                                 <tr class="bg-zinc-50 border-b border-zinc-100 text-zinc-400 font-bold text-[10px] sm:text-[11px] tracking-wider uppercase">
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6">Nama / NIP</th>
-                                    <th class="py-3.5 sm:py-4 px-4 sm:px-6">Email</th>
+                                    <!-- Gabungkan Email dan Kontak -->
+                                    <th class="py-3.5 sm:py-4 px-4 sm:px-6">Kontak</th>
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6">Hak Akses</th>
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6">Regu</th>
                                     <th class="py-3.5 sm:py-4 px-4 sm:px-6">Jabatan</th>
@@ -207,7 +210,13 @@ const deleteUser = (id) => {
                                         <p class="font-bold text-zinc-900">{{ user.name }}</p>
                                         <p class="text-[10px] sm:text-xs text-zinc-400 font-normal mt-0.5">NIP. {{ user.nip || '-' }}</p>
                                     </td>
-                                    <td class="py-3 sm:py-4 px-4 sm:px-6 text-zinc-600">{{ user.email }}</td>
+                                    <!-- Kolom Kontak Menampilkan Email dan No HP -->
+                                    <td class="py-3 sm:py-4 px-4 sm:px-6">
+                                        <p class="text-zinc-700">{{ user.email }}</p>
+                                        <p class="text-[10px] sm:text-xs text-zinc-400 font-normal mt-0.5 flex items-center gap-1">
+                                            <span>HP.</span> {{ user.no_hp || 'Belum diisi' }}
+                                        </p>
+                                    </td>
                                     
                                     <td class="py-3 sm:py-4 px-4 sm:px-6">
                                         <span v-if="user.roles && user.roles.some(r => r.name === 'admin')" class="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] sm:text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
@@ -280,6 +289,12 @@ const deleteUser = (id) => {
                                     <Input type="email" v-model="form.email" placeholder="alamat@email.com" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl" />
                                     <p v-if="form.errors.email" class="text-xs text-rose-500 mt-1">{{ form.errors.email }}</p>
                                 </div>
+                            </div>
+
+                            <div class="space-y-1.5">
+                                <Label class="text-[11px] sm:text-xs font-bold text-zinc-500 tracking-wide">NOMOR HP</Label>
+                                <Input type="text" v-model="form.no_hp" placeholder="08xxxxxxxxxx" class="h-12 sm:h-11 text-base sm:text-sm rounded-xl" />
+                                <p v-if="form.errors.no_hp" class="text-xs text-rose-500 mt-1">{{ form.errors.no_hp }}</p>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">

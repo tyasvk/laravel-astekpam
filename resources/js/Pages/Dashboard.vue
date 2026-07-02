@@ -115,23 +115,32 @@ const getPercentage = (hadir, jumlah) => {
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8">
                 
                 <!-- CARD WELCOME -->
-                <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 rounded-3xl p-6 sm:p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-lg shadow-indigo-500/20 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
-                    <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none"></div>
-                    
-                    <div class="relative z-10">
-                        <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
-                            Selamat Datang, {{ $page.props.auth.user.name }}! 👋
-                        </h1>
-                        <p class="text-blue-100 text-sm sm:text-base font-medium max-w-xl">
-                            Pantau ringkasan laporan regu pengamanan Lapas Kelas I Palembang hari ini dengan cepat dan mudah.
-                        </p>
+                <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 rounded-3xl shadow-lg shadow-indigo-500/20 relative overflow-hidden flex items-center min-h-[220px]">
+                    <!-- Dekorasi Background -->
+                    <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none z-0"></div>
+                    <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none z-0"></div>
+
+                    <!-- Gambar Hormat (Tinggi menyeseuaikan layar & tidak bisa diklik) -->
+                    <div class="absolute bottom-0 right-[-10%] sm:right-0 md:right-6 lg:right-16 h-[85%] md:h-[95%] lg:h-full z-0 flex items-end opacity-30 md:opacity-100 pointer-events-none transition-all duration-500">
+                        <img src="/images/hormat.png" alt="Petugas Hormat" class="h-full w-auto object-contain object-bottom drop-shadow-2xl" />
                     </div>
-                    <Link :href="route('astekpam.create')" class="w-full md:w-auto relative z-10">
-                        <Button class="w-full md:w-auto rounded-xl bg-white text-indigo-700 hover:bg-blue-50 font-bold h-12 px-6 text-sm sm:text-base shadow-xl transition-all hover:scale-105 active:scale-95">
-                            + Buat Laporan Baru
-                        </Button>
-                    </Link>
+
+                    <!-- Konten -->
+                    <div class="p-6 sm:p-8 md:p-10 w-full flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+                        <div class="md:max-w-md lg:max-w-xl xl:max-w-2xl">
+                            <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
+                                Selamat Datang, {{ $page.props.auth.user.name }}! 👋
+                            </h1>
+                            <p class="text-blue-100 text-sm sm:text-base font-medium">
+                                Pantau ringkasan laporan regu pengamanan Lapas Kelas I Palembang hari ini dengan cepat dan mudah.
+                            </p>
+                        </div>
+                        <Link :href="route('astekpam.create')" class="w-full md:w-auto shrink-0 relative z-20">
+                            <Button class="w-full md:w-auto rounded-xl bg-white text-indigo-700 hover:bg-blue-50 font-bold h-12 px-6 text-sm sm:text-base shadow-xl transition-all hover:scale-105 active:scale-95">
+                                + Buat Laporan Baru
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
 
                 <!-- CARD KUISIONER (MUNCUL JIKA AKTIF/ON) -->
@@ -254,31 +263,21 @@ const getPercentage = (hadir, jumlah) => {
 
                         <div class="lg:col-span-8 flex flex-col gap-6">
                             
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                            <!-- Card Total WBP yang digabung dengan Kapasitas -->
+                            <div class="grid grid-cols-1 gap-4 sm:gap-6">
                                 <div class="bg-white border-0 rounded-3xl p-6 shadow-md shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
                                     <div class="relative flex items-center gap-5">
                                         <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
                                             <Users class="w-7 h-7" />
                                         </div>
-                                        <div>
-                                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total WBP</p>
-                                            <h3 class="text-3xl font-extrabold text-slate-800 mt-1">{{ formatVal(props.latestAstekpam.total_wbp) }}</h3>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-white border-0 rounded-3xl p-6 shadow-md shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
-                                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
-                                    <div class="relative flex items-center gap-5">
-                                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-fuchsia-600 text-white flex items-center justify-center shrink-0 shadow-lg shadow-purple-500/30">
-                                            <Users class="w-7 h-7" />
-                                        </div>
                                         <div class="w-full">
-                                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Narapidana</p>
+                                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total WBP</p>
                                             <div class="flex justify-between items-end mt-1">
-                                                <h3 class="text-3xl font-extrabold text-slate-800">{{ formatVal(props.latestAstekpam.narapidana) }}</h3>
-                                                <span class="text-[10px] text-purple-700 font-bold bg-purple-100 px-2.5 py-1 rounded-lg">
+                                                <h3 class="text-3xl font-extrabold text-slate-800">{{ formatVal(props.latestAstekpam.total_wbp) }}</h3>
+                                                
+                                                <!-- Kapasitas -->
+                                                <span class="text-sm text-blue-700 font-bold bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200">
                                                     Kapasitas: {{ formatVal(props.latestAstekpam.kapasitas) }}
                                                 </span>
                                             </div>
