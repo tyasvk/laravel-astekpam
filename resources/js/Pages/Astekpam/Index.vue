@@ -304,15 +304,21 @@ const generatePesanLaporan = (data) => {
     pesan += `Tidak Hadir : ${tHadir > 0 ? tHadir + ' Org' : '-'}\nKeterangan : ${formatStr(data.rupam_keterangan)}\n`;
     pesan += `2. SATGAS P2U\nJumlah : ${formatOrg(data.p2u_jumlah)}\nHadir : ${formatOrg(data.p2u_hadir)}\nKeterangan : ${formatStr(data.p2u_keterangan)}\n\n`;
 
-    let tugas = typeof data.tugas === 'string' ? JSON.parse(data.tugas) : data.tugas;
+ let tugas = typeof data.tugas === 'string' ? JSON.parse(data.tugas) : data.tugas;
     if (tugas && typeof tugas === 'object') {
         pesan += "3. Pembagian Tugas :\n" +
-                 `a. Ka. Rupam : ${formatStr(tugas.ka_rupam)}\n   Wakarupam : ${formatStr(tugas.wakarupam)}\n` +
-                 `b. Petugas P2U :\n   Kasatgas : ${formatStr(tugas.kasatgas_p2u)}\n   Wakasatgas : ${formatStr(tugas.wakasatgas_p2u)}\n` +
-                 `c. Petugas Blok :\n   Blok A : ${formatJamTugas(tugas.blok_a)}\n   Blok B : ${formatJamTugas(tugas.blok_b)}\n` +
-                 `d. Petugas Pos Atas :\n   * Menara 1 : ${formatJamTugas(tugas.menara_1)}\n   * Menara 2 : ${formatJamTugas(tugas.menara_2)}\n   * Menara 3 : ${formatJamTugas(tugas.menara_3)}\n   * Menara 4 : ${formatJamTugas(tugas.menara_4)}\n` +
-                 `e. Petugas Jaga RS : ${formatStr(tugas.jaga_rs)}\nf. Piket Dapur : ${formatStr(tugas.piket_dapur)}\ng. Pengawas Piket : ${formatStr(tugas.perwira_piket)}\n` +
-                 `h. Perwira Piket : ${formatStr(tugas.perwira_kontrol)}\ni. Banja : ${formatStr(tugas.banjaga)}\nj. Staff KPLP : ${formatStr(tugas.staff_kplp)}\nk. Amanah : ${formatStr(tugas.amanah)}\nl. Petugas Laporan : ${formatStr(tugas.petugas_laporan)}\n\n`;
+                 `a. Ka. Rupam : ${formatStr(tugas.ka_rupam)}\n   Wakarupam : ${formatStr(tugas.wakarupam)}\n\n` +
+                 `b. Petugas P2U :\n   Kasatgas : ${formatStr(tugas.kasatgas_p2u)}\n   Wakasatgas : ${formatStr(tugas.wakasatgas_p2u)}\n\n` +
+                 `c. Petugas Blok :\n   Blok A : ${formatJamTugas(tugas.blok_a)}\n   Blok B : ${formatJamTugas(tugas.blok_b)}\n\n` +
+                 `d. Petugas Pos Atas :\n   * Menara 1 : ${formatJamTugas(tugas.menara_1)}\n\n   * Menara 2 : ${formatJamTugas(tugas.menara_2)}\n\n   * Menara 3 : ${formatJamTugas(tugas.menara_3)}\n\n   * Menara 4 : ${formatJamTugas(tugas.menara_4)}\n\n` +
+                 `e. Petugas Jaga RS : ${formatStr(tugas.jaga_rs)}\n\n` +
+                 `f. Piket Dapur : ${formatStr(tugas.piket_dapur)}\n\n` +
+                 `g. Pengawas Piket : ${formatStr(tugas.perwira_piket)}\n\n` +
+                 `h. Perwira Piket : ${formatStr(tugas.perwira_kontrol)}\n\n` +
+                 `i. Banja : ${formatStr(tugas.banjaga)}\n\n` +
+                 `j. Staff KPLP : ${formatStr(tugas.staff_kplp)}\n\n` +
+                 `k. Amanah : ${formatStr(tugas.amanah)}\n\n` +
+                 `l. Petugas Laporan : ${formatStr(tugas.petugas_laporan)}\n\n`;
     } else {
         pesan += "3. Pembagian Tugas :\n(Data belum diisi)\n\n";
     }
