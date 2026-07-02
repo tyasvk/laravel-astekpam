@@ -308,7 +308,6 @@ const generatePesanLaporan = (data) => {
     
     pesan += "Dengan rincian sebagai berikut :\n\n";
     
-    // 2. A. Jumlah Penghuni (Blok A-B Dapur Klinik Lurus)
     pesan += "*A. JUMLAH PENGHUNI*\n";
     pesan += `1. Kapasitas : ${formatOrg(data.kapasitas)}\n`;
     pesan += `2. Narapidana : ${formatOrg(data.narapidana)}\n`;
@@ -331,7 +330,6 @@ const generatePesanLaporan = (data) => {
     
     pesan += `*5. Total Jumlah WBP : ${formatOrg(data.total_wbp)}*\n\n`;
 
-    // 3. B. Personil (Rupam lurus, P2U Lurus)
     pesan += "*B. PERSONIL PENGAMANAN*\n";
     pesan += `1. *${data.rupam_pilihan ? data.rupam_pilihan : '-'}*\n`;
     pesan += `   - Jumlah          : ${formatOrg(data.rupam_jumlah)}\n`;
@@ -383,7 +381,6 @@ const generatePesanLaporan = (data) => {
     pesan += "Salam Sejahtera\n";
     pesan += "Salam Sehat Selalu…🙏\n\n";
 
-    // 4. Link detail laporan
     pesan += "*Link Detail Laporan (Website):*\n";
     pesan += `${window.location.origin}/astekpam/${data.id}\n`;
 
@@ -406,7 +403,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
     try {
         await navigator.clipboard.writeText(teks);
         alert('Teks berhasil disalin! Silakan "Paste/Tempel" pesan tersebut di Grup WhatsApp.');
-        const linkGrupWA = '[https://chat.whatsapp.com/CehSunQDnfiFmrNOVJy3CK](https://chat.whatsapp.com/CehSunQDnfiFmrNOVJy3CK)'; 
+        const linkGrupWA = 'https://chat.whatsapp.com/CehSunQDnfiFmrNOVJy3CK'; 
         window.open(linkGrupWA, '_blank');
     } catch (err) {
         alert('Gagal menyalin teks. Silakan coba lagi.');
@@ -425,6 +422,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
 
             <div class="w-full max-w-3xl mx-auto px-4 sm:px-6 space-y-4 sm:space-y-6 relative z-10">
                 
+                <!-- HEADER & TOMBOL BUAT LAPORAN -->
                 <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                     <div>
                         <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-100 text-indigo-700 text-[10px] font-bold mb-1.5 uppercase tracking-widest">
@@ -433,6 +431,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
                         <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Riwayat Astekpam</h1>
                         <p class="text-slate-500 text-xs sm:text-sm font-medium mt-1">Kelola dan pantau seluruh riwayat pengamanan.</p>
                     </div>
+                    <!-- [MODIFIKASI] Tombol Buat Laporan Disembunyikan untuk Pejabat -->
                     <Link v-if="!hasRole('pejabat')" :href="route('astekpam.create')" class="w-full sm:w-auto shrink-0">
                         <Button class="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-200 h-10 px-4 transition-all active:scale-95 text-xs sm:text-sm">
                             <Plus class="w-4 h-4 mr-1.5" /> Buat Laporan Baru
@@ -440,6 +439,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
                     </Link>
                 </div>
 
+                <!-- KARTU FILTER & EXPORT -->
                 <Card class="rounded-2xl border border-slate-200 shadow-sm bg-white p-3 sm:p-4 w-full relative z-20">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                         
@@ -489,7 +489,8 @@ const shareKeWhatsAppGroup = async (laporan) => {
                             </div>
                         </div>
 
-                        <div v-if="hasRole('admin')" class="w-full md:w-auto mt-1 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">                            
+                        <!-- [MODIFIKASI] Tombol PDF Dimunculkan untuk Admin dan Pejabat -->
+                        <div v-if="hasRole('admin') || hasRole('pejabat')" class="w-full md:w-auto mt-1 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 shrink-0">                            
                             <Button @click="downloadPDF" variant="outline" class="w-full md:w-auto text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100 hover:text-rose-800 h-9 text-xs font-bold rounded-lg flex items-center justify-center transition-all shadow-sm active:scale-95">
                                 <Download class="w-3.5 h-3.5 mr-1.5" /> Cetak PDF
                             </Button>
@@ -497,10 +498,14 @@ const shareKeWhatsAppGroup = async (laporan) => {
                     </div>
                 </Card>
 
+                <!-- ============================================== -->
+                <!-- DAFTAR KARTU COMPACT (ATAS BAWAH / FEED STYLE) -->
+                <!-- ============================================== -->
                 <div v-if="paginatedAstekpams.length > 0" class="flex flex-col gap-4 sm:gap-5 pt-1">
                     
                     <div v-for="laporan in paginatedAstekpams" :key="laporan.id" class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all duration-300 overflow-hidden flex flex-col group relative">
                         
+                        <!-- Header Kartu -->
                         <div class="px-4 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-2">
                             <span class="font-bold text-slate-800 flex items-center gap-1.5 text-xs sm:text-sm">
                                 <Calendar class="w-4 h-4 text-indigo-500 shrink-0" />
@@ -511,10 +516,12 @@ const shareKeWhatsAppGroup = async (laporan) => {
                             </span>
                         </div>
 
+                        <!-- Body Kartu -->
                         <div class="p-4 flex-1 space-y-3.5 sm:space-y-4">
                             
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 
+                                <!-- Serah Terima Shift -->
                                 <div class="w-full bg-slate-50 p-2.5 rounded-xl border border-slate-100 flex flex-col justify-center">
                                     <span class="text-[9px] text-slate-400 font-bold uppercase tracking-wider block mb-1 text-center">Serah Terima Regu</span>
                                     <div class="flex items-center justify-between gap-2">
@@ -532,6 +539,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                     </div>
                                 </div>
 
+                                <!-- Pimpinan & Pelapor -->
                                 <div class="flex flex-col justify-center space-y-2.5">
                                     <div class="flex items-start gap-2">
                                         <ShieldCheck class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"/> 
@@ -550,6 +558,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                 </div>
                             </div>
 
+                            <!-- Foto Lampiran -->
                             <div v-if="laporan.foto_laporan" class="w-full relative group/foto rounded-xl overflow-hidden shadow-sm border border-slate-200 bg-slate-100">
                                 <span class="absolute top-2 left-2 z-10 bg-black/60 text-white text-[9px] font-bold px-2 py-1 rounded backdrop-blur-sm flex items-center gap-1">
                                     <ImageIcon class="w-3 h-3" /> Lampiran
@@ -561,6 +570,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
 
                         </div>
 
+                        <!-- Footer Kartu: Action Buttons -->
                         <div class="p-3 border-t border-slate-100 bg-slate-50/30">
                             <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                 
@@ -580,25 +590,26 @@ const shareKeWhatsAppGroup = async (laporan) => {
                                     <Copy class="w-3.5 h-3.5 sm:mr-1.5 shrink-0" /> <span class="hidden sm:inline">Copy</span>
                                 </Button>
 
-                                <Button @click="shareKeWhatsAppGroup(laporan)" class="flex-1 min-w-[70px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] sm:text-xs h-9 rounded-lg shadow-sm border-0">
+                                <!-- [MODIFIKASI] Tombol WA Disembunyikan untuk Pejabat -->
+                                <Button v-if="!hasRole('pejabat')" @click="shareKeWhatsAppGroup(laporan)" class="flex-1 min-w-[70px] bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] sm:text-xs h-9 rounded-lg shadow-sm border-0">
                                     <MessageCircle class="w-3.5 h-3.5 sm:mr-1.5 shrink-0" /> <span class="hidden sm:inline">WA</span>
                                 </Button>
                                 
                                 <!-- Tombol Hapus Khusus Admin -->
-<button 
-    v-if="hasRole('admin')"
-    @click="hapusLaporan(laporan.id)" 
-    title="Hapus Laporan"
-    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition-colors"
->
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 6h18"></path>
-        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-        <line x1="10" y1="11" x2="10" y2="17"></line>
-        <line x1="14" y1="11" x2="14" y2="17"></line>
-    </svg>
-</button>
+                                <button 
+                                    v-if="hasRole('admin')"
+                                    @click="hapusLaporan(laporan.id)" 
+                                    title="Hapus Laporan"
+                                    class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-rose-500 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-100 transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 6h18"></path>
+                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
 
@@ -615,6 +626,7 @@ const shareKeWhatsAppGroup = async (laporan) => {
                     </p>
                 </div>
 
+                <!-- PAGINATION -->
                 <div v-if="totalPages > 1" class="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 bg-white border border-slate-200 shadow-sm rounded-2xl mt-6 w-full">
                     <span class="text-[10px] sm:text-xs text-slate-500 font-bold tracking-wide text-center sm:text-left">
                         Menampilkan <span class="text-indigo-600">{{ ((currentPage - 1) * itemsPerPage) + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredAstekpams.length) }}</span> 

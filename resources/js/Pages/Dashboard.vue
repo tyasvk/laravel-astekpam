@@ -7,6 +7,8 @@ import { Button } from '@/Components/ui/button';
 import { 
     Users, ShieldAlert, Zap, Clock, Calendar, ArrowRight, Activity, MapPin, ClipboardList, FileText, Image as ImageIcon, CheckCircle2, ClipboardCheck
 } from 'lucide-vue-next';
+// [TAMBAHAN] Import pengecekan permission/role
+import { usePermission } from '@/Composables/usePermission';
 
 const props = defineProps({
     latestAstekpam: Object,
@@ -14,21 +16,26 @@ const props = defineProps({
     hasFilledKuisioner: Boolean,
 });
 
+// [TAMBAHAN] Inisialisasi fungsi hasRole
+const { hasRole } = usePermission();
+
 const formatVal = (val) => {
     return val !== undefined && val !== null && val !== '' ? val : '-';
 };
 
-const parseJsonCount = (data) => {
-    if (!data) return 0;
-    if (Array.isArray(data)) return data.filter(i => i && i.ket && i.ket.trim() !== '').length;
+const getValidItems = (data) => {
+    if (!data) return [];
+    let parsed = data;
     if (typeof data === 'string' && data.startsWith('[')) {
         try {
-            return JSON.parse(data).filter(i => i && i.ket && i.ket.trim() !== '').length;
+            parsed = JSON.parse(data);
         } catch (e) {
-            return 0;
+            return [];
         }
     }
-    return 0;
+    if (!Array.isArray(parsed)) return [];
+    
+    return parsed.filter(i => i && i.ket && i.ket.trim() !== '');
 };
 
 const formatNamaTugas = (dataTugas) => {
@@ -52,7 +59,6 @@ const formatNamaTugas = (dataTugas) => {
     return dataTugas;
 };
 
-// Palet warna pastel untuk icon tugas
 const colorClasses = [
     'bg-blue-100 text-blue-700', 'bg-emerald-100 text-emerald-700', 
     'bg-amber-100 text-amber-700', 'bg-purple-100 text-purple-700', 
@@ -63,19 +69,18 @@ const colorClasses = [
 
 const getBadgeColor = (index) => colorClasses[index % colorClasses.length];
 
-// Layout grid disesuaikan agar rapi
 const taskRows = computed(() => {
     if (!props.latestAstekpam) return [];
     const t = props.latestAstekpam.tugas || props.latestAstekpam || {};
     
     return [
-        { cols: 'md:grid-cols-2 lg:grid-cols-4', items: [
+        { cols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4', items: [
             { letter: 'a', label: 'Ka. Rupam', value: t.ka_rupam },
             { letter: 'b', label: 'Wakarupam', value: t.wakarupam },
             { letter: 'c', label: 'Kasatgas P2U', value: t.kasatgas_p2u },
             { letter: 'd', label: 'Wakasatgas P2U', value: t.wakasatgas_p2u },
         ]},
-        { cols: 'md:grid-cols-2', items: [
+        { cols: 'grid-cols-1 md:grid-cols-2', items: [
             { letter: 'e', label: 'Blok A', value: formatNamaTugas(t.blok_a) },
             { letter: 'f', label: 'Blok B', value: formatNamaTugas(t.blok_b) },
         ]},
@@ -85,7 +90,7 @@ const taskRows = computed(() => {
             { letter: 'i', label: 'Menara 3', value: formatNamaTugas(t.menara_3) },
             { letter: 'j', label: 'Menara 4', value: formatNamaTugas(t.menara_4) },
         ]},
-        { cols: 'md:grid-cols-2 lg:grid-cols-4', items: [
+        { cols: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4', items: [
             { letter: 'k', label: 'Jaga RS', value: t.jaga_rs },
             { letter: 'l', label: 'Piket Dapur', value: t.piket_dapur },
             { letter: 'm', label: 'Pengawas Piket', value: t.perwira_kontrol },
@@ -99,10 +104,9 @@ const taskRows = computed(() => {
     ];
 });
 
-// Calculate Percentage for Progress Bars
 const getPercentage = (hadir, jumlah) => {
     const h = parseInt(hadir) || 0;
-    const j = parseInt(jumlah) || 1; // avoid division by zero
+    const j = parseInt(jumlah) || 1;
     return Math.min(Math.round((h / j) * 100), 100);
 };
 </script>
@@ -116,16 +120,13 @@ const getPercentage = (hadir, jumlah) => {
                 
                 <!-- CARD WELCOME -->
                 <div class="bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-700 rounded-3xl shadow-lg shadow-indigo-500/20 relative overflow-hidden flex items-center min-h-[220px]">
-                    <!-- Dekorasi Background -->
                     <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none z-0"></div>
                     <div class="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-white opacity-10 rounded-full blur-2xl pointer-events-none z-0"></div>
 
-                    <!-- Gambar Hormat (Tinggi menyeseuaikan layar & tidak bisa diklik) -->
                     <div class="absolute bottom-0 right-[-10%] sm:right-0 md:right-6 lg:right-16 h-[85%] md:h-[95%] lg:h-full z-0 flex items-end opacity-30 md:opacity-100 pointer-events-none transition-all duration-500">
                         <img src="/images/hormat.png" alt="Petugas Hormat" class="h-full w-auto object-contain object-bottom drop-shadow-2xl" />
                     </div>
 
-                    <!-- Konten -->
                     <div class="p-6 sm:p-8 md:p-10 w-full flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                         <div class="md:max-w-md lg:max-w-xl xl:max-w-2xl">
                             <h1 class="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-2">
@@ -135,7 +136,9 @@ const getPercentage = (hadir, jumlah) => {
                                 Pantau ringkasan laporan regu pengamanan Lapas Kelas I Palembang hari ini dengan cepat dan mudah.
                             </p>
                         </div>
-                        <Link :href="route('astekpam.create')" class="w-full md:w-auto shrink-0 relative z-20">
+                        
+                        <!-- [MODIFIKASI] Tombol Buat Laporan Disembunyikan Jika Role adalah Pejabat -->
+                        <Link v-if="!hasRole('pejabat')" :href="route('astekpam.create')" class="w-full md:w-auto shrink-0 relative z-20">
                             <Button class="w-full md:w-auto rounded-xl bg-white text-indigo-700 hover:bg-blue-50 font-bold h-12 px-6 text-sm sm:text-base shadow-xl transition-all hover:scale-105 active:scale-95">
                                 + Buat Laporan Baru
                             </Button>
@@ -143,7 +146,7 @@ const getPercentage = (hadir, jumlah) => {
                     </div>
                 </div>
 
-                <!-- CARD KUISIONER (MUNCUL JIKA AKTIF/ON) -->
+                <!-- CARD KUISIONER -->
                 <div v-if="isKuisionerActive" class="bg-white border-2 border-indigo-100 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-md shadow-indigo-200/50 relative overflow-hidden group hover:border-indigo-200 transition-colors">
                     <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-50 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-700 ease-out pointer-events-none"></div>
                     
@@ -153,20 +156,15 @@ const getPercentage = (hadir, jumlah) => {
                         </div>
                         <div>
                             <h3 class="text-lg sm:text-xl font-extrabold text-slate-800 tracking-tight">Evaluasi & Kuisioner</h3>
-                            
-                            <!-- Muncul jika BELUM mengisi -->
                             <p v-if="!hasFilledKuisioner" class="text-sm text-slate-500 mt-1 font-medium max-w-xl">
                                 Terdapat form evaluasi/kuisioner yang sedang aktif. Mohon kesediaannya untuk mengisi form tersebut.
                             </p>
-                            
-                            <!-- Muncul jika SUDAH mengisi -->
                             <p v-else class="text-sm text-emerald-600 mt-1 font-bold max-w-xl flex items-center gap-1.5">
                                 <CheckCircle2 class="w-4 h-4" /> Terima kasih sudah mengisi kuisioner.
                             </p>
                         </div>
                     </div>
                     
-                    <!-- Tombol hanya muncul jika BELUM mengisi -->
                     <Link v-if="!hasFilledKuisioner" :href="route('kuisioner.fill')" class="w-full md:w-auto relative z-10 shrink-0">
                         <Button class="w-full md:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-12 px-8 text-sm sm:text-base shadow-lg shadow-indigo-200 transition-all hover:scale-105 active:scale-95">
                             Isi Kuisioner Sekarang
@@ -189,6 +187,7 @@ const getPercentage = (hadir, jumlah) => {
 
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         
+                        <!-- KOLOM KIRI -->
                         <div class="lg:col-span-4 space-y-6">
                             <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden h-full">
                                 <div class="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-5 flex justify-between items-center border-b border-slate-100">
@@ -212,8 +211,8 @@ const getPercentage = (hadir, jumlah) => {
                                             </div>
                                             <div class="flex-1 min-w-0 bg-white border border-slate-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
                                                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Shift Sebelumnya</p>
-                                                <p class="font-bold text-slate-700 text-base truncate">Regu {{ formatVal(props.latestAstekpam.dari_rupam) }}</p>
-                                                <p class="text-slate-500 text-xs mt-1 font-medium truncate">{{ formatVal(props.latestAstekpam.dari_shift) }}</p>
+                                                <p class="font-bold text-slate-700 text-base break-words whitespace-normal leading-snug">Regu {{ formatVal(props.latestAstekpam.dari_rupam) }}</p>
+                                                <p class="text-slate-500 text-xs mt-1 font-medium break-words whitespace-normal">{{ formatVal(props.latestAstekpam.dari_shift) }}</p>
                                             </div>
                                         </div>
                                         
@@ -224,19 +223,19 @@ const getPercentage = (hadir, jumlah) => {
                                             <div class="flex-1 min-w-0 bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 p-4 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
                                                 <div class="absolute top-0 right-0 w-16 h-16 bg-indigo-500 opacity-5 rounded-bl-full pointer-events-none"></div>
                                                 <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-1">Shift Saat Ini</p>
-                                                <p class="font-bold text-indigo-900 text-base truncate">Regu {{ formatVal(props.latestAstekpam.ke_rupam) }}</p>
-                                                <p class="text-indigo-700 text-xs mt-1 font-medium truncate">{{ formatVal(props.latestAstekpam.ke_shift) }}</p>
+                                                <p class="font-bold text-indigo-900 text-base break-words whitespace-normal leading-snug">Regu {{ formatVal(props.latestAstekpam.ke_rupam) }}</p>
+                                                <p class="text-indigo-700 text-xs mt-1 font-medium break-words whitespace-normal">{{ formatVal(props.latestAstekpam.ke_shift) }}</p>
                                             </div>
                                         </div>
                                     </div>
                                     
                                     <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-4 hover:bg-slate-100 transition-colors">
-                                        <div class="w-12 h-12 rounded-xl bg-white border border-slate-200 text-indigo-600 flex items-center justify-center shadow-sm">
+                                        <div class="w-12 h-12 rounded-xl bg-white border border-slate-200 text-indigo-600 flex items-center justify-center shadow-sm shrink-0">
                                             <Users class="w-6 h-6" />
                                         </div>
                                         <div class="flex-1 min-w-0">
                                             <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pimpinan Regu</p>
-                                            <p class="font-bold text-slate-800 text-sm mt-0.5 truncate">{{ formatVal(props.latestAstekpam.pimpinan) }}</p>
+                                            <p class="font-bold text-slate-800 text-sm mt-0.5 break-words whitespace-normal leading-relaxed">{{ formatVal(props.latestAstekpam.pimpinan) }}</p>
                                         </div>
                                     </div>
 
@@ -261,9 +260,10 @@ const getPercentage = (hadir, jumlah) => {
                             </Card>
                         </div>
 
+                        <!-- KOLOM KANAN -->
                         <div class="lg:col-span-8 flex flex-col gap-6">
                             
-                            <!-- Card Total WBP yang digabung dengan Kapasitas -->
+                            <!-- Card Total WBP -->
                             <div class="grid grid-cols-1 gap-4 sm:gap-6">
                                 <div class="bg-white border-0 rounded-3xl p-6 shadow-md shadow-slate-200/50 relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300">
                                     <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
@@ -275,9 +275,7 @@ const getPercentage = (hadir, jumlah) => {
                                             <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total WBP</p>
                                             <div class="flex justify-between items-end mt-1">
                                                 <h3 class="text-3xl font-extrabold text-slate-800">{{ formatVal(props.latestAstekpam.total_wbp) }}</h3>
-                                                
-                                                <!-- Kapasitas -->
-                                                <span class="text-sm text-blue-700 font-bold bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200">
+                                                <span class="text-sm text-blue-700 font-bold bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 break-words whitespace-normal text-right">
                                                     Kapasitas: {{ formatVal(props.latestAstekpam.kapasitas) }}
                                                 </span>
                                             </div>
@@ -286,40 +284,73 @@ const getPercentage = (hadir, jumlah) => {
                                 </div>
                             </div>
 
+                            <!-- Distribusi Penghuni -->
                             <div class="bg-white border-0 shadow-md shadow-slate-200/50 rounded-3xl p-6">
                                 <p class="text-sm font-bold text-slate-700 mb-5 flex items-center gap-2 uppercase tracking-wide">
                                     <div class="p-1.5 bg-orange-100 text-orange-600 rounded-md"><MapPin class="w-4 h-4"/></div> 
-                                    Distribusi Penghuni
+                                    Jumlah Penghuni
                                 </p>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div v-for="b in ['blok_a', 'blok_b', 'dapur', 'klinik']" :key="b" 
                                          class="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col justify-center items-center hover:bg-orange-50 hover:border-orange-100 transition-colors group">
-                                        <p class="text-[11px] font-bold text-slate-400 group-hover:text-orange-500 uppercase tracking-wider mb-2">{{ b.replace('_', ' ') }}</p>
+                                        <p class="text-[11px] font-bold text-slate-400 group-hover:text-orange-500 uppercase tracking-wider mb-2 text-center whitespace-normal break-words">{{ b.replace('_', ' ') }}</p>
                                         <p class="text-2xl font-black text-slate-700 group-hover:text-orange-700">{{ formatVal(props.latestAstekpam[b]) }}</p>
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Kondisi Luar Lapas & Kehadiran Personil -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                 
                                 <div class="bg-white border-0 rounded-3xl p-6 shadow-md shadow-slate-200/50">
                                     <p class="text-sm font-bold text-slate-700 mb-5 flex items-center gap-2 uppercase tracking-wide">
                                         <div class="p-1.5 bg-rose-100 text-rose-600 rounded-md"><ShieldAlert class="w-4 h-4"/></div> 
-                                        Kondisi Luar Lapas
+                                        Keterangan Di Luar Lapas
                                     </p>
                                     <div class="space-y-4">
-                                        <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 hover:bg-rose-50 transition-colors">
-                                            <span class="text-slate-600 font-semibold text-sm">Rawat Inap RS</span>
-                                            <span class="font-bold text-slate-800 bg-white px-3 py-1 rounded-lg shadow-sm">{{ parseJsonCount(props.latestAstekpam.rawat_inap_items) }} Org</span>
+                                        
+                                        <div class="flex flex-col p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-rose-50 hover:border-rose-100 transition-colors">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-slate-600 font-semibold text-sm">Rawat Inap RS</span>
+                                                <span class="font-bold text-slate-800 bg-white px-3 py-1 rounded-lg shadow-sm border border-slate-100 shrink-0 ml-2">
+                                                    {{ getValidItems(props.latestAstekpam.rawat_inap_items).length }} Org
+                                                </span>
+                                            </div>
+                                            <ul v-if="getValidItems(props.latestAstekpam.rawat_inap_items).length > 0" class="mt-2.5 pt-2 border-t border-slate-200/60 list-disc list-inside text-[13px] font-medium text-slate-600 space-y-1">
+                                                <li v-for="(item, idx) in getValidItems(props.latestAstekpam.rawat_inap_items)" :key="idx" class="break-words whitespace-normal">
+                                                    {{ item.ket }}
+                                                </li>
+                                            </ul>
                                         </div>
-                                        <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 hover:bg-rose-50 transition-colors">
-                                            <span class="text-slate-600 font-semibold text-sm">Berobat RS</span>
-                                            <span class="font-bold text-slate-800 bg-white px-3 py-1 rounded-lg shadow-sm">{{ parseJsonCount(props.latestAstekpam.berobat_items) }} Org</span>
+                                        
+                                        <div class="flex flex-col p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-rose-50 hover:border-rose-100 transition-colors">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-slate-600 font-semibold text-sm">Berobat RS</span>
+                                                <span class="font-bold text-slate-800 bg-white px-3 py-1 rounded-lg shadow-sm border border-slate-100 shrink-0 ml-2">
+                                                    {{ getValidItems(props.latestAstekpam.berobat_items).length }} Org
+                                                </span>
+                                            </div>
+                                            <ul v-if="getValidItems(props.latestAstekpam.berobat_items).length > 0" class="mt-2.5 pt-2 border-t border-slate-200/60 list-disc list-inside text-[13px] font-medium text-slate-600 space-y-1">
+                                                <li v-for="(item, idx) in getValidItems(props.latestAstekpam.berobat_items)" :key="idx" class="break-words whitespace-normal">
+                                                    {{ item.ket }}
+                                                </li>
+                                            </ul>
                                         </div>
-                                        <div class="flex justify-between items-center p-3 rounded-xl bg-slate-50 hover:bg-rose-50 transition-colors">
-                                            <span class="text-slate-600 font-semibold text-sm">Bon Luar</span>
-                                            <span class="font-bold text-slate-800 bg-white px-3 py-1 rounded-lg shadow-sm">{{ formatVal(props.latestAstekpam.luar_lapas) }} Org</span>
+                                        
+                                        <div class="flex flex-col p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-rose-50 hover:border-rose-100 transition-colors">
+                                            <div class="flex justify-between items-center">
+                                                <span class="text-slate-600 font-semibold text-sm">Lain-lain (Bon Luar)</span>
+                                                <span class="font-bold text-slate-800 bg-white px-3 py-1 rounded-lg shadow-sm border border-slate-100 shrink-0 ml-2">
+                                                    {{ getValidItems(props.latestAstekpam.bon_luar_items).length }} Org
+                                                </span>
+                                            </div>
+                                            <ul v-if="getValidItems(props.latestAstekpam.bon_luar_items).length > 0" class="mt-2.5 pt-2 border-t border-slate-200/60 list-disc list-inside text-[13px] font-medium text-slate-600 space-y-1">
+                                                <li v-for="(item, idx) in getValidItems(props.latestAstekpam.bon_luar_items)" :key="idx" class="break-words whitespace-normal">
+                                                    {{ item.ket }}
+                                                </li>
+                                            </ul>
                                         </div>
+
                                     </div>
                                 </div>
 
@@ -332,7 +363,7 @@ const getPercentage = (hadir, jumlah) => {
                                         <div>
                                             <div class="flex justify-between items-end mb-2">
                                                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Regu Pengamanan</span>
-                                                <span class="font-bold text-slate-700 text-sm bg-slate-100 px-2 py-0.5 rounded-md">{{ formatVal(props.latestAstekpam.rupam_hadir) }} / {{ formatVal(props.latestAstekpam.rupam_jumlah) }}</span>
+                                                <span class="font-bold text-slate-700 text-sm bg-slate-100 px-2 py-0.5 rounded-md shrink-0 ml-2">{{ formatVal(props.latestAstekpam.rupam_hadir) }} / {{ formatVal(props.latestAstekpam.rupam_jumlah) }}</span>
                                             </div>
                                             <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
                                                 <div class="bg-gradient-to-r from-emerald-400 to-emerald-500 h-full rounded-full transition-all duration-1000" :style="{ width: getPercentage(props.latestAstekpam.rupam_hadir, props.latestAstekpam.rupam_jumlah) + '%' }"></div>
@@ -341,7 +372,7 @@ const getPercentage = (hadir, jumlah) => {
                                         <div>
                                             <div class="flex justify-between items-end mb-2">
                                                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Satgas P2U</span>
-                                                <span class="font-bold text-slate-700 text-sm bg-slate-100 px-2 py-0.5 rounded-md">{{ formatVal(props.latestAstekpam.p2u_hadir) }} / {{ formatVal(props.latestAstekpam.p2u_jumlah) }}</span>
+                                                <span class="font-bold text-slate-700 text-sm bg-slate-100 px-2 py-0.5 rounded-md shrink-0 ml-2">{{ formatVal(props.latestAstekpam.p2u_hadir) }} / {{ formatVal(props.latestAstekpam.p2u_jumlah) }}</span>
                                             </div>
                                             <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
                                                 <div class="bg-gradient-to-r from-teal-400 to-teal-500 h-full rounded-full transition-all duration-1000" :style="{ width: getPercentage(props.latestAstekpam.p2u_hadir, props.latestAstekpam.p2u_jumlah) + '%' }"></div>
@@ -353,6 +384,7 @@ const getPercentage = (hadir, jumlah) => {
                         </div>
                     </div>
 
+                    <!-- KARTU TUGAS PERSONIL -->
                     <Card class="rounded-3xl border-0 shadow-md shadow-slate-200/50 bg-white overflow-hidden mt-2">
                         <div class="px-6 py-5 border-b border-slate-100 flex items-center gap-3 bg-white">
                             <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
@@ -361,23 +393,24 @@ const getPercentage = (hadir, jumlah) => {
                             <span class="font-bold text-base text-slate-800 uppercase tracking-wide">Pembagian Tugas Jaga Personil</span>
                         </div>
                         <CardContent class="p-6 sm:p-8 bg-slate-50/30">
-                            <div class="space-y-5">
-                                <div v-for="(row, rowIndex) in taskRows" :key="rowIndex" :class="['grid gap-4 sm:gap-5', row.cols]">
+                            
+                            <div class="space-y-5 w-full">
+                                <div v-for="(row, rowIndex) in taskRows" :key="rowIndex" :class="['grid gap-4 sm:gap-5 w-full', row.cols]">
                                     
                                     <div 
                                         v-for="(task, itemIndex) in row.items" 
                                         :key="task.letter" 
-                                        class="group flex items-center gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-100 hover:-translate-y-1 transition-all duration-300 cursor-default"
+                                        class="group flex items-start gap-3 sm:gap-4 p-4 rounded-2xl border border-slate-200 bg-white hover:border-indigo-300 hover:shadow-md hover:shadow-indigo-100 hover:-translate-y-1 transition-all duration-300 cursor-default h-full"
                                     >
-                                        <div :class="['w-10 h-10 rounded-xl text-sm font-black flex items-center justify-center uppercase shrink-0 transition-colors', getBadgeColor(rowIndex)]">
+                                        <div :class="['w-10 h-10 rounded-xl text-sm font-black flex items-center justify-center uppercase shrink-0 transition-colors mt-0.5', getBadgeColor(rowIndex)]">
                                             {{ task.letter }}
                                         </div>
                                         
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 truncate">
+                                        <div class="flex-1 w-full min-w-0">
+                                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 whitespace-normal break-words">
                                                 {{ task.label }}
                                             </p>
-                                            <p class="text-sm font-bold text-slate-700 truncate group-hover:text-indigo-700 transition-colors">
+                                            <p class="text-sm font-bold text-slate-700 group-hover:text-indigo-700 transition-colors whitespace-normal break-words leading-relaxed">
                                                 {{ formatVal(task.value) }}
                                             </p>
                                         </div>
@@ -385,19 +418,25 @@ const getPercentage = (hadir, jumlah) => {
 
                                 </div>
                             </div>
+
                         </CardContent>
                     </Card>
                 </div>
 
+                <!-- JIKA BELUM ADA DATA -->
                 <div v-else class="bg-white border-0 shadow-md shadow-slate-200/50 rounded-3xl p-10 sm:p-16 text-center mt-6">
                     <div class="bg-gradient-to-br from-indigo-50 to-blue-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                         <FileText class="w-10 h-10 text-indigo-400" />
                     </div>
                     <h3 class="text-xl font-bold text-slate-800">Belum Ada Data Laporan</h3>
                     <p class="text-slate-500 mt-3 max-w-md mx-auto text-sm sm:text-base leading-relaxed">
-                        Sistem belum menemukan data laporan serah terima regu pengamanan hari ini. Mulai dengan membuat laporan baru.
+                        Sistem belum menemukan data laporan serah terima regu pengamanan hari ini. 
+                        <!-- [MODIFIKASI] Teks ini juga dihilangkan untuk Pejabat -->
+                        <span v-if="!hasRole('pejabat')">Mulai dengan membuat laporan baru.</span>
                     </p>
-                    <Link :href="route('astekpam.create')">
+                    
+                    <!-- [MODIFIKASI] Tombol Buat Laporan di Empty State Disembunyikan untuk Pejabat -->
+                    <Link v-if="!hasRole('pejabat')" :href="route('astekpam.create')">
                         <Button class="mt-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm sm:text-base font-bold h-12 px-8 shadow-lg shadow-indigo-200 hover:scale-105 active:scale-95 transition-all">
                             Buat Laporan Sekarang
                         </Button>
