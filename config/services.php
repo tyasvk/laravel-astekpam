@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    // --- TAMBAHKAN KODE INI DI SINI ---
+    'fonnte' => [
+        'token' => env('FONNTE_TOKEN'),
+        'group_target' => env('WA_GROUP_TARGET'),
+    ],
+
 ];

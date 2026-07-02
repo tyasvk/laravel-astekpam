@@ -121,13 +121,14 @@ class AstekpamController extends Controller
         try {
             $response = Http::withoutVerifying()
                 ->timeout(15)        // Berikan batas waktu tunggu respon hingga 15 detik
-                ->retry(3, 2000)     // Otomatis coba ulang hingga 3 kali dengan jeda 2 detik jika gagal
+                ->retry(5, 2000)     // Otomatis coba ulang hingga 3 kali dengan jeda 2 detik jika gagal
                 ->withHeaders([
-                    'Authorization' => env('FONNTE_TOKEN')
+                    // UBAH BARIS INI:
+                    'Authorization' => config('services.fonnte.token')
                 ])->post('https://api.fonnte.com/send', [
-                    'target' => env('WA_GROUP_TARGET'), 
+                    // UBAH BARIS INI JUGA:
+                    'target' => config('services.fonnte.group_target'), 
                     'message' => $pesanWA,
-                    'delay' => '2', 
                 ]);
 
             if ($response->failed()) {
