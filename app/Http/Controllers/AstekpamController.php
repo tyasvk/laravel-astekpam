@@ -118,79 +118,57 @@ class AstekpamController extends Controller
         // =====================================================================
         // PROSES PENGIRIMAN WA (SISTEM GANDA / ANTI-GAGAL)
         // =====================================================================
+       // =====================================================================
+        // PROSES PENGIRIMAN WA (GABUNGAN FOTO & TEKS DALAM 1 PESAN)
+        // =====================================================================
         try {
             $targetWa = config('services.fonnte.group_target', '120363408257421349@g.us');
             $tokenWa  = config('services.fonnte.token', 'rZxtE0g#XU9m5E+jW9ZJ');
 
-            // LANGKAH 1: KIRIM FOTO DULUAN (Jika dilampirkan)
+            // Siapkan parameter dasar (Target dan Teks Laporan)
+            $postFields = array(
+                'target'  => $targetWa,
+                'message' => $pesanWA
+            );
+
+            // Jika foto dilampirkan, tambahkan ke dalam postFields
             if (!empty($astekpam->foto_laporan) && Storage::disk('public')->exists($astekpam->foto_laporan)) {
                 $fotoPath = Storage::disk('public')->path($astekpam->foto_laporan);
                 
                 // Coba Upload ke ImgBB dengan Base64
                 $imgbbUrl = $this->uploadToImgbb($fotoPath);
 
-                $postFieldsFoto = array(
-                    'target'  => $targetWa,
-                    'message' => "*📷 LAMPIRAN BUKTI FOTO LAPORAN ASTEKPAM*\nTanggal: " . Carbon::parse($astekpam->tanggal)->translatedFormat('d F Y')
-                );
-
                 if ($imgbbUrl) {
-                    // Jika sukses upload ImgBB, berikan Link ke Fonnte
+                    // Jika sukses upload ImgBB, berikan Link URL ke Fonnte
                     Log::info('Berhasil upload ke ImgBB: ' . $imgbbUrl);
-                    $postFieldsFoto['url'] = $imgbbUrl;
+                    $postFields['url'] = $imgbbUrl;
                 } else {
                     // JIKA IMGBB GAGAL: Terjang dengan Upload Fisik langsung ke Fonnte!
                     Log::warning('ImgBB gagal, fallback ke mode Upload Fisik Fonnte!');
                     $ekstensi = pathinfo($fotoPath, PATHINFO_EXTENSION) ?: 'jpg';
-                    $postFieldsFoto['file'] = new \CURLFile($fotoPath, mime_content_type($fotoPath), 'bukti_laporan.' . $ekstensi);
+                    $postFields['file'] = new \CURLFile($fotoPath, mime_content_type($fotoPath), 'bukti_laporan.' . $ekstensi);
                 }
-
-                // Eksekusi pengiriman FOTO ke Grup WA
-                $curlFoto = curl_init();
-                curl_setopt_array($curlFoto, array(
-                  CURLOPT_URL => 'https://api.fonnte.com/send',
-                  CURLOPT_RETURNTRANSFER => true,
-                  CURLOPT_ENCODING => '',
-                  CURLOPT_MAXREDIRS => 10,
-                  CURLOPT_TIMEOUT => 60,
-                  CURLOPT_FOLLOWLOCATION => true,
-                  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                  CURLOPT_CUSTOMREQUEST => 'POST',
-                  CURLOPT_POSTFIELDS => $postFieldsFoto,
-                  CURLOPT_HTTPHEADER => array('Authorization: ' . $tokenWa),
-                ));
-
-                $resFoto = curl_exec($curlFoto);
-                curl_close($curlFoto);
-
-                Log::info('Fonnte Response (Pesan Foto): ' . $resFoto);
-                
-                // Jeda 2 detik agar Fonnte berhasil memproses Foto sebelum Teks masuk
-                sleep(2); 
             }
 
-            // LANGKAH 2: KIRIM TEKS LAPORAN PANJANG MENYUSUL
-            $curlTeks = curl_init();
-            curl_setopt_array($curlTeks, array(
-              CURLOPT_URL => 'https://api.fonnte.com/send',
-              CURLOPT_RETURNTRANSFER => true,
-              CURLOPT_ENCODING => '',
-              CURLOPT_MAXREDIRS => 10,
-              CURLOPT_TIMEOUT => 30,
-              CURLOPT_FOLLOWLOCATION => true,
-              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-              CURLOPT_CUSTOMREQUEST => 'POST',
-              CURLOPT_POSTFIELDS => array(
-                'target'  => $targetWa,
-                'message' => $pesanWA
-              ),
-              CURLOPT_HTTPHEADER => array('Authorization: ' . $tokenWa),
+            // Eksekusi pengiriman 1 kali ke Grup WA
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => 'https://api.fonnte.com/send',
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 60,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $postFields,
+                CURLOPT_HTTPHEADER => array('Authorization: ' . $tokenWa),
             ));
 
-            $resTeks = curl_exec($curlTeks);
-            curl_close($curlTeks);
+            $response = curl_exec($curl);
+            curl_close($curl);
 
-            Log::info('Fonnte Response (Pesan Teks Laporan): ' . $resTeks);
+            Log::info('Fonnte Response (Pesan Laporan & Foto): ' . $response);
 
         } catch (\Exception $e) {
             Log::error('Gagal total menghubungi API Fonnte Astekpam: ' . $e->getMessage());
