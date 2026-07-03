@@ -116,20 +116,26 @@ class AstekpamController extends Controller
         $pesanWA = $this->generatePesanLaporan($astekpam);
 
         // =====================================================================
-        // PROSES PENGIRIMAN DENGAN FITUR ANTI-GAGAL (RETRY & TIMEOUT)
+        // PROSES PENGIRIMAN API FONNTE (METODE URL PUBLIK UNTUK VPS)
         // =====================================================================
         try {
+            $postData = [
+                'target' => config('services.fonnte.group_target'),
+                'message' => $pesanWA,
+            ];
+
+            // Jika ada foto, tambahkan parameter 'url'. 
+            // asset() akan menghasilkan link publik jika di-deploy ke VPS
+            if (!empty($astekpam->foto_laporan)) {
+                $postData['url'] = asset('storage/' . $astekpam->foto_laporan);
+            }
+
             $response = Http::withoutVerifying()
-                ->timeout(15)        // Berikan batas waktu tunggu respon hingga 15 detik
-                ->retry(5, 2000)     // Otomatis coba ulang hingga 3 kali dengan jeda 2 detik jika gagal
+                ->timeout(20)
+                ->retry(3, 2000)
                 ->withHeaders([
-                    // UBAH BARIS INI:
                     'Authorization' => config('services.fonnte.token')
-                ])->post('https://api.fonnte.com/send', [
-                    // UBAH BARIS INI JUGA:
-                    'target' => config('services.fonnte.group_target'), 
-                    'message' => $pesanWA,
-                ]);
+                ])->post('https://api.fonnte.com/send', $postData);
 
             if ($response->failed()) {
                 Log::error('Fonnte API menolak pengiriman laporan: ' . $response->body());
@@ -266,10 +272,6 @@ class AstekpamController extends Controller
         $tanggalIndo = Carbon::parse($data->tanggal)->translatedFormat('l, d F Y');
         
         $pesan = "";
-
-        if (!empty($data->foto_laporan)) {
-            $pesan .= asset('storage/' . $data->foto_laporan) . "\n\n";
-        }
         
         $pesan .= "*ASTEKPAM LAPAS KELAS I PALEMBANG*\n\n";
         $pesan .= "Assalamu’alaikum Warahmatullahi Wabarakatuh\n";
@@ -367,6 +369,12 @@ class AstekpamController extends Controller
         $pesan .= "*Link Detail Laporan (Website):*\n";
         $pesan .= route('astekpam.show', $data->id) . "\n";
 
+        // --- TAMBAHAN LINK FOTO DI BAWAH ---
+        if (!empty($data->foto_laporan)) {
+            $pesan .= "\n*Link Akses Foto (Full):*\n";
+            $pesan .= asset('storage/' . $data->foto_laporan) . "\n";
+        }
+
         return $pesan;
     }
 
@@ -389,37 +397,37 @@ class AstekpamController extends Controller
         }, $validItems));
     }
 
-private function formatJamTugas($jamArray)
-{
-    if (!is_array($jamArray) || empty($jamArray)) return '-';
-    
-    $jams = [
-        $jamArray['jam_1'] ?? null,
-        $jamArray['jam_2'] ?? null,
-        $jamArray['jam_3'] ?? null,
-    ];
+    private function formatJamTugas($jamArray)
+    {
+        if (!is_array($jamArray) || empty($jamArray)) return '-';
+        
+        $jams = [
+            $jamArray['jam_1'] ?? null,
+            $jamArray['jam_2'] ?? null,
+            $jamArray['jam_3'] ?? null,
+        ];
 
-    $validJams = [];
+        $validJams = [];
 
-    foreach ($jams as $jam) {
-        if (is_array($jam)) {
-            // Jika jam_x berisi array (lebih dari 1 petugas), gabungkan dengan '&'
-            $filtered = array_filter($jam, function($val) {
-                return !empty($val) && (string)$val !== '-';
-            });
-            if (!empty($filtered)) {
-                $validJams[] = implode(' & ', $filtered);
-            }
-        } else {
-            // Jika jam_x berisi teks biasa (satu petugas)
-            if (!empty($jam) && (string)$jam !== '-') {
-                $validJams[] = $jam;
+        foreach ($jams as $jam) {
+            if (is_array($jam)) {
+                // Jika jam_x berisi array (lebih dari 1 petugas), gabungkan dengan '&'
+                $filtered = array_filter($jam, function($val) {
+                    return !empty($val) && (string)$val !== '-';
+                });
+                if (!empty($filtered)) {
+                    $validJams[] = implode(' & ', $filtered);
+                }
+            } else {
+                // Jika jam_x berisi teks biasa (satu petugas)
+                if (!empty($jam) && (string)$jam !== '-') {
+                    $validJams[] = $jam;
+                }
             }
         }
-    }
 
-    if (empty($validJams)) return '-';
-    
-    return implode(' / ', $validJams);
-}
+        if (empty($validJams)) return '-';
+        
+        return implode(' / ', $validJams);
+    }
 }
