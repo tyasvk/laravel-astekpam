@@ -116,76 +116,58 @@ class AstekpamController extends Controller
         $pesanWA = $this->generatePesanLaporan($astekpam);
 
         // =====================================================================
-        // PROSES PENGIRIMAN WA (URUTAN: FOTO DULUAN, LALU TEKS PANJANG)
+        // PROSES PENGIRIMAN WA (MENGGUNAKAN IMGBB API + FONNTE)
         // =====================================================================
         try {
-            // Mengambil env target dan token secara langsung
             $targetWa = env('FONNTE_TARGET', '120363408257421349@g.us');
             $tokenWa  = env('FONNTE_TOKEN', 'rZxtE0g#XU9m5E+jW9ZJ');
 
-            // ---------------------------------------------------------
-            // TAHAP 1: KIRIM FOTO DENGAN CURL MURNI (SENJATA PAMUNGKAS)
-            // ---------------------------------------------------------
+            $imgbbUrl = null;
+
+            // LANGKAH 1: UPLOAD KE IMGBB SECARA OTOMATIS
             if (!empty($astekpam->foto_laporan) && Storage::disk('public')->exists($astekpam->foto_laporan)) {
-                
                 $fotoPath = Storage::disk('public')->path($astekpam->foto_laporan);
                 
-                $curl = curl_init();
-                curl_setopt_array($curl, array(
-                  CURLOPT_URL => 'https://api.fonnte.com/send',
-                  CURLOPT_RETURNTRANSFER => true,
-                  CURLOPT_ENCODING => '',
-                  CURLOPT_MAXREDIRS => 10,
-                  CURLOPT_TIMEOUT => 60, // Tunggu hingga 60 detik untuk upload
-                  CURLOPT_FOLLOWLOCATION => true,
-                  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                  CURLOPT_CUSTOMREQUEST => 'POST',
-                  CURLOPT_POSTFIELDS => array(
-                    'target'  => $targetWa,
-                    'message' => "*📷 LAMPIRAN BUKTI FOTO LAPORAN ASTEKPAM*\nTanggal: " . Carbon::parse($astekpam->tanggal)->translatedFormat('d F Y'),
-                    'file'    => new \CURLFile($fotoPath) // Upload Fisik Langsung
-                  ),
-                  CURLOPT_HTTPHEADER => array(
-                    'Authorization: ' . $tokenWa
-                  ),
-                ));
+                Log::info('Mulai mengunggah gambar ke ImgBB...');
+                $imgbbUrl = $this->uploadToImgbb($fotoPath);
 
-                $resFoto = curl_exec($curl);
-                $errFoto = curl_error($curl);
-                curl_close($curl);
+                if ($imgbbUrl) {
+                    Log::info('Berhasil Upload ImgBB: ' . $imgbbUrl);
+                } else {
+                    Log::error('Gagal Upload ImgBB, akan dikirim teks saja.');
+                }
+            }
 
-                Log::info('Fonnte Response Foto: ' . $resFoto . ' | Error cURL: ' . $errFoto);
+            // LANGKAH 2: KIRIM FOTO VIA FONNTE (Jika ImgBB Berhasil)
+            if ($imgbbUrl) {
+                $resFoto = Http::withoutVerifying()
+                    ->timeout(30)
+                    ->withHeaders([
+                        'Authorization' => $tokenWa
+                    ])->post('https://api.fonnte.com/send', [
+                        'target'  => $targetWa,
+                        'message' => "*📷 LAMPIRAN BUKTI FOTO LAPORAN ASTEKPAM*\nTanggal: " . Carbon::parse($astekpam->tanggal)->translatedFormat('d F Y'),
+                        'url'     => $imgbbUrl // Fonnte mendownload foto dari ImgBB
+                    ]);
 
-                // Jeda 2 detik agar gambar sukses diproses WA sebelum teks panjang masuk
+                Log::info('Fonnte Response (Foto): ' . $resFoto->body());
+                
+                // Jeda 2 detik agar urutan pesan rapi di WA
                 sleep(2); 
             }
 
-            // ---------------------------------------------------------
-            // TAHAP 2: KIRIM TEKS LAPORAN PANJANG MENYUSUL
-            // ---------------------------------------------------------
-            $curlText = curl_init();
-            curl_setopt_array($curlText, array(
-              CURLOPT_URL => 'https://api.fonnte.com/send',
-              CURLOPT_RETURNTRANSFER => true,
-              CURLOPT_ENCODING => '',
-              CURLOPT_MAXREDIRS => 10,
-              CURLOPT_TIMEOUT => 30,
-              CURLOPT_FOLLOWLOCATION => true,
-              CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-              CURLOPT_CUSTOMREQUEST => 'POST',
-              CURLOPT_POSTFIELDS => array(
-                'target'  => $targetWa,
-                'message' => $pesanWA
-              ),
-              CURLOPT_HTTPHEADER => array(
-                'Authorization: ' . $tokenWa
-              ),
-            ));
+            // LANGKAH 3: KIRIM TEKS LAPORAN PANJANG MENYUSUL
+            $response = Http::withoutVerifying()
+                ->timeout(15)
+                ->retry(3, 2000)
+                ->withHeaders([
+                    'Authorization' => $tokenWa
+                ])->post('https://api.fonnte.com/send', [
+                    'target'  => $targetWa, 
+                    'message' => $pesanWA,
+                ]);
 
-            $resTeks = curl_exec($curlText);
-            curl_close($curlText);
-            
-            Log::info('Fonnte Response Teks: ' . $resTeks);
+            Log::info('Fonnte Response (Teks): ' . $response->body());
 
         } catch (\Exception $e) {
             Log::error('Gagal total menghubungi API Fonnte Astekpam: ' . $e->getMessage());
@@ -309,6 +291,39 @@ class AstekpamController extends Controller
     }
 
     // =========================================================================
+    // FUNGSI KHUSUS UPLOAD IMGBB
+    // =========================================================================
+    private function uploadToImgbb($imagePath)
+    {
+        $apiKey = env('IMGBB_API_KEY'); // Diambil dari file .env
+
+        if (!$apiKey) {
+            Log::error('IMGBB_API_KEY belum disetting di file .env');
+            return null;
+        }
+
+        try {
+            $response = Http::withoutVerifying()
+                ->timeout(30)
+                ->attach('image', file_get_contents($imagePath), basename($imagePath))
+                ->post('https://api.imgbb.com/1/upload', [
+                    'key' => $apiKey,
+                ]);
+
+            if ($response->successful()) {
+                // Berhasil upload, kembalikan URL link gambarnya (misal: https://i.ibb.co/xyz.jpg)
+                return $response->json('data.url');
+            } else {
+                Log::error('ImgBB API Error: ' . $response->body());
+                return null;
+            }
+        } catch (\Exception $e) {
+            Log::error('ImgBB Exception: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // =========================================================================
     // FUNGSI BANTUAN UNTUK MEMBENTUK TEKS WHATSAPP & API FONNTE
     // =========================================================================
     private function generatePesanLaporan($data)
@@ -413,11 +428,6 @@ class AstekpamController extends Controller
 
         $pesan .= "*Link Detail Laporan (Website):*\n";
         $pesan .= route('astekpam.show', $data->id) . "\n";
-
-        if (!empty($data->foto_laporan)) {
-            $pesan .= "\n*Link Akses Foto (Full):*\n";
-            $pesan .= asset('storage/' . $data->foto_laporan) . "\n";
-        }
 
         return $pesan;
     }
