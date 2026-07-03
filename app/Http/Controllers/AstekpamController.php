@@ -389,19 +389,37 @@ class AstekpamController extends Controller
         }, $validItems));
     }
 
-    private function formatJamTugas($jamArray)
-    {
-        if (!is_array($jamArray) || empty($jamArray)) return '-';
-        
-        $validJams = array_filter([
-            $jamArray['jam_1'] ?? null,
-            $jamArray['jam_2'] ?? null,
-            $jamArray['jam_3'] ?? null,
-        ], function($val) {
-            return !empty($val) && $val !== '-';
-        });
+private function formatJamTugas($jamArray)
+{
+    if (!is_array($jamArray) || empty($jamArray)) return '-';
+    
+    $jams = [
+        $jamArray['jam_1'] ?? null,
+        $jamArray['jam_2'] ?? null,
+        $jamArray['jam_3'] ?? null,
+    ];
 
-        if (empty($validJams)) return '-';
-        return implode('/', $validJams);
+    $validJams = [];
+
+    foreach ($jams as $jam) {
+        if (is_array($jam)) {
+            // Jika jam_x berisi array (lebih dari 1 petugas), gabungkan dengan '&'
+            $filtered = array_filter($jam, function($val) {
+                return !empty($val) && (string)$val !== '-';
+            });
+            if (!empty($filtered)) {
+                $validJams[] = implode(' & ', $filtered);
+            }
+        } else {
+            // Jika jam_x berisi teks biasa (satu petugas)
+            if (!empty($jam) && (string)$jam !== '-') {
+                $validJams[] = $jam;
+            }
+        }
     }
+
+    if (empty($validJams)) return '-';
+    
+    return implode(' / ', $validJams);
+}
 }
