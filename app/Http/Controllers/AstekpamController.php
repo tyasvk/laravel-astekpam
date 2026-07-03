@@ -116,33 +116,70 @@ class AstekpamController extends Controller
         $pesanWA = $this->generatePesanLaporan($astekpam);
 
         // =====================================================================
-        // PROSES PENGIRIMAN API FONNTE (UPLOAD FISIK FILE - DIJAMIN MUNCUL)
-        // =====================================================================
-       // =====================================================================
-        // PROSES PENGIRIMAN API FONNTE (METODE LINK PUBLIK VPS)
+        // PROSES PENGIRIMAN WA (URUTAN DIBALIK: FOTO DULUAN, LALU TEKS PANJANG)
         // =====================================================================
         try {
-            $postData = [
-                'target' => config('services.fonnte.group_target'),
-                'message' => $pesanWA,
-            ];
+            $targetWa = env('FONNTE_TARGET', '120363408257421349@g.us');
+            $tokenWa  = env('FONNTE_TOKEN', 'rZxtE0g#XU9m5E+jW9ZJ');
 
-            // Rahasia Fonnte: Masukkan link URL ke dalam parameter bernama 'file'
-            if (!empty($astekpam->foto_laporan)) {
-                $postData['file'] = asset('storage/' . $astekpam->foto_laporan);
+            // LANGKAH 1: KIRIM FOTO SECARA FISIK DULUAN (Jika ada foto yang dilampirkan)
+            if (!empty($astekpam->foto_laporan) && Storage::disk('public')->exists($astekpam->foto_laporan)) {
+                $fotoPath = Storage::disk('public')->path($astekpam->foto_laporan);
+                
+                $curl = curl_init();
+                curl_setopt_array($curl, array(
+                  CURLOPT_URL => 'https://api.fonnte.com/send',
+                  CURLOPT_RETURNTRANSFER => true,
+                  CURLOPT_ENCODING => '',
+                  CURLOPT_MAXREDIRS => 10,
+                  CURLOPT_TIMEOUT => 30, // Timeout upload gambar
+                  CURLOPT_FOLLOWLOCATION => true,
+                  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                  CURLOPT_CUSTOMREQUEST => 'POST',
+                  CURLOPT_POSTFIELDS => array(
+                    'target' => $targetWa,
+                    // Caption pendek yang menempel di foto
+                    'message' => "*📷 LAMPIRAN BUKTI FOTO LAPORAN ASTEKPAM*\nTanggal: " . Carbon::parse($astekpam->tanggal)->translatedFormat('d F Y'), 
+                    'file' => new \CURLFile($fotoPath, mime_content_type($fotoPath), basename($fotoPath))
+                  ),
+                  CURLOPT_HTTPHEADER => array(
+                    'Authorization: ' . $tokenWa
+                  ),
+                ));
+
+                $resFoto = curl_exec($curl);
+                $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+                curl_close($curl);
+
+                if ($httpCode >= 200 && $httpCode < 300) {
+                    Log::info('Notif WA Foto Astekpam Berhasil Dikirim: ' . $resFoto);
+                } else {
+                    Log::error('Fonnte API gagal kirim foto: ' . $resFoto);
+                }
+
+                // Beri jeda 1.5 detik agar antrean di Fonnte teratur (Foto dikirim lebih dulu)
+                usleep(1500000); 
             }
 
+            // LANGKAH 2: KIRIM TEKS LAPORAN PANJANG MENYUSUL DI BAWAHNYA
             $response = Http::withoutVerifying()
-                ->timeout(30)
+                ->timeout(15)
+                ->retry(3, 2000)
                 ->withHeaders([
-                    'Authorization' => config('services.fonnte.token')
-                ])->post('https://api.fonnte.com/send', $postData);
+                    'Authorization' => $tokenWa
+                ])->post('https://api.fonnte.com/send', [
+                    'target' => $targetWa, 
+                    'message' => $pesanWA,
+                ]);
 
-            // Tulis hasil balasan Fonnte ke Log Laravel agar kita tahu apa yang terjadi
-            Log::info('Fonnte Response: ' . $response->body());
+            if ($response->failed()) {
+                Log::error('Fonnte API menolak pengiriman teks laporan: ' . $response->body());
+            } else {
+                Log::info('Notif WA Teks Astekpam Berhasil Dikirim: ' . $response->body());
+            }
 
         } catch (\Exception $e) {
-            Log::error('Fonnte Error: ' . $e->getMessage());
+            Log::error('Gagal total menghubungi API Fonnte Astekpam: ' . $e->getMessage());
         }
 
         return redirect()->route('astekpam.index')->with('success', 'Laporan berhasil disimpan dan diteruskan ke WhatsApp Grup!');
@@ -409,7 +446,6 @@ class AstekpamController extends Controller
 
         foreach ($jams as $jam) {
             if (is_array($jam)) {
-                // Jika jam_x berisi array (lebih dari 1 petugas), gabungkan dengan '&'
                 $filtered = array_filter($jam, function($val) {
                     return !empty($val) && (string)$val !== '-';
                 });
@@ -417,7 +453,6 @@ class AstekpamController extends Controller
                     $validJams[] = implode(' & ', $filtered);
                 }
             } else {
-                // Jika jam_x berisi teks biasa (satu petugas)
                 if (!empty($jam) && (string)$jam !== '-') {
                     $validJams[] = $jam;
                 }
