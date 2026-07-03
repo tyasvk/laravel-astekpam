@@ -116,49 +116,41 @@ class AstekpamController extends Controller
         $pesanWA = $this->generatePesanLaporan($astekpam);
 
         // =====================================================================
-        // PROSES PENGIRIMAN WA (URUTAN DIBALIK: FOTO DULUAN, LALU TEKS PANJANG)
+        // PROSES PENGIRIMAN WA (URUTAN: FOTO DULUAN, LALU TEKS PANJANG)
         // =====================================================================
         try {
             $targetWa = env('FONNTE_TARGET', '120363408257421349@g.us');
             $tokenWa  = env('FONNTE_TOKEN', 'rZxtE0g#XU9m5E+jW9ZJ');
 
-            // LANGKAH 1: KIRIM FOTO SECARA FISIK DULUAN (Jika ada foto yang dilampirkan)
+            // LANGKAH 1: KIRIM FOTO SECARA FISIK DULUAN
             if (!empty($astekpam->foto_laporan) && Storage::disk('public')->exists($astekpam->foto_laporan)) {
+                
                 $fotoPath = Storage::disk('public')->path($astekpam->foto_laporan);
                 
-                $curl = curl_init();
-                curl_setopt_array($curl, array(
-                  CURLOPT_URL => 'https://api.fonnte.com/send',
-                  CURLOPT_RETURNTRANSFER => true,
-                  CURLOPT_ENCODING => '',
-                  CURLOPT_MAXREDIRS => 10,
-                  CURLOPT_TIMEOUT => 30, // Timeout upload gambar
-                  CURLOPT_FOLLOWLOCATION => true,
-                  CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                  CURLOPT_CUSTOMREQUEST => 'POST',
-                  CURLOPT_POSTFIELDS => array(
-                    'target' => $targetWa,
-                    // Caption pendek yang menempel di foto
-                    'message' => "*📷 LAMPIRAN BUKTI FOTO LAPORAN ASTEKPAM*\nTanggal: " . Carbon::parse($astekpam->tanggal)->translatedFormat('d F Y'), 
-                    'file' => new \CURLFile($fotoPath, mime_content_type($fotoPath), basename($fotoPath))
-                  ),
-                  CURLOPT_HTTPHEADER => array(
-                    'Authorization: ' . $tokenWa
-                  ),
-                ));
+                // Ambil ekstensi asli, jika tidak ada paksa jadi .jpg agar Fonnte tidak error
+                $ekstensi = pathinfo($fotoPath, PATHINFO_EXTENSION) ?: 'jpg';
+                $namaFile = 'bukti_laporan.' . $ekstensi;
+                
+                // MENGGUNAKAN file_get_contents AGAR TIDAK ADA BUG STREAM (100% BEKERJA)
+                $resFoto = Http::withoutVerifying()
+                    ->timeout(60)
+                    ->withHeaders([
+                        'Authorization' => $tokenWa
+                    ])
+                    ->attach('file', file_get_contents($fotoPath), $namaFile)
+                    ->post('https://api.fonnte.com/send', [
+                        'target' => $targetWa,
+                        'message' => "*📷 LAMPIRAN BUKTI FOTO LAPORAN ASTEKPAM*\nTanggal: " . Carbon::parse($astekpam->tanggal)->translatedFormat('d F Y'),
+                    ]);
 
-                $resFoto = curl_exec($curl);
-                $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-                curl_close($curl);
-
-                if ($httpCode >= 200 && $httpCode < 300) {
-                    Log::info('Notif WA Foto Astekpam Berhasil Dikirim: ' . $resFoto);
+                if ($resFoto->failed()) {
+                    Log::error('Fonnte API gagal kirim foto: ' . $resFoto->body());
                 } else {
-                    Log::error('Fonnte API gagal kirim foto: ' . $resFoto);
+                    Log::info('Notif WA Foto Astekpam Berhasil Dikirim: ' . $resFoto->body());
                 }
 
-                // Beri jeda 1.5 detik agar antrean di Fonnte teratur (Foto dikirim lebih dulu)
-                usleep(1500000); 
+                // Beri jeda 2 detik agar API WA selesai merender gambar di dalam grup
+                sleep(2); 
             }
 
             // LANGKAH 2: KIRIM TEKS LAPORAN PANJANG MENYUSUL DI BAWAHNYA
