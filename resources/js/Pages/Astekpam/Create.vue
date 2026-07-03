@@ -119,12 +119,13 @@ const form = useForm({
         ka_rupam: '', wakarupam: '', 
         kasatgas_p2u: '', wakasatgas_p2u: '',
         
-        blok_a: { jam_1: '', jam_2: '', jam_3: '' },
-        blok_b: { jam_1: '', jam_2: '', jam_3: '' },
-        menara_1: { jam_1: '', jam_2: '', jam_3: '' },
-        menara_2: { jam_1: '', jam_2: '', jam_3: '' },
-        menara_3: { jam_1: '', jam_2: '', jam_3: '' },
-        menara_4: { jam_1: '', jam_2: '', jam_3: '' },
+        // --- DIUBAH: Menggunakan array agar bisa menampung lebih dari 1 petugas per jam ---
+        blok_a: { jam_1: [''], jam_2: [''], jam_3: [''] },
+        blok_b: { jam_1: [''], jam_2: [''], jam_3: [''] },
+        menara_1: { jam_1: [''], jam_2: [''], jam_3: [''] },
+        menara_2: { jam_1: [''], jam_2: [''], jam_3: [''] },
+        menara_3: { jam_1: [''], jam_2: [''], jam_3: [''] },
+        menara_4: { jam_1: [''], jam_2: [''], jam_3: [''] },
 
         perwira_kontrol: '', perwira_piket: '', staff_kplp: '',
         jaga_rs: '', banjaga: '', 
@@ -199,10 +200,23 @@ const tidakHadirRupam = computed(() => {
     return diff > 0 ? `${diff} Org` : '-';
 });
 
+// --- DIUBAH: Agar bisa menggabungkan nama petugas menggunakan array pada pratinjau ---
 const formatJam = (posData) => {
     if (!posData) return '-';
-    const jams = [posData.jam_1, posData.jam_2, posData.jam_3].filter(j => j && j !== '-');
-    return jams.length > 0 ? jams.join('/') : '-';
+    
+    const jams = [posData.jam_1, posData.jam_2, posData.jam_3].filter(j => {
+        if (Array.isArray(j)) return j.some(val => val && val !== '-');
+        return j && j !== '-';
+    });
+    
+    if (jams.length === 0) return '-';
+    
+    return jams.map(j => {
+        if (Array.isArray(j)) {
+            return j.filter(val => val && val !== '-').join(' & ');
+        }
+        return j;
+    }).join(' / ');
 };
 
 const formatKetLuar = (items) => {
@@ -215,8 +229,9 @@ const formatKetLuar = (items) => {
 watch(() => form.rupam_pilihan, (newRupam) => {
     const bersihkanTeks = (teks) => String(teks || '').toLowerCase().replace(/[\s.]/g, '');
     
+    // --- DIUBAH: Reset state dropdownTugas menggunakan array kembali ---
     Object.keys(dropdownTugas).forEach(key => {
-        form.tugas[key] = { jam_1: '', jam_2: '', jam_3: '' };
+        form.tugas[key] = { jam_1: [''], jam_2: [''], jam_3: [''] };
     });
 
     if (newRupam && props.users && props.users.length > 0) {
@@ -598,14 +613,41 @@ const submitLaporan = () => {
                                         <Label class="text-xs text-slate-800 font-black tracking-widest uppercase border-b border-slate-100 pb-2 block">{{label}}</Label>
                                         <div class="grid gap-3 grid-cols-1">
                                             <div v-for="jam in jumlahJam" :key="jam" class="space-y-1.5 flex flex-col">
-                                                <Label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Jam Ke-{{ jam }}</Label>
-                                                <Select v-model="form.tugas[key]['jam_' + jam]">
-                                                    <SelectTrigger class="h-11 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 w-full"><SelectValue placeholder="Pilih Anggota..." /></SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="-">(Kosong)</SelectItem>
-                                                        <SelectItem v-for="anggota in anggotaReguOptions" :key="anggota.id" :value="anggota.name">{{ anggota.name }}</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
+                                                
+                                                <div class="flex justify-between items-center">
+                                                    <Label class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Jam Ke-{{ jam }}</Label>
+                                                    <Button 
+                                                        v-if="form.ke_shift === 'Malam' && ['blok_a', 'blok_b'].includes(key)" 
+                                                        type="button" 
+                                                        @click="form.tugas[key]['jam_' + jam].push('')" 
+                                                        size="sm" 
+                                                        variant="ghost" 
+                                                        class="h-5 px-1.5 text-xs text-indigo-500 hover:bg-indigo-50 rounded">
+                                                        <Plus class="w-3 h-3 mr-1" /> Tambah
+                                                    </Button>
+                                                </div>
+                                                
+                                                <div v-for="(anggotaItem, idx) in form.tugas[key]['jam_' + jam]" :key="idx" class="flex gap-2 w-full mb-1">
+                                                    <Select v-model="form.tugas[key]['jam_' + jam][idx]">
+                                                        <SelectTrigger class="h-11 rounded-xl text-sm font-semibold bg-slate-50 border-slate-200 focus:bg-white focus:ring-2 focus:ring-purple-500 flex-1 w-full">
+                                                            <SelectValue placeholder="Pilih Anggota..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="-">(Kosong)</SelectItem>
+                                                            <SelectItem v-for="anggota in anggotaReguOptions" :key="anggota.id" :value="anggota.name">{{ anggota.name }}</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    
+                                                    <Button 
+                                                        v-if="form.tugas[key]['jam_' + jam].length > 1" 
+                                                        type="button" 
+                                                        @click="form.tugas[key]['jam_' + jam].splice(idx, 1)" 
+                                                        variant="ghost" 
+                                                        class="h-11 w-11 p-0 text-rose-400 hover:bg-rose-100 hover:text-rose-600 shrink-0 rounded-xl transition-colors">
+                                                        <Trash2 class="w-4 h-4"/>
+                                                    </Button>
+                                                </div>
+
                                             </div>
                                         </div>
                                     </div>
