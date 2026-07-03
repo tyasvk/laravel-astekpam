@@ -118,40 +118,31 @@ class AstekpamController extends Controller
         // =====================================================================
         // PROSES PENGIRIMAN API FONNTE (UPLOAD FISIK FILE - DIJAMIN MUNCUL)
         // =====================================================================
+       // =====================================================================
+        // PROSES PENGIRIMAN API FONNTE (METODE LINK PUBLIK VPS)
+        // =====================================================================
         try {
-            $http = Http::withoutVerifying()
-                ->timeout(60) // Waktu tunggu ekstra 60 detik untuk upload gambar besar
-                ->retry(3, 2000)
+            $postData = [
+                'target' => config('services.fonnte.group_target'),
+                'message' => $pesanWA,
+            ];
+
+            // Rahasia Fonnte: Masukkan link URL ke dalam parameter bernama 'file'
+            if (!empty($astekpam->foto_laporan)) {
+                $postData['file'] = asset('storage/' . $astekpam->foto_laporan);
+            }
+
+            $response = Http::withoutVerifying()
+                ->timeout(30)
                 ->withHeaders([
                     'Authorization' => config('services.fonnte.token')
-                ]);
+                ])->post('https://api.fonnte.com/send', $postData);
 
-            if (!empty($astekpam->foto_laporan) && Storage::disk('public')->exists($astekpam->foto_laporan)) {
-                // JIKA ADA FOTO: Upload file mentahnya langsung ke server WA Fonnte
-                $fotoPath = Storage::disk('public')->path($astekpam->foto_laporan);
-                $namaFile = basename($fotoPath);
+            // Tulis hasil balasan Fonnte ke Log Laravel agar kita tahu apa yang terjadi
+            Log::info('Fonnte Response: ' . $response->body());
 
-                $response = $http->attach(
-                    'file', fopen($fotoPath, 'r'), $namaFile
-                )->post('https://api.fonnte.com/send', [
-                    'target'  => config('services.fonnte.group_target'),
-                    'message' => $pesanWA, // Pesan ini akan otomatis jadi caption foto
-                ]);
-            } else {
-                // JIKA TIDAK ADA FOTO: Kirim teks biasa
-                $response = $http->post('https://api.fonnte.com/send', [
-                    'target'  => config('services.fonnte.group_target'),
-                    'message' => $pesanWA,
-                ]);
-            }
-
-            if ($response->failed()) {
-                Log::error('Fonnte API menolak pengiriman laporan: ' . $response->body());
-            } else {
-                Log::info('Notif WA Astekpam Berhasil Dikirim Otomatis: ' . $response->body());
-            }
         } catch (\Exception $e) {
-            Log::error('Gagal total menghubungi API Fonnte Astekpam: ' . $e->getMessage());
+            Log::error('Fonnte Error: ' . $e->getMessage());
         }
 
         return redirect()->route('astekpam.index')->with('success', 'Laporan berhasil disimpan dan diteruskan ke WhatsApp Grup!');
