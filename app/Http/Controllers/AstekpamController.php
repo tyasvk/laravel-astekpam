@@ -119,28 +119,29 @@ class AstekpamController extends Controller
         // PROSES PENGIRIMAN WA (URUTAN: FOTO DULUAN, LALU TEKS PANJANG)
         // =====================================================================
         try {
-            $targetWa = env('FONNTE_TARGET', '120363408257421349@g.us');
-            $tokenWa  = env('FONNTE_TOKEN', 'rZxtE0g#XU9m5E+jW9ZJ');
+            $targetWa = config('services.fonnte.group_target', '120363408257421349@g.us');
+            $tokenWa  = config('services.fonnte.token', 'rZxtE0g#XU9m5E+jW9ZJ');
 
-            // LANGKAH 1: KIRIM FOTO SECARA FISIK DULUAN
-            if (!empty($astekpam->foto_laporan) && Storage::disk('public')->exists($astekpam->foto_laporan)) {
+            // LANGKAH 1: KIRIM FOTO DULUAN (Jika ada)
+            if (!empty($astekpam->foto_laporan)) {
                 
-                $fotoPath = Storage::disk('public')->path($astekpam->foto_laporan);
-                
-                // Ambil ekstensi asli, jika tidak ada paksa jadi .jpg agar Fonnte tidak error
-                $ekstensi = pathinfo($fotoPath, PATHINFO_EXTENSION) ?: 'jpg';
-                $namaFile = 'bukti_laporan.' . $ekstensi;
-                
-                // MENGGUNAKAN file_get_contents AGAR TIDAK ADA BUG STREAM (100% BEKERJA)
+                // Mendapatkan URL publik secara dinamis tanpa bergantung pada .env APP_URL
+                $host = request()->getSchemeAndHttpHost();
+                $urlFoto = $host . '/storage/' . $astekpam->foto_laporan;
+
+                // TRIK JITU: Jika diuji di Localhost, pakai gambar online agar Fonnte berhasil
+                if (str_contains($host, 'localhost') || str_contains($host, '127.0.0.1')) {
+                    $urlFoto = 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Laravel.svg/800px-Laravel.svg.png';
+                }
+
                 $resFoto = Http::withoutVerifying()
-                    ->timeout(60)
+                    ->timeout(30)
                     ->withHeaders([
                         'Authorization' => $tokenWa
-                    ])
-                    ->attach('file', file_get_contents($fotoPath), $namaFile)
-                    ->post('https://api.fonnte.com/send', [
+                    ])->post('https://api.fonnte.com/send', [
                         'target' => $targetWa,
                         'message' => "*📷 LAMPIRAN BUKTI FOTO LAPORAN ASTEKPAM*\nTanggal: " . Carbon::parse($astekpam->tanggal)->translatedFormat('d F Y'),
+                        'url' => $urlFoto // Fonnte lebih stabil menggunakan parameter URL
                     ]);
 
                 if ($resFoto->failed()) {
@@ -149,7 +150,7 @@ class AstekpamController extends Controller
                     Log::info('Notif WA Foto Astekpam Berhasil Dikirim: ' . $resFoto->body());
                 }
 
-                // Beri jeda 2 detik agar API WA selesai merender gambar di dalam grup
+                // Beri jeda 2 detik agar API WA memproses gambar terlebih dahulu
                 sleep(2); 
             }
 
